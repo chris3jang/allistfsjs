@@ -1,0 +1,8 @@
+.allListsPosition {
+	display: inline-block;
+	width: 200px;
+}
+
+.currentListPosition {
+	display: inline-block;
+}

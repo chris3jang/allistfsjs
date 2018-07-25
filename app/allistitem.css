@@ -1,0 +1,91 @@
+/*
+.itemTextInput {
+	height: 30px;
+	width: 100%;
+	font: 20px arial, sans-serif;	
+	outline: none;
+	border: none;
+	border-color: transparent;
+	display: inline-block;
+}
+
+.selected {
+	height: 30px;
+	width: 100%;
+	font: 20px arial, sans-serif;	
+	outline: none;
+	border-color: red;
+	display: inline-block;
+}
+*/
+
+.itemTextInput {
+	border: none;
+    background-color: inherit;
+    font: 20px arial, sans-serif;
+    padding: 14px 28px;
+    cursor: pointer;
+    display: inline-block;
+    border-width: 0px;
+    width: 300px;
+}
+
+.selected {
+	background-color: inherit;
+	font: 20px arial, sans-serif;
+	border-color: red;
+	padding: 14px 28px;
+	display: inline-block;
+	width: 300px;
+}
+
+.itemButton {
+
+}
+
+.bullet{
+	display: inline-block;
+}
+
+.fulldiv{
+	display: inline-block;
+	outline: none;
+}
+
+:focus{
+	outline: none;
+}
+
+input[type=checkbox] {
+	position: absolute;
+	top: -9999px;
+	left: -9999px;
+}
+
+.chkbx-input:checked {
+}
+
+.divcheckboxchecked {
+	display: inline-block;
+	background: black;
+	width: 6px;
+	height: 6px;
+	border: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+
+.divcheckboxunchecked {
+	display: inline-block;
+    background: white;
+	width: 6px;
+	height: 6px;
+	border: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+
+
+
