@@ -50,6 +50,7 @@
 .fulldiv{
 	display: inline-block;
 	outline: none;
+	width: 100%;
 }
 
 :focus{
@@ -86,6 +87,22 @@ input[type=checkbox] {
 	border-color: black;
 }
 
+.selectedTextArea, .nonSelectedTextArea{
+	background-color: inherit;
+	font: 20px arial, sans-serif;
+	padding: 14px 28px;
+	resize: none;
+	width: 100%;
+	display: inline-block;
+	overflow: hidden;
+}
 
+.selectedTextArea {
+	border-color: red;
+}
+
+.nonSelectedTextArea {
+	border: none;
+}
 
 

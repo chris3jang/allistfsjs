@@ -5,11 +5,21 @@ import styles from './allistitem.css';
 
 class AllistItem extends React.Component {
 
+	state = {
+		height: 51
+	}
+
+	componentDidMount = () => {
+		this.textArea.style = 'height: auto'
+		this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
+		this.setState({height: this.textArea.scrollHeight})
+	}
+
 	handleDivKeyDown = (e) => {
 		const {orderNumber} = this.props
 		if(e.currentTarget.tagName == "DIV") {
 			if(e.key == 'Enter') {
-				if(e.shiftKey) this.props.handleAction(orderNumber, 'focusInput')
+				if(e.shiftKey) this.props.handleAction(orderNumber, 'focusTextArea')
 				else {
 					this.props.handleAction(orderNumber, 'create')
 				}
@@ -44,9 +54,26 @@ class AllistItem extends React.Component {
 
 	}
 
-	handleChange = (event) => {
+	handleTextAreaKeyDown = (e) => {
+		const {orderNumber} = this.props
+		e.stopPropagation()
+ 		if(e.key == 'Enter') this.props.handleAction(orderNumber, 'focusDiv')
+  		if(e.key == 'Backspace' && !e.target.value) this.props.handleAction(orderNumber, 'delete')
+	}
+
+	handleInputChange = (event) => {
 		if(event.key != 'Backspace' || event.target.value) {
 			this.props.handleAction(this.props.orderNumber, 'edit', event.target.value)
+		}
+	}
+
+	handleTextAreaChange = (e) => {
+		console.log(e.target.scrollHeight)
+		e.target.style = 'height: auto'
+		e.target.style = 'height: ' + (e.target.scrollHeight) + 'px;'
+		this.setState({height: e.target.scrollHeight})
+		if(e.key != 'Backspace' || e.target.value) {
+			this.props.handleAction(this.props.orderNumber, 'edit', e.target.value)
 		}
 	}
 
@@ -61,8 +88,14 @@ class AllistItem extends React.Component {
 		event.stopPropagation()
 	}
 
+	handleTextAreaClick = (e) => {
+		e.preventDefault()
+		e.stopPropagation()
+	}
+
 	handleRefCreate = (node, action) => {
-		this.props.createRef(this.props.orderNumber, node, action)
+		if(action == 'textarea') this.textArea = node;
+		this.props.createRef(this.props.orderNumber, node, action);
 	}
 
 	handleCheckboxClick = () => {
@@ -89,16 +122,17 @@ class AllistItem extends React.Component {
 					onClick={this.handleCheckboxClick.bind(this)} 
 					onChange={this.handleCheckBoxChange.bind(this)}>
 				</input>
-				<input type="text" 
-					className={this.props.selected ? styles.selected : styles.itemTextInput}
-					disabled={!this.props.selected}
+				<textarea 
+					rows={1}
+					style={{width: '100%', height: '51px'}}
+					className={this.props.selected ? styles.selectedTextArea : styles.nonSelectedTextArea} 
+					disabled={!this.props.selected} 
 					value={this.props.itemTitle}
-					onChange={this.handleChange.bind(this)} 
-					onKeyDown={this.handleInputKeyDown.bind(this)}
-					onClick={this.handleInputClick.bind(this)}
-					ref = {node => this.handleRefCreate(node, 'input')}
-					tabIndex="-1">
-				</input>
+					onChange={this.handleTextAreaChange.bind(this)}
+					onKeyDown={this.handleTextAreaKeyDown.bind(this)}
+					onClick={this.handleTextAreaClick.bind(this)}
+					ref = {node => this.handleRefCreate(node, 'textarea')}
+					tabIndex="-1"></textarea>
 			</div>
 		)
 	}
@@ -135,4 +169,19 @@ export default AllistItem;
 		}
 		
 	}
+
+	<input type="text" 
+					className={this.props.selected ? styles.selected : styles.itemTextInput}
+					disabled={!this.props.selected}
+					value={this.props.itemTitle}
+					onChange={this.handleInputChange.bind(this)} 
+					onKeyDown={this.handleInputKeyDown.bind(this)}
+					onClick={this.handleInputClick.bind(this)}
+					ref = {node => this.handleRefCreate(node, 'input')}
+					tabIndex="-1">
+				</input>
+
+
+
+
 	*/

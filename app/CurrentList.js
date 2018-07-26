@@ -12,6 +12,7 @@ class CurrentList extends React.Component {
 
 	divs = []
 	inputs = []
+	textareas = []
 
 	componentDidMount = () => {
 		this.fetchItems()
@@ -86,7 +87,7 @@ class CurrentList extends React.Component {
 				console.log(data)
 				editedList.splice(orderNumber+1, 0, {primarykey: data._id, itemtitle: '', indentlevel: data.indentLevel})
 				self.setState({items: editedList, selectedItemIndex: orderNumber+1}, ()=>{
-					self.handleFocusOnItem(orderNumber+1, 'input')
+					self.handleFocusOnItem(orderNumber+1, 'textarea')
 				})
 			});
 	}
@@ -192,6 +193,7 @@ class CurrentList extends React.Component {
 			case 'arrowLeft': {this.handleArrowKey(orderNumber, 'left'); break;}
 			case 'focusDiv': {this.handleFocusOnItem(orderNumber, 'div'); break;}
 			case 'focusInput': {this.handleFocusOnItem(orderNumber, 'input'); break;}
+			case 'focusTextArea': {this.handleFocusOnItem(orderNumber, 'textarea'); break;}
 			case 'toggle': {this.toggleCheckbox(orderNumber); break;}
 		}
 	}
@@ -213,11 +215,13 @@ class CurrentList extends React.Component {
 	handleFocusOnItem = (orderNumber, action) => {
 		if(action == 'div') this.divs[orderNumber].focus()
 		if(action == 'input') this.inputs[orderNumber].focus()
+		if(action == 'textarea') this.textareas[orderNumber].focus()
 	}
 
 	handleCreateRef(orderNumber, node, action) {
 		if(action == 'div') this.divs[orderNumber] = node
 		if(action == 'input') this.inputs[orderNumber] = node
+		if(action == 'textarea') this.textareas[orderNumber] = node
 	}
 
 	render() {
