@@ -67,6 +67,9 @@ input[type=checkbox] {
 }
 
 .divcheckboxchecked {
+	position: relative;
+	vertical-align: top;
+	top: 25px;
 	display: inline-block;
 	background: black;
 	width: 6px;
@@ -78,6 +81,9 @@ input[type=checkbox] {
 
 
 .divcheckboxunchecked {
+	position: relative;
+	vertical-align: top;
+	top: 25px;
 	display: inline-block;
     background: white;
 	width: 6px;

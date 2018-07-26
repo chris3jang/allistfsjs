@@ -15,11 +15,16 @@ class AllistItem extends React.Component {
 		this.setState({height: this.textArea.scrollHeight})
 	}
 
+
 	handleDivKeyDown = (e) => {
 		const {orderNumber} = this.props
 		if(e.currentTarget.tagName == "DIV") {
 			if(e.key == 'Enter') {
-				if(e.shiftKey) this.props.handleAction(orderNumber, 'focusTextArea')
+				if(e.shiftKey) {
+					//this.props.handleAction(orderNumber, 'focusTextArea')
+					e.preventDefault()
+					this.textArea.focus()
+				}
 				else {
 					this.props.handleAction(orderNumber, 'create')
 				}
@@ -57,7 +62,10 @@ class AllistItem extends React.Component {
 	handleTextAreaKeyDown = (e) => {
 		const {orderNumber} = this.props
 		e.stopPropagation()
- 		if(e.key == 'Enter') this.props.handleAction(orderNumber, 'focusDiv')
+ 		if(e.key == 'Enter') {
+ 			this.props.handleAction(this.props.orderNumber, 'edit', e.target.value)
+ 			this.props.handleAction(orderNumber, 'focusDiv')
+ 		}
   		if(e.key == 'Backspace' && !e.target.value) this.props.handleAction(orderNumber, 'delete')
 	}
 
@@ -68,13 +76,12 @@ class AllistItem extends React.Component {
 	}
 
 	handleTextAreaChange = (e) => {
-		console.log(e.target.scrollHeight)
-		e.target.style = 'height: auto'
-		e.target.style = 'height: ' + (e.target.scrollHeight) + 'px;'
-		this.setState({height: e.target.scrollHeight})
 		if(e.key != 'Backspace' || e.target.value) {
 			this.props.handleAction(this.props.orderNumber, 'edit', e.target.value)
 		}
+		e.target.style = 'height: auto'
+		e.target.style = 'height: ' + (e.target.scrollHeight) + 'px;'
+		this.setState({height: e.target.scrollHeight})		
 	}
 
 	handleDivClick = (event) => {
