@@ -57,7 +57,7 @@ class CurrentList extends React.Component {
 						itemtitle: data[i].itemTitle, 
 						indentlevel: data[i].indentLevel, 
 						checked: data[i].checked ? data[i].checked : false, 
-						collapsed: data[i].collapsed ? data[i].collapsed : false,
+						decollapsed: data[i].collapsed ? data[i].collapsed : false,
 						hidden: data[i].hidden ? data[i].hidden : false
 					}
 				}
@@ -151,7 +151,7 @@ class CurrentList extends React.Component {
 		let editedList = this.state.items
 		let fetchData = this.assignFetchData('PUT', { ordernumber: orderNumber })
 		fetch('http://localhost:8080/items/untab', fetchData)
-		.then(function() {``
+		.then(function() {
 			console.log(editedList[orderNumber].indentlevel)
 			console.log(orderNumber)
 			if(editedList[orderNumber].indentlevel != 0 && orderNumber != 0) {
@@ -190,13 +190,21 @@ class CurrentList extends React.Component {
 		});
 	}
 
-	toggleCollapse = (orderNumber) => {
-		const collapsed = this.state.items[orderNumber].collapsed
-		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber, collapsed: collapsed })
+	toggleCollapse = (orderNumber, action) => {
+		let editedList = this.state.items
+		const self = this
+		const decollapsed = this.state.items[orderNumber].decollapsed
+		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber, decollapsed: decollapsed })
 		fetch('http://localhost:8080/items/collapse', fetchData)
-		.then(() => {
-			//
-		});
+			.then(resp => resp.json())
+			.then((data) => {
+				
+				editedList[orderNumber].decollapsed = !this.state.items[orderNumber].decollapsed
+				for(let i = 0; i < data.index.length; i++) {
+					editedList[data.index[i]].hidden = !this.state.items[data.index[i]].hidden
+				}
+				self.setState({items: editedList})
+			})
 	}
 
 	handleAction = (orderNumber, action, editedTitle) => {
@@ -214,9 +222,25 @@ class CurrentList extends React.Component {
 			case 'focusInput': {this.handleFocusOnItem(orderNumber, 'input'); break;}
 			case 'focusTextArea': {this.handleFocusOnItem(orderNumber, 'textarea'); break;}
 			case 'toggle': {this.toggleCheckbox(orderNumber); break;}
-			case 'decollapse': {this.toggleCollapse(orderNumber); break;}
+			case 'collapse': {
+				if(this.state.items[orderNumber].decollapsed) this.toggleCollapse(orderNumber); 
+				break;
+			}
+			case 'decollapse': {
+				console.log("here")
+				const { items } = this.state
+				console.log(items[orderNumber])
+				console.log(items[orderNumber+1].indentlevel)
+				if(orderNumber != items.length-1 
+					&& items[orderNumber].indentlevel < items[orderNumber+1].indentlevel 
+					&& !items[orderNumber+1].hidden) {
+					this.toggleCollapse(orderNumber, 'decollapse'); 
+				}
+				break;
+			}
 		}
 	}
+
 
 	handleArrowKey(orderNumber, action) {
 		if(action == 'up') {
@@ -233,7 +257,9 @@ class CurrentList extends React.Component {
 				if(orderNumber + i == this.state.items.length - 1) break;
 				i++;
 			}
-			if(orderNumber + i != this.state.items.length) {
+			console.log(orderNumber + i)
+			console.log(this.state.items.length)
+			if(orderNumber + i != this.state.items.length-1 || (i == 1 && orderNumber + i == this.state.items.length-1)) {
 				this.selectItem(orderNumber + i)
 				this.divs[orderNumber+i].focus()
 			}
@@ -272,7 +298,8 @@ class CurrentList extends React.Component {
 								createRef = {this.handleCreateRef.bind(this)}
 								selected = {i == this.state.selectedItemIndex}
 								checked={this.state.items[i].checked}
-								collapsed={this.state.items[i].collapsed}>
+								hidden={this.state.items[i].hidden}
+								decollapsed={this.state.items[i].decollapsed}>
 							</AllistItem>
 						</div>
 					</div>

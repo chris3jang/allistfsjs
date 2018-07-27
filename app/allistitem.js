@@ -33,9 +33,10 @@ class AllistItem extends React.Component {
 	  		if(e.key == 'ArrowDown') this.props.handleAction(orderNumber, 'arrowDown')
 	  		if(e.key == 'ArrowLeft') {
 	  			if(e.shiftKey) this.props.handleAction(orderNumber, 'arrowLeft')
+	  			else this.props.handleAction(orderNumber, 'decollapse')
 	  		}
 	  		if(e.key == 'ArrowRight') {
-	  			this.props.handleAction(orderNumber, 'decollapse')
+	  			this.props.handleAction(orderNumber, 'collapse')
 	  		}
 	  		if(e.key == 'Backspace' && e.shiftKey) this.props.handleAction(orderNumber, 'delete')
 	  		if(e.key == 'Tab') {
@@ -124,7 +125,7 @@ class AllistItem extends React.Component {
 				onClick={this.handleDivClick.bind(this)}
 				onKeyDown={this.handleDivKeyDown.bind(this)}
 				ref = {node => this.handleRefCreate(node, 'div')}>
-				<div className={this.props.collapsed ? (this.props.checked ? styles.divcollapsedcheckboxchecked : styles.divcollapsedcheckboxunchecked) : (this.props.checked ? styles.divcheckboxchecked : styles.divcheckboxunchecked)} 
+				<div className={this.props.decollapsed ? (this.props.checked ? styles.divcollapsedcheckboxchecked : styles.divcollapsedcheckboxunchecked) : (this.props.checked ? styles.divcheckboxchecked : styles.divcheckboxunchecked)} 
 					onClick={this.handleCheckboxClick.bind(this)}>
 				</div>
 				<input type="checkbox" className="chkbx-input"

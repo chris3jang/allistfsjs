@@ -123,7 +123,7 @@ class Lists extends React.Component {
 				this.props.selectList(i + 1)
 				this.divs[i + 1].focus()
 			}
-			if(event.key == 'ArrowRight') this.props.focusOnCurrentList()
+			if(event.key == 'ArrowRight' && event.shiftKey) this.props.focusOnCurrentList()
 			if(event.key == 'Enter') {
 				if(event.shiftKey) this.inputs[i].focus()//this.props.handleAction(orderNumber, 'focusInput')
 				else this.fetchFromAPI('create', [i])
