@@ -2,16 +2,17 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import AllistItem from './Allistitem'
+import styles from './currentlist.css';
 
 class CurrentList extends React.Component {
 
 	state = {
 		items: [],
+		hidden: [],
 		selectedItemIndex: null
 	}
 
 	divs = []
-	inputs = []
 	textareas = []
 
 	componentDidMount = () => {
@@ -24,7 +25,6 @@ class CurrentList extends React.Component {
 			this.fetchItems()
 		}
 		if(nextProps.shouldChildUpdate) {
-			console.log("cwp do i get here after trashing")
 			this.fetchItems()
 			this.props.updateComplete()
 		}
@@ -52,7 +52,14 @@ class CurrentList extends React.Component {
 			.then((resp) => resp.json())
 			.then((data) => {
 				for(var i = 0; i < data.length; i++) {
-					fetchedData[data[i].orderNumber] = {primarykey: data[i]._id, itemtitle: data[i].itemTitle, indentlevel: data[i].indentLevel, checked: data[i].checked ? data[i].checked : false}
+					fetchedData[data[i].orderNumber] = {
+						primarykey: data[i]._id, 
+						itemtitle: data[i].itemTitle, 
+						indentlevel: data[i].indentLevel, 
+						checked: data[i].checked ? data[i].checked : false, 
+						collapsed: data[i].collapsed ? data[i].collapsed : false,
+						hidden: data[i].hidden ? data[i].hidden : false
+					}
 				}
 				self.setState({items: fetchedData}, (() => {self.getSelectedItem()}))
 			})
@@ -64,8 +71,11 @@ class CurrentList extends React.Component {
 		fetch('http://localhost:8080/selecteditem')
 			.then((resp) => resp.json())
 			.then((data) => {
-				self.setState({selectedItemIndex: data.index}, (() => { if(self.props.currentListFocused) divs[data.index].focus()}))
+				self.setState({selectedItemIndex: data.index}, (() => { if(self.props.currentListFocused) {
+					divs[data.index].focus()
+				}
 			})
+				)})
 	}
 
 	editItemTitle = (orderNumber, editedTitle) => {
@@ -180,6 +190,15 @@ class CurrentList extends React.Component {
 		});
 	}
 
+	toggleCollapse = (orderNumber) => {
+		const collapsed = this.state.items[orderNumber].collapsed
+		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber, collapsed: collapsed })
+		fetch('http://localhost:8080/items/collapse', fetchData)
+		.then(() => {
+			//
+		});
+	}
+
 	handleAction = (orderNumber, action, editedTitle) => {
 		switch (action) {
 			case 'edit': {this.editItemTitle(orderNumber, editedTitle); break;}
@@ -195,17 +214,29 @@ class CurrentList extends React.Component {
 			case 'focusInput': {this.handleFocusOnItem(orderNumber, 'input'); break;}
 			case 'focusTextArea': {this.handleFocusOnItem(orderNumber, 'textarea'); break;}
 			case 'toggle': {this.toggleCheckbox(orderNumber); break;}
+			case 'decollapse': {this.toggleCollapse(orderNumber); break;}
 		}
 	}
 
 	handleArrowKey(orderNumber, action) {
 		if(action == 'up') {
-			this.selectItem(orderNumber - 1)
-			this.divs[orderNumber-1].focus()
+			let i = 1
+			while(this.state.items[orderNumber - i].hidden) {
+				i++
+			}
+			this.selectItem(orderNumber - i)
+			this.divs[orderNumber-i].focus()
 		}
 		if(action == 'down' && orderNumber != this.state.items.length-1) {
-			this.selectItem(orderNumber + 1)
-			this.divs[orderNumber+1].focus()
+			let i = 1
+			while(this.state.items[orderNumber + i].hidden) {
+				if(orderNumber + i == this.state.items.length - 1) break;
+				i++;
+			}
+			if(orderNumber + i != this.state.items.length) {
+				this.selectItem(orderNumber + i)
+				this.divs[orderNumber+i].focus()
+			}
 		}
 		if(action == 'left') {
 			this.props.focusOnLists()
@@ -220,7 +251,6 @@ class CurrentList extends React.Component {
 
 	handleCreateRef(orderNumber, node, action) {
 		if(action == 'div') this.divs[orderNumber] = node
-		if(action == 'input') this.inputs[orderNumber] = node
 		if(action == 'textarea') this.textareas[orderNumber] = node
 	}
 
@@ -231,17 +261,20 @@ class CurrentList extends React.Component {
 			<ul style={{ display: 'inline-block', verticalAlign: 'top' }}>
 				{this.state.items.map((item, i) => (
 					<div key={this.state.items[i].primarykey} style={{textIndent: this.state.items[i].indentlevel * 40}} >
-						<AllistItem 
-							style={{outline: '0'}}
-							primaryKey = {this.state.items[i].primarykey}
-							itemTitle={this.state.items[i].itemtitle} 
-							orderNumber = {i} 
-							indentLevel = {this.state.items[i].indentlevel}
-							handleAction = {this.handleAction.bind(this)} 
-							createRef = {this.handleCreateRef.bind(this)}
-							selected = {i == this.state.selectedItemIndex}
-							checked={this.state.items[i].checked}>
-						</AllistItem>
+						<div className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
+							<AllistItem 
+								style={{outline: '0'}}
+								primaryKey = {this.state.items[i].primarykey}
+								itemTitle={this.state.items[i].itemtitle} 
+								orderNumber = {i} 
+								indentLevel = {this.state.items[i].indentlevel}
+								handleAction = {this.handleAction.bind(this)} 
+								createRef = {this.handleCreateRef.bind(this)}
+								selected = {i == this.state.selectedItemIndex}
+								checked={this.state.items[i].checked}
+								collapsed={this.state.items[i].collapsed}>
+							</AllistItem>
+						</div>
 					</div>
 				))}
 			</ul>

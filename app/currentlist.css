@@ -8,3 +8,11 @@
     border-width: 0px;
     width: 300px;
 }
+
+.hidden {
+	display: none;
+}
+
+.normal {
+	display: block;
+}

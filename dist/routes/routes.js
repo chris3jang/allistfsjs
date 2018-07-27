@@ -582,6 +582,33 @@ module.exports = function(app, db) {
   })
 
 
+  app.put('/items/collapse/', (req, res) => {
+
+    const on = parseInt(req.body.orderNumber)
+    const clpsd = JSON.parse(req.body.collapsed)
+    let listID
+
+    db.collection('lists').findOne({selected: true})
+      .then((list) => {
+        listID = list._id.toString()
+        return db.collection('items').update({$and: [{orderNumber: on}, {list: listID}]}, {$set: {collapsed: !clpsd}})
+      })
+      .then(()=> {
+        return db.collection('items').find( {$and: [{orderNumber: {$gt: on}}, {list: listID}]} ).sort({orderNumber: 1}).toArray()
+      })
+      .then((possibleDescendants) => {
+        for(let i = 0; i < possibleDescendants.length; i++) {
+          if(possibleDescendants[i].indentLevel > il) { 
+            db.collection('items').update({_id: possibleDescendants[i]._id}, {$set: {hidden: !clpsd}})
+          }
+          else {
+            break
+          }
+        }
+        descendants
+      })
+
+  })
 
 
 

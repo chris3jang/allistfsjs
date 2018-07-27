@@ -69,7 +69,7 @@ input[type=checkbox] {
 .divcheckboxchecked {
 	position: relative;
 	vertical-align: top;
-	top: 25px;
+	top: 23px;
 	display: inline-block;
 	background: black;
 	width: 6px;
@@ -83,12 +83,39 @@ input[type=checkbox] {
 .divcheckboxunchecked {
 	position: relative;
 	vertical-align: top;
-	top: 25px;
+	top: 23px;
 	display: inline-block;
     background: white;
 	width: 6px;
 	height: 6px;
 	border: 1px;
+	border-style: solid;
+	border-color: black;
+}
+
+.divcollapsedcheckboxchecked {
+	position: relative;
+	vertical-align: top;
+	top: 18px;
+	display: inline-block;
+	background: black;
+	width: 13px;
+	height: 13px;
+	border: 2px;
+	border-style: solid;
+	border-color: black;
+}
+
+
+.divcollapsedcheckboxunchecked {
+	position: relative;
+	vertical-align: top;
+	top: 18px;
+	display: inline-block;
+    background: white;
+	width: 13px;
+	height: 13px;
+	border: 2px;
 	border-style: solid;
 	border-color: black;
 }

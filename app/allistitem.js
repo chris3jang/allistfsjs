@@ -31,7 +31,12 @@ class AllistItem extends React.Component {
 			}
 	  		if(e.key == 'ArrowUp' && orderNumber != 0) this.props.handleAction(orderNumber, 'arrowUp')
 	  		if(e.key == 'ArrowDown') this.props.handleAction(orderNumber, 'arrowDown')
-	  		if(e.key == 'ArrowLeft') this.props.handleAction(orderNumber, 'arrowLeft')
+	  		if(e.key == 'ArrowLeft') {
+	  			if(e.shiftKey) this.props.handleAction(orderNumber, 'arrowLeft')
+	  		}
+	  		if(e.key == 'ArrowRight') {
+	  			this.props.handleAction(orderNumber, 'decollapse')
+	  		}
 	  		if(e.key == 'Backspace' && e.shiftKey) this.props.handleAction(orderNumber, 'delete')
 	  		if(e.key == 'Tab') {
 	  			e.preventDefault()
@@ -114,14 +119,12 @@ class AllistItem extends React.Component {
 
 	render() {
 
-		// key={this.props.primaryKey}
-
 		return (
 			<div className={styles.fulldiv} style={{whiteSpace: 'nowrap'}} tabIndex="0"
 				onClick={this.handleDivClick.bind(this)}
 				onKeyDown={this.handleDivKeyDown.bind(this)}
 				ref = {node => this.handleRefCreate(node, 'div')}>
-				<div className={this.props.checked ? styles.divcheckboxchecked : styles.divcheckboxunchecked} 
+				<div className={this.props.collapsed ? (this.props.checked ? styles.divcollapsedcheckboxchecked : styles.divcollapsedcheckboxunchecked) : (this.props.checked ? styles.divcheckboxchecked : styles.divcheckboxunchecked)} 
 					onClick={this.handleCheckboxClick.bind(this)}>
 				</div>
 				<input type="checkbox" className="chkbx-input"
@@ -175,20 +178,4 @@ export default AllistItem;
 			this.setState({indentLevel: nextProps.indentLevel})
 		}
 		
-	}
-
-	<input type="text" 
-					className={this.props.selected ? styles.selected : styles.itemTextInput}
-					disabled={!this.props.selected}
-					value={this.props.itemTitle}
-					onChange={this.handleInputChange.bind(this)} 
-					onKeyDown={this.handleInputKeyDown.bind(this)}
-					onClick={this.handleInputClick.bind(this)}
-					ref = {node => this.handleRefCreate(node, 'input')}
-					tabIndex="-1">
-				</input>
-
-
-
-
 	*/
