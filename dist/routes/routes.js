@@ -1,23 +1,141 @@
 var ObjectID = require('mongodb').ObjectID;
 
-/*
-    var createOrderNumberIndex = function(db, callback) {
-      var collection = db.collection('items');
-      // Create the index
-      collection.createIndex(
-        { orderNumber : 1 }, function(err, result) {
-        callback(result);
-      });
-    };
-*/
+
 
 module.exports = function(app, db) {
 
+
+  //
+  
+  
   const listsCol = db.collection('lists')
   const itemsCol = db.collection('items')
 
+
+  app.get('/lists/selected', (req, res) => {
+    db.collection('lists').findOne({selected: true})
+      .then((list) => {
+        const result = { index: list.orderNumber  }
+        res.send(result)
+      })
+  })
+
+  app.get('/lists/', (req, res) => {
+    db.collection('lists').find({ $query: {}, $orderby: { orderNumber : 1 } }).toArray((err, lists) => {
+      if (err) {
+        res.send({'error':'An error has occurred'});
+      } else {
+        res.send(lists); 
+      }
+    });
+  });
+
+  app.get('/items/', (req, res) => {
+    db.collection('lists').findOne({selected: true})
+      .then((list) => {
+        db.collection('items').find({ $query: {list: list._id.toString()}, $orderby: { orderNumber : 1 } }).toArray((err, items) => {
+          if (err) res.send({'error':'An error has occurred'});
+          else res.send(items); 
+        });
+      })
+  });
+
+  app.get('/selecteditem/', (req, res) => {
+    db.collection('lists').findOne({selected: true})
+      .then((list) => {
+        const result = {index: list.selectedItemIndex}
+        res.send(result)
+      })
+  })
+
+  const getList = (req, res, next) => {
+    console.log("getList")
+    listsCol.findOne({selected: true}).then(list => {
+      res.locals.listRef = list._id.toString()
+      next()
+    })
+  }
+
+  //requires getList function
+  const countItemsInList = (req, res, next) => {
+    console.log("countItemsInList")
+    itemsCol.count({list: res.locals.listRef}).then(count=> {
+      res.locals.itemCount = count
+      next()
+    })
+  }
+
+  //requires getList and orderNumber param 
+  const getItemByListAndOrderNumber = (req, res, next) => {
+    console.log("getItemByListAndOrderNumber")
+    itemsCol.findOne({list: res.locals.listRef, orderNumber: res.locals.orderNumber}).then(item => {
+      res.locals.item = item
+      next()
+    })
+  }
+
+  const getNextItemByListAndOrderNumber = (req, res, next) => {
+    console.log("getNextItemByListAndOrderNumber")
+    itemsCol.findOne({list: res.locals.listRef, orderNumber: res.locals.nextItemOrderNumber}).then(item => {
+      res.locals.nextItem = item
+      next()
+    })
+  }
+
+  const incrementOrderNumbers = (req, res, next) => {
+    console.log("incrementOrderNumbers")
+    itemsCol.updateMany({$and: [{orderNumber: {$gt: res.locals.orderNumber}}, {list: res.locals.listRef}]}, { $inc: {orderNumber: 1}}).then((result) => {
+      next()
+    })
+  }
+
+  const insertAfterOrderNumbersAdjustment = (req, res, next) => {
+    console.log("insertAfterOrderNumbersAdjustment")
+    itemsCol.insert(res.locals.newItemProps).then((newItem) => {
+      res.locals.createdItem = newItem
+      next()
+    })
+  }
+
+  const updateSelectedItemIndex = (req, res, next) => {
+    console.log("updateSelectedItemIndex")
+    itemsCol.update({selected: true}, {$set: {selectedItemIndex: res.locals.itemToCreateOrderNumber}}).then(() => {
+      next()
+    })
+  }
+
+
+  app.post('/items/', [getList, countItemsInList], (req, res, next) => {
+    res.locals.orderNumber = parseInt(req.body.orderNumber)
+    res.locals.nextItemOrderNumber = res.locals.orderNumber + 1
+    next()
+  }, [getItemByListAndOrderNumber, getNextItemByListAndOrderNumber], (req, res, next) => {
+    if(res.locals.nextItem == null) {
+      res.locals.parentRef = res.locals.item.parent
+      res.locals.indentLevel = res.locals.item.indentLevel
+    }
+    else {
+      if(res.locals.nextItem.parent == res.locals.item._id.toString()) {
+        res.locals.parentRef = res.locals.item._id.toString()
+        res.locals.indentLevel = res.locals.item.indentLevel + 1
+      }
+      else {
+        res.locals.parentRef = res.locals.item.parent
+        res.locals.indentLevel = res.locals.item.indentLevel
+      }
+    }
+    res.locals.newItemProps = { itemTitle: '', orderNumber: res.locals.nextItemOrderNumber, parent: res.locals.parentRef, indentLevel: res.locals.indentLevel, list: res.locals.listRef}
+    next()
+  }, [incrementOrderNumbers, insertAfterOrderNumbersAdjustment], (req, res, next) => {
+    res.send(res.locals.createdItem.ops[0])
+  })
+
+
+
+
   //const liftDescendantIndentLevelsAndRemoveItem = (req, res, next) => {
   const liftDescendantIndentLevelsAndRemoveItem = (id, on, parent, il, listRef) => {
+    console.log("here???")
     //const on = req.onOfItemToBeRemoved //from .findOne()
     //const listRef = req.listRef
 
@@ -50,8 +168,9 @@ module.exports = function(app, db) {
       });
     };
 
-  const collection = 
+  //const collection = 
 
+  //***
   app.get('/lists/', (req, res) => {
     db.collection('lists').find({ $query: {}, $orderby: { orderNumber : 1 } }).toArray((err, lists) => {
       if (err) {
@@ -62,7 +181,8 @@ module.exports = function(app, db) {
     });
   });
 
-  app.get('/fetchitems/', (req, res) => {
+  //***
+  app.get('/items/', (req, res) => {
     db.collection('lists').findOne({selected: true})
       .then((list) => {
         db.collection('items').find({ $query: {list: list._id.toString()}, $orderby: { orderNumber : 1 } }).toArray((err, items) => {
@@ -72,6 +192,7 @@ module.exports = function(app, db) {
       })
   });
 
+  //***
   app.get('/selecteditem/', (req, res) => {
     db.collection('lists').findOne({selected: true})
       .then((list) => {
@@ -80,7 +201,8 @@ module.exports = function(app, db) {
       })
   })
 
-  app.get('/selectedlist/', (req, res) => {
+  //****
+  app.get('/lists/selected', (req, res) => {
     db.collection('lists').findOne({selected: true})
       .then((list) => {
         const result = {index: list.orderNumber  }
@@ -89,7 +211,9 @@ module.exports = function(app, db) {
   })
 
   
-  app.post('/items/', (req, res) => {
+  //
+  
+  app.post('/shots/', (req, res) => {
 
     var createItemIndex = function(db, callback) {
       var collection = db.collection('items');
@@ -118,7 +242,7 @@ module.exports = function(app, db) {
         })
     }
 
-    const on = parseInt(req.body.orderNumberEntered)
+    const on = parseInt(req.body.orderNumber)
     let newItemProps, parentID, iL, listID
 
     db.collection('lists').findOne({selected: true}).then((list) => {
@@ -161,6 +285,7 @@ module.exports = function(app, db) {
       })
     })
   })
+  
   
 
   app.delete('/items/', (req, res) => {
@@ -447,6 +572,8 @@ module.exports = function(app, db) {
     });
   });
 
+  /*
+
   app.delete('/lists/', (req, res) => {
     //id instead of ordernumber
     //const id = req.params.id;
@@ -485,6 +612,7 @@ module.exports = function(app, db) {
       }
     })
   });
+  */
 
 
   app.post('/lists/', (req, res) => {
@@ -515,8 +643,8 @@ module.exports = function(app, db) {
     const on = parseInt(req.body.orderNumber)
 
     db.collection('lists').findOne({orderNumber: on})
-      .then((itemToDelete) => {
-        return db.collection('items').deleteMany({list: itemToDelete._id.toString()})
+      .then((listToDelete) => {
+        return db.collection('items').deleteMany({list: listToDelete._id.toString()})
       })
       .then(() => {
         return db.collection('lists').remove({orderNumber: on})
@@ -625,7 +753,15 @@ module.exports = function(app, db) {
 
   })
 
-
-
-
 }
+
+/*
+    var createOrderNumberIndex = function(db, callback) {
+      var collection = db.collection('items');
+      // Create the index
+      collection.createIndex(
+        { orderNumber : 1 }, function(err, result) {
+        callback(result);
+      });
+    };
+*/

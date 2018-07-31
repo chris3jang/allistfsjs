@@ -48,7 +48,7 @@ class CurrentList extends React.Component {
 	fetchItems = () => {
 		let fetchedData = []
 		const self = this
-		fetch('http://localhost:8080/fetchitems')
+		fetch('http://localhost:8080/items')
 			.then((resp) => resp.json())
 			.then((data) => {
 				for(var i = 0; i < data.length; i++) {
@@ -57,7 +57,7 @@ class CurrentList extends React.Component {
 						itemtitle: data[i].itemTitle, 
 						indentlevel: data[i].indentLevel, 
 						checked: data[i].checked ? data[i].checked : false, 
-						decollapsed: data[i].collapsed ? data[i].collapsed : false,
+						decollapsed: data[i].decollapsed ? data[i].decollapsed : false,
 						hidden: data[i].hidden ? data[i].hidden : false
 					}
 				}
@@ -90,7 +90,7 @@ class CurrentList extends React.Component {
 	createItem(orderNumber) {
 		const self = this
 		let editedList = this.state.items
-		const fetchData = this.assignFetchData('POST', { orderNumberEntered: orderNumber })
+		const fetchData = this.assignFetchData('POST', { orderNumber: orderNumber })
 		fetch('http://localhost:8080/items', fetchData)
 			.then((resp) => resp.json())
 			.then((data) => {
@@ -211,7 +211,10 @@ class CurrentList extends React.Component {
 		switch (action) {
 			case 'edit': {this.editItemTitle(orderNumber, editedTitle); break;}
 			case 'create': {this.createItem(orderNumber); break;}
-			case 'delete': {this.deleteItem(orderNumber); break;}
+			case 'delete': {
+				if(this.state.items.length != 1) this.deleteItem(orderNumber); 
+				break;
+			}
 			case 'tab': {this.tabItem(orderNumber); break;}
 			case 'untab': {this.untabItem(orderNumber); break;}
 			case 'select': {this.selectItem(orderNumber); break;}
@@ -257,8 +260,6 @@ class CurrentList extends React.Component {
 				if(orderNumber + i == this.state.items.length - 1) break;
 				i++;
 			}
-			console.log(orderNumber + i)
-			console.log(this.state.items.length)
 			if(orderNumber + i != this.state.items.length-1 || (i == 1 && orderNumber + i == this.state.items.length-1)) {
 				this.selectItem(orderNumber + i)
 				this.divs[orderNumber+i].focus()

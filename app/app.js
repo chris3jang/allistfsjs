@@ -28,7 +28,7 @@ class Home extends React.Component {
 
 	getSelectedList = () => {
 		const self = this
-		fetch('http://localhost:8080/selectedlist')
+		fetch('http://localhost:8080/lists/selected')
 			.then((resp) => resp.json()).then((data) => { 
 				self.setState({selectedListIndex: data.index})
 			})
