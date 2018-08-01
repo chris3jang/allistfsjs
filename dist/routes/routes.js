@@ -30,6 +30,25 @@ module.exports = function(app, db) {
     });
   });
 
+
+  app.put('/lists/selected', [parseOrderNumberFromFrontEnd], (req, res, next) => {
+    const prevSelectedList = { selected: true }
+    const nextSelectedList = { orderNumber: res.locals.orderNumber };
+    db.collection('lists').update(prevSelectedList, { $set: {selected: false}}).then(() => {
+      return db.collection('lists').update(nextSelectedList, { $set: {selected: true}})
+    }).then(() => {
+      res.send("new list selected")
+    })
+  })
+
+  app.put('/lists/', [parseOrderNumberFromFrontEnd, getTitleFromFrontEnd], (req, res, next) => {
+    db.collection('lists').update({orderNumber: res.locals.orderNumber}, {$set: {listTitle: res.locals.title}}.then((result) => {
+      res.send(result)
+    });
+  });
+
+
+
   app.get('/items/', (req, res) => {
     db.collection('lists').findOne({selected: true})
       .then((list) => {
@@ -47,6 +66,17 @@ module.exports = function(app, db) {
         res.send(result)
       })
   })
+
+  const parseOrderNumberFromFrontEnd = (req, res, next) => {
+    console.log("parseOrderNumberFromFrontEnd")
+    res.locals.orderNumber = parseInt(req.body.orderNumber)
+    next()
+  }
+
+  const getTitleFromFrontEnd = (req, res, next) => {
+    console.log("parseOrderNumberFromFrontEnd")
+    res.locals.title = req.body.title
+  }
 
   const getList = (req, res, next) => {
     console.log("getList")
@@ -89,6 +119,13 @@ module.exports = function(app, db) {
     })
   }
 
+  const decrementOrderNumbers = (req, res, next) => {
+    console.log("decrementOrderNumbers")
+    itemsCol.updateMany({$and: [{orderNumber: {$gt: res.locals.orderNumber}}, {list: res.locals.listRef}]}, { $inc: {orderNumber: -1}}).then((result) => {
+      next()
+    })
+  }
+
   const insertAfterOrderNumbersAdjustment = (req, res, next) => {
     console.log("insertAfterOrderNumbersAdjustment")
     itemsCol.insert(res.locals.newItemProps).then((newItem) => {
@@ -97,6 +134,12 @@ module.exports = function(app, db) {
     })
   }
 
+  const removeItemByOrderNumber = (req, res, next) => {
+    console.log("removeItem")
+    itemsCol.remove({$and: [{orderNumber: res.locals.orderNumber}, {list: res.locals.listRef}]})
+  }
+
+
   const updateSelectedItemIndex = (req, res, next) => {
     console.log("updateSelectedItemIndex")
     itemsCol.update({selected: true}, {$set: {selectedItemIndex: res.locals.itemToCreateOrderNumber}}).then(() => {
@@ -104,8 +147,67 @@ module.exports = function(app, db) {
     })
   }
 
+  const getDescendantsOfItem = (req, res, next) => {
+    console.log("getDescendantsOfItem")
+    itemsCol.find( {$and: [{orderNumber: {$gte: on}}, {list: listID}]} ).sort({orderNumber: 1}).toArray().then((possible) => {
+      for(let i = 0; i < possible.length; i++) {
+        if(possible[i].indentLevel > il) { 
+          descendants.push(possible[i]) 
+        }
+        else break
+      }
+      res.locals.descendants = descendants
+      next()
+    })
+  }
 
-  app.post('/items/', [getList, countItemsInList], (req, res, next) => {
+  const updateDescendantsAfterDelete = (req, res, next) => {
+    console.log("updateDescendantsAfterDelete")
+    res.locals.descendants.forEach(descendant => {
+      itemsCol.update({_id: descendant._id}, {$inc: {indentLevel: -1}})
+    })
+    itemsCol.updateMany({ $and: [{parent: res.locals.item._id.toString()}, {list: res.locals.listRef}]}, {$set: {parent: res.locals.item.parent}})
+    next()
+  }
+
+  const incrementDescendantIndentLevels = (req, res, next) => {
+    console.log("updateDescendantIndentLevels")
+    res.locals.descendants.forEach(descendant => {
+      db.collection('items').update({_id: descendant._id}, {$inc: {indentLevel: 1}})
+    })
+  }
+
+  const getNearestSiblingAbove = (req, res, next) => {
+    console.log("getNearestSiblingAbove")
+    itemsCol.find({$and: [{parent: res.locals.item.parent}, {orderNumber: {$lt: res.locals.orderNumber}}, {list: res.locals.listRef}]}).sort({orderNumber: -1}).limit(1).next().then(sibling => {
+      res.locals.nearestSiblingAbove = sibling
+      next()
+    })
+  }
+
+  const getQueryDetailsForItem = (req, res, next) => {
+    console.log("getQueryDetailsForItem")
+    res.locals.details = {$and: [{orderNumber: res.locals.orderNumber}, {list: res.locals.listRef}]}
+    next()
+  }
+
+  const getParentItem = (req, res, next) => {
+    console.log("getParentItem")
+    return db.collection('items').findOne({_id: new ObjectID(res.locals.item.parent)}).then(() => {
+      next()
+    })
+  }
+
+  const getChildrenItems = (req, res, next) => {
+    console.log("getChildrenItems")
+    db.collection('items').find({ $and: [ {indentLevel: {$gt: res.locals.item.indentLevel}}, {orderNumber: {$gt: res.locals.orderNumber}}, {list: res.locals.listRef} ]}).sort({orderNumber: 1}).toArray().then(chilren => {
+      res.locals.childrenItems = children
+      next()
+    })
+  }
+
+
+  app.post('/items/', [getList], (req, res, next) => {
     res.locals.orderNumber = parseInt(req.body.orderNumber)
     res.locals.nextItemOrderNumber = res.locals.orderNumber + 1
     next()
@@ -129,6 +231,56 @@ module.exports = function(app, db) {
   }, [incrementOrderNumbers, insertAfterOrderNumbersAdjustment], (req, res, next) => {
     res.send(res.locals.createdItem.ops[0])
   })
+
+
+  app.delete('/items/', [getList], (req, res, next) => {
+    res.locals.orderNumber = parseInt(req.body.orderNumber)
+    next()
+  }, [getItemByListAndOrderNumber, removeItemByOrderNumber, decrementOrderNumbers, getDescendantsOfItem, updateDescendantsAfterDelete], (req, res, next) => {
+    res.send("item deleted")
+  })
+
+
+  app.put('/items/', [getList, parseOrderNumberFromFrontEnd, getTitleFromFrontEnd], (req, res, next) => {
+    db.collection('items').update({$and: [{orderNumber: res.locals.orderNumber}, {list: listRef}]}, { $set: res.locals.newTitle }).then(result => {
+      res.send(result)
+    })
+  })
+
+  app.put('/items/tab', [getList], (req, res, next) => {
+    res.locals.orderNumber = parseInt(req.body.orderNumber)
+  next()
+  }, [getItemByListAndOrderNumber, getQueryDetailsForItem, getNearestSiblingAbove], (req, res, next) => {
+    itemsCol.update(res.locals.details, {$set: {parent: res.locals.nearestSiblingAbove._id.toString()}, $inc: {indentLevel: 1}}).then(() => {
+    next()
+  }, [getDescendantsOfItem, incrementDescendantIndentLevels], (req, res, next) => {
+    res.send("item tabbed")
+  })
+  
+  app.put('/items/untab', [getList, parseOrderNumberFromFrontEnd, getItemByListAndOrderNumber], (req, res, next) => {
+    const siblingsToChildrenProps = {$and: [ {parent: {$eq: res.locals.item.parent}}, {orderNumber: {$gt: res.locals.orderNumber}}, {list: res.locals.listRef} ]}
+    db.collection('items').updateMany(siblingsToChildrenProps, {$set: {parent: res.locals.item._id}})
+  }, [getParentItem], (req, res, next) => {
+    db.collection('items').update(details, { $set: {parent: parentItem.parent}, $inc:{indentLevel: -1}})
+  }, [getChildrenItems], (req, res, next) => {
+    for(let i = 0; i < res.locals.childrenItems.length; i++) {
+      if(res.locals.childrenItems[i].orderNumber == res.locals.orderNumber + 1 + i) {
+        db.collection('items').update({$and: [{orderNumber: res.locals.orderNumber + 1 + i}, {list: res.locals.listRef}]}, { $inc:{indentLevel: -1} })
+      }
+      else break
+    }
+  })
+
+
+
+
+
+
+
+
+
+
+
 
 
 
@@ -213,81 +365,9 @@ module.exports = function(app, db) {
   
   //
   
-  app.post('/shots/', (req, res) => {
-
-    var createItemIndex = function(db, callback) {
-      var collection = db.collection('items');
-      // Create the index
-      collection.createIndex(
-        { orderNumber : 1 }, function(err, result) {
-        callback(result);
-      });
-
-      collection.createIndex(
-        {list: 1}, function(err, result) {
-          callback(result)
-        })
-      collection.createIndex(
-        {orderNumber: 1, list: 1}, function(err, result) {
-          callback(result)
-        })
-
-    };
-
-    var createListIndex = function(db, callback) {
-      var collection = db.collection('lists')
-      collection.createIndex(
-        {selected: 1}, function(err, result) {
-          callback(result)
-        })
-    }
-
-    const on = parseInt(req.body.orderNumber)
-    let newItemProps, parentID, iL, listID
-
-    db.collection('lists').findOne({selected: true}).then((list) => {
-      listID = list._id.toString()
-      db.collection('items').count({list: listID}).then((count)=> {
-        db.collection('items').findOne({$and: [{orderNumber: on}, {list: listID}]}).then((item)=> {
-          if(on == count - 1) {
-            parentID = item.parent
-            iL = item.indentLevel
-            newItemProps = { itemTitle: '', orderNumber: on+1, parent: parentID, indentLevel: iL, list: listID}
-            db.collection('items').updateMany({$and: [{orderNumber: {$gt: on}}, {list: list._id.toString()}]}, { $inc: {orderNumber: 1}}).then((updated) => {
-              db.collection('items').insert(newItemProps, (err, result) => {
-                if (err) res.send({ 'error': 'An error has occurred' })
-                else res.send(result.ops[0]);
-              });
-            })
-          }
-          else {
-            db.collection('items').findOne({$and: [{orderNumber: on+1}, {list: listID}]}).then((prevNextItem) => {
-              if(prevNextItem.parent == item._id.toString()) {
-                parentID = item._id.toString()
-                iL = item.indentLevel + 1
-              }
-              else {
-                parentID = item.parent
-                iL = item.indentLevel
-              }
-              newItemProps = { itemTitle: '', orderNumber: on+1, parent: parentID, indentLevel: iL, list: listID}
-              db.collection('items').updateMany({$and: [{orderNumber: {$gt: on}}, {list: list._id.toString()}]}, { $inc: {orderNumber: 1}}).then((updated) => {
-                db.collection('items').insert(newItemProps, (err, newItem) => {
-                  db.collection('lists').update({selected: true}, {$set: {selectedItemIndex: on+1}}, (err, result) => {
-                    if (err) res.send({ 'error': 'An error has occurred' })
-                    else res.send(newItem.ops[0]);
-                  })
-                });
-              })
-            })
-          }
-        })
-      })
-    })
-  })
   
   
-
+  //***
   app.delete('/items/', (req, res) => {
     //id instead of ordernumber
     //const id = req.params.id;
@@ -372,10 +452,10 @@ module.exports = function(app, db) {
 
   });
 
-
+  //***
   app.put('/items/', (req, res) => {
-    const on = Number(req.body.ordernumber);
-    const it = req.body.itemtitle
+    const on = Number(req.body.orderNumber);
+    const it = req.body.title
     const details = { orderNumber: on };
     const title = {itemTitle: it}
     const itemProp = { $set: title }
@@ -416,6 +496,7 @@ module.exports = function(app, db) {
 • (all of (item@on)'s descendents).indentLevel++
 */
 
+  //****
   app.put('/items/tab', (req, res) => {
     const on = Number(req.body.ordernumber);
     let listID, details, parentID, itemIndentLevel
@@ -464,6 +545,7 @@ module.exports = function(app, db) {
   })
 
   //PUT IN FRONTEND if(indentLevel != 0)
+  //****
   app.put('/items/untab', (req, res) => {
     const on = Number(req.body.ordernumber)
     let listID, details, itemIndentLevel
@@ -542,8 +624,8 @@ module.exports = function(app, db) {
       })
   })
   */
-
-  app.put('/selectlist', (req, res) => {
+  //***
+  app.put('/lists/selected', (req, res) => {
     var on = Number(req.body.orderNumber);
     var prevSelectedList = {selected: true}
     var nextSelectedList = { orderNumber: on };
@@ -556,6 +638,7 @@ module.exports = function(app, db) {
       })
   })
 
+  //***
   app.put('/lists/', (req, res) => {
     const on = Number(req.body.ordernumber);
     const lt = req.body.listtitle

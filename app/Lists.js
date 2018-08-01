@@ -82,7 +82,7 @@ class Lists extends React.Component {
 			}
 			case 'edit': {
 				resFunc = editList
-				paramData = { listtitle: params[1], ordernumber: params[0] }
+				paramData = { title: params[1], ordernumber: params[0] }
 				fetchData = assignFetchData('PUT', paramData)
 				break
 			}

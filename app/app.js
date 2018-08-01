@@ -43,7 +43,7 @@ class Home extends React.Component {
 		    	'X-Requested-With': 'XMLHttpRequest'
 		    })
 		}
-		fetch('http://localhost:8080/selectlist', fetchData)
+		fetch('http://localhost:8080/lists/selected', fetchData)
 			.then((resp) => resp.json())
 			.then((data) => {
 				self.setState({selectedListIndex: orderNumber})

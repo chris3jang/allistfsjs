@@ -79,7 +79,7 @@ class CurrentList extends React.Component {
 	}
 
 	editItemTitle = (orderNumber, editedTitle) => {
-		const fetchData = this.assignFetchData('PUT', { itemtitle: editedTitle, ordernumber: orderNumber })
+		const fetchData = this.assignFetchData('PUT', { title: editedTitle, orderNumber: orderNumber })
 		fetch('http://localhost:8080/items', fetchData)
 		.then(function() {});
 		var editedList = this.state.items
