@@ -128,7 +128,7 @@ class CurrentList extends React.Component {
 	tabItem(orderNumber) {
 		const self = this
 		let editedList = this.state.items
-		const fetchData = this.assignFetchData('PUT', { ordernumber: orderNumber })
+		const fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
 		fetch('http://localhost:8080/items/tab', fetchData)
 		.then(function() {
 			console.log(editedList[orderNumber-1].indentlevel)
