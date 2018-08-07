@@ -12,9 +12,11 @@
   "license": "ISC",
   "dependencies": {
     "babel": "^6.23.0",
+    "bcrypt": "^3.0.0",
     "body-parser": "^1.18.3",
     "css-loader": "^0.28.11",
     "express": "^4.16.3",
+    "express-session": "^1.15.6",
     "mongodb": "^3.0.10",
     "react": "^16.4.1",
     "react-dom": "^16.4.1",

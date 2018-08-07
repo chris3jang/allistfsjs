@@ -15,6 +15,27 @@ class AllistItem extends React.Component {
 		this.setState({height: this.textArea.scrollHeight})
 	}
 
+	componentWillReceiveProps = (nextProps) => {
+		/*
+		if(this.props.hidden != nextProps.hidden) {
+			console.log("changed")
+			console.log(this.textArea)
+			this.textArea.style = 'height: auto'
+			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
+			consolle.log(this.textArea.styles)
+			this.setState({height: this.textArea.scrollHeight})
+		}
+		*/
+	}
+
+	componentDidUpdate = (prevProps) => {
+		if(this.props.hidden != prevProps.hidden) {
+			this.textArea.style = 'height: auto'
+			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
+			this.setState({height: this.textArea.scrollHeight})
+		}
+	}
+
 
 	handleDivKeyDown = (e) => {
 		const {orderNumber} = this.props

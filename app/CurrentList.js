@@ -8,7 +8,6 @@ class CurrentList extends React.Component {
 
 	state = {
 		items: [],
-		hidden: [],
 		selectedItemIndex: null
 	}
 
@@ -68,7 +67,7 @@ class CurrentList extends React.Component {
 	getSelectedItem = () => {
 		const self = this
 		const divs = this.divs
-		fetch('http://localhost:8080/selecteditem')
+		fetch('http://localhost:8080/items/selected')
 			.then((resp) => resp.json())
 			.then((data) => {
 				self.setState({selectedItemIndex: data.index}, (() => { if(self.props.currentListFocused) {
@@ -149,7 +148,7 @@ class CurrentList extends React.Component {
 	untabItem(orderNumber) {
 		const self = this
 		let editedList = this.state.items
-		let fetchData = this.assignFetchData('PUT', { ordernumber: orderNumber })
+		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
 		fetch('http://localhost:8080/items/untab', fetchData)
 		.then(function() {
 			console.log(editedList[orderNumber].indentlevel)
@@ -170,7 +169,7 @@ class CurrentList extends React.Component {
 	selectItem(orderNumber) {
 		const self = this
 		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
-		fetch('http://localhost:8080/selectitem', fetchData)
+		fetch('http://localhost:8080/items/selected/', fetchData)
 		.then(function() {
 			self.setState({selectedItemIndex: orderNumber})
 		});
@@ -285,7 +284,7 @@ class CurrentList extends React.Component {
 
 		return (
 			<div>
-			<ul style={{ display: 'inline-block', verticalAlign: 'top' }}>
+			<ul style={{ display: 'inline-block', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
 				{this.state.items.map((item, i) => (
 					<div key={this.state.items[i].primarykey} style={{textIndent: this.state.items[i].indentlevel * 40}} >
 						<div className={this.state.items[i].hidden ? styles.hidden : styles.normal}>

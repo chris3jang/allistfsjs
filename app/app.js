@@ -35,6 +35,7 @@ class Home extends React.Component {
 	}
 
 	selectList(orderNumber) {
+		console.log("selectLIst")
 		const self = this
 		const fetchData = { 
 		    method: 'PUT', body: JSON.stringify({ orderNumber: orderNumber }),
@@ -44,8 +45,7 @@ class Home extends React.Component {
 		    })
 		}
 		fetch('http://localhost:8080/lists/selected', fetchData)
-			.then((resp) => resp.json())
-			.then((data) => {
+			.then((resp) => {
 				self.setState({selectedListIndex: orderNumber})
 			});
 	}
@@ -102,24 +102,26 @@ class Home extends React.Component {
 						trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}>
 					</NavBar>
 				</div>
-				<div style={{ display: 'inline-block', verticalAlign: 'top' }}>
-					<Lists
-						editMenu={this.state.editMenu}
-						selectList={this.handleSelectList.bind(this)}
-						selectedListIndex={this.state.selectedListIndex}
-						listsFocus={this.state.listsFocus}
-						focusOnLists={this.handleFocusOnLists.bind(this)}
-						focusOnCurrentList={this.handleFocusOnCurrentList.bind(this)}>
-					</Lists>
-				</div>
-				<div style={{ display: 'inline-block', verticalAlign: 'top' }}>
-					<CurrentList
-						focusOnLists={this.handleFocusOnLists.bind(this)}
-						selectedListIndex={this.state.selectedListIndex}
-						currentListFocused={this.state.listsFocus ? false : true}
-						shouldChildUpdate={this.state.updateChild}
-						updateComplete={this.handleUpdateComplete.bind(this)}>
-					</CurrentList>
+				<div style = {{ whiteSpace: 'nowrap', overflow: 'auto' }}>
+					<div style={{ display: 'inline-block', verticalAlign: 'top' }}>
+						<Lists
+							editMenu={this.state.editMenu}
+							selectList={this.handleSelectList.bind(this)}
+							selectedListIndex={this.state.selectedListIndex}
+							listsFocus={this.state.listsFocus}
+							focusOnLists={this.handleFocusOnLists.bind(this)}
+							focusOnCurrentList={this.handleFocusOnCurrentList.bind(this)}>
+						</Lists>
+					</div>
+					<div style={{ display: 'inline-block', verticalAlign: 'top' }}>
+						<CurrentList
+							focusOnLists={this.handleFocusOnLists.bind(this)}
+							selectedListIndex={this.state.selectedListIndex}
+							currentListFocused={this.state.listsFocus ? false : true}
+							shouldChildUpdate={this.state.updateChild}
+							updateComplete={this.handleUpdateComplete.bind(this)}>
+						</CurrentList>
+					</div>
 				</div>
 			</div>
 		)
