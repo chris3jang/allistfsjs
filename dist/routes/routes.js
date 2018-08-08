@@ -1,8 +1,10 @@
 var ObjectID = require('mongodb').ObjectID;
+const passport = require('passport')
+const LocalStrategy = require('passport-local').Strategy
 
 
 
-module.exports = function(app, db) {
+module.exports = function(app, db, admin) {
 
 
   app.post('/signup/', (req, res) => {
@@ -25,11 +27,73 @@ module.exports = function(app, db) {
 
   })
 
-  app.post('/login/', (req, res) => {
 
+  //*******************************************************************
+
+
+  const isLoggedIn = (req, res, next) => {
+    if(req.isAuthenticated()) {
+      return next()
+    }
+    res.redirect('/')
+  }
+
+  app.post('/register/', (req,res) => {
+    //const adminDb = db.getSiblingDB('admin')
+    //console.log(adminDb)
+    admin.addUser(req.body.email, req.body.password, {roles: ["readWrite"]})
   })
 
+  app.post('/login/', passport.authenticate('local'), (req, res) => {
+      console.log('passport authenticated')
+      console.log(req.user)
+      res.send("response sent") 
+  });
 
+/*
+  app.post('/login', function(req, res, next) {
+    passport.authenticate('local', function(err, user, info) {
+      console.log('/login handler', req.body);
+      if (err) { return next(err); }
+      if (!user) { return res.status(500).json({ error: 'User not found.' }); }
+      req.session.save((err) => {
+          if (err) {
+              return next(err);
+          }
+          res.status(200).json({ success: true });
+      });
+    })(req, res, next);
+  });
+  */
+
+  /*
+
+  app.get('/', function(req, res) {
+      res.render('index.ejs');
+  });
+
+  app.get('/login', function(req, res) {
+      res.render('login.ejs', { message: req.flash('loginMessage') }); 
+  });
+
+  app.get('/signup', function(req, res) {
+
+      // render the page and pass in any flash data if it exists
+      res.render('signup.ejs', { message: req.flash('signupMessage') });
+  });
+
+  app.get('/profile', isLoggedIn, function(req, res) {
+      res.render('profile.ejs', {
+          user : req.user // get the user out of session and pass to template
+      });
+  });
+
+  app.get('/logout', function(req, res) {
+      req.logout();
+      res.redirect('/');
+  });
+
+  */
 
 
 
