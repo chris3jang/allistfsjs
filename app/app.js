@@ -24,10 +24,35 @@ class App extends React.Component {
 	}
 
 	login = (e) => {
+		console.log(e)
+		console.log(e.target)
 		console.log(e.target[0].value)
 		console.log(e.target[1].value)
+		e.preventDefault()
 		const data = {
-			email: e.target[0].value,
+			username: e.target[0].value,
+			password: e.target[1].value
+		}
+		fetch('/login/', {
+			method: 'POST',
+			body: JSON.stringify(data),
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		})
+		.then(resp => {
+			console.log(resp)
+			this.setState({ redirectToReferrer: true})
+		})
+	}
+
+	register = (e) => {
+		console.log(e.target[0].value)
+		console.log(e.target[1].value)
+		e.preventDefault()
+		const data = {
+			username: e.target[0].value,
 			password: e.target[1].value
 		}
 		fetch('/register/', {
@@ -38,9 +63,19 @@ class App extends React.Component {
 				'Content-Type': 'application/json'
 			},
 		})
-
-		this.setState({ redirectToReferrer: true})
+		.then(resp => {
+			console.log(resp)
+			this.setState({ redirectToReferrer: true})
+		})
 	}
+
+	submit = (e) => {
+		console.log(e)
+		console.log(e.target)
+		console.log(e.target[0].value)
+		console.log(e.target[1].value)
+		e.preventDefault()
+	}	
 
 
 
@@ -54,16 +89,26 @@ class App extends React.Component {
 					<Route path="" component={Home}></Route>
 				</BrowserRouter>
 				*/}
-				<form action="/" method="post" onSubmit={this.login}>
+				<form method="post" onSubmit={this.login}>
 					<div className="form-group">
 						<label>Email</label>
-						<input type="text" className="form-control" name="email"></input>
+						<input type="text" className="form-control" name="username"></input>
 					</div>
 					<div className="form-group">
 						<label>Password</label>
 						<input type="password" className="form-control" name="password"></input>
 					</div>
 					<button type="submit" className="btn btn-warning btn-lg">Login</button>
+				</form>
+				<form method="post" onSubmit={this.register}>
+					<div className="form-group">
+						<label>Email</label>
+						<input type="text" className="form-control" name="username"></input>
+					</div>
+					<div className="form-group">
+						<label>Password</label>
+						<input type="password" className="form-control" name="password"></input>
+					</div>
 					<button type="submit" className="btn btn-warning btn-lg">Register</button>
 				</form>
 			</div>

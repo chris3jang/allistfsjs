@@ -2,9 +2,40 @@ var ObjectID = require('mongodb').ObjectID;
 const passport = require('passport')
 const LocalStrategy = require('passport-local').Strategy
 
+const express = require('express')
+const router = express.Router()
 
 
-module.exports = function(app, db, admin) {
+
+module.exports = function(app, db) {
+
+  /*
+  passport.use(new LocalStrategy(
+    (username, password, cb) => {
+      User.findOne({username: username}, (err, user) => {
+        if (err) { return cb(err); }
+        if (!user) { return cb(null, false); }
+        if (user.password != password) { return cb(null, false); }
+        return cb(null, user);
+      });
+    }));
+
+  passport.serializeUser(function(user, done) {
+      done(null, user._id);
+  })
+
+  passport.deserializeUser((id, done) => {
+    console.log("id: ", id)
+    User.findOne({_id: id}, (err, user) => {
+      done(err, user);
+    });
+  });
+  */
+
+
+
+  //**************************************************************************************************************************************
+
 
 
   app.post('/signup/', (req, res) => {
@@ -38,17 +69,40 @@ module.exports = function(app, db, admin) {
     res.redirect('/')
   }
 
-  app.post('/register/', (req,res) => {
-    //const adminDb = db.getSiblingDB('admin')
-    //console.log(adminDb)
-    admin.addUser(req.body.email, req.body.password, {roles: ["readWrite"]})
-  })
 
-  app.post('/login/', passport.authenticate('local'), (req, res) => {
-      console.log('passport authenticated')
-      console.log(req.user)
-      res.send("response sent") 
+  app.post('/register/', passport.authenticate('register', {
+    successRedirect: '/',
+    failureRedirect: '/signin'
+    
+  }))
+
+  /*
+  app.post('/register/', (req, res) => {
+    db.collection('localusers').insert({ username: req.body.username, password: req.body.password })
+    .then((inserted) => {
+      res.send("new user inserted")
+    })
+  })
+  */
+
+  app.post('/login/', passport.authenticate('login', {
+    successRedirect: '/',
+    failureRedirect: '/signin'
+  }))
+
+  /*
+  app.post('/login/', passport.authenticate('local', { failureRedirect: '/login' }), (req, res) => {
+    console.log("login")
+    passport.authenticate('local', { failureRedirect: '/login' })
+    .then(() => {
+      return req.session.save()
+    })
+    .then(() => {
+      res.status(200).send('OK')
+    })
+    
   });
+  */
 
 /*
   app.post('/login', function(req, res, next) {
