@@ -69,11 +69,17 @@ module.exports = function(app, db) {
     res.redirect('/')
   }
 
+  app.get('/users/', (req, res) => {
+    console.log("users get: ", req.user)
+    res.send()
+    //req.isAuthenticated()
+
+  })
+
 
   app.post('/register/', passport.authenticate('register', {
     successRedirect: '/',
-    failureRedirect: '/signin'
-    
+    failureRedirect: '/'
   }))
 
   /*
@@ -87,7 +93,7 @@ module.exports = function(app, db) {
 
   app.post('/login/', passport.authenticate('login', {
     successRedirect: '/',
-    failureRedirect: '/signin'
+    failureRedirect: '/'
   }))
 
   /*

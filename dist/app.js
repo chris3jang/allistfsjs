@@ -15,48 +15,71 @@ const router = express.Router()
 
 const bcrypt = require('bcrypt')
 
+const MongoStore = require('connect-mongo')(session)
+
+
 
 function localReg(un, pw) {
-  MongoClient.connect(db.url, (err, database) => {
-    db.collection('localusers').findOne({username: un})
-    .then(result => {
-      if(null != result) {
-        return console.log("USERNAME ALREADY EXISTS: ", result.username)
-      }
-      else {
-        const hash = bcrypt.hashSync(pw, 8)
-        const newUser = {
-          username: un,
-          password: pw
+  return new Promise((resolve, reject) =>  {
+    MongoClient.connect(db.url, (err, database) => {
+      database.db("nodjsapitutdb").collection('localusers').findOne({username: un})
+      .then(result => {
+        if(null != result) {
+          return console.log("USERNAME ALREADY EXISTS: ", result.username)
+          resolve(false)
+          database.close()
+          return
         }
-        console.log("CREATING USER: ", un)
-        return db.collection('localusers').insert(newUser, (err, inserted)=> {
-          db.close()
-        })
-      }
+        else {
+          const hash = bcrypt.hashSync(pw, 8)
+          console.log(hash)
+          const newUser = {
+            username: un,
+            password: hash
+          }
+          console.log("CREATING USER: ", un)
+          database.db("nodjsapitutdb").collection('localusers').insert(newUser)
+          .then(inserted => {
+            resolve(newUser)
+            console.log("post resolve")
+            database.close()
+            return
+          })
+        }
+      })
     })
   })
 }
 
 function localAuth(un, pw) {
-  MongoClient.connect(db.url, (err, database) => {
-    db.collection('localusers').findOne({username: un})
-    .then(result => {
-      if(null == result) {
-        console.log("USERNAME NOT FOUND: ", un)
-      }
-      else {
-        const hash = result.password
-        console.log("FOUND USER:  " + result.username)
-        if(bycrpt.compareSync(pw, hash)) {
-          db.close()
-          return result
+  return new Promise((resolve, reject) => {
+    MongoClient.connect(db.url, (err, database) => {
+      database.db("nodjsapitutdb").collection('localusers').findOne({username: un})
+      .then(result => {
+        if(null == result) {
+          console.log("USERNAME NOT FOUND: ", un)
+          resolve(false)
+          database.close()
+          return
         }
         else {
-          console.log("AUTH FAILED")
-          db.close()
+          const hash = result.password
+          console.log("result.password", result.password, result)
+          console.log("FOUND USER:  " + result.username)
+          console.log(bcrypt.compareSync(pw, hash))
+          if(bcrypt.compareSync(pw, hash)) {
+            database.close()
+            resolve(result)
+            return
+          }
+          else {
+            reject(new Error("AUTH FAILED LOCALAUTH PROMISE REJECT"))
+            console.log("AUTH FAILED")
+            database.close()
+            return
+          }
         }
-      }
+      })
     })
   })
 }
@@ -108,9 +131,7 @@ passport.use(new LocalStrategy(
 passport.use('login', new LocalStrategy(
   {passReqToCallback : true}, 
   (req, username, password, done) => {
-
-    console.log(username, password, localAuth(username, password))
-    this.localAuth(username, password)
+    localAuth(username, password)
     .then(user => {
       if (user) {
         console.log("LOGGED IN AS: " + user.username)
@@ -123,7 +144,7 @@ passport.use('login', new LocalStrategy(
         done(null, user)
       }
     })
-    .fail(function (err){
+    .catch(function (err){
       console.log(err.body)
     })
   }
@@ -135,6 +156,7 @@ passport.use('register', new LocalStrategy(
   (req, username, password, done) => {
     localReg(username, password)
     .then(user => {
+      console.log(user)
       if(user) {
         console.log("REGISTERED: " + user.username)
         req.session.success = 'You are successfully registered and logged in ' + user.username + '!'
@@ -146,7 +168,7 @@ passport.use('register', new LocalStrategy(
         done(null, user)
       }
     })
-    .fail(err => {
+    .catch(err => {
       console.log(err.body)
     })
   }
@@ -183,8 +205,7 @@ if (process.env.NODE_ENV !== 'production') {
   }))
 }
 
-app.use(bodyParser.urlencoded({ extended: true }));
-app.use(bodyParser.json());
+
 
 /*
 
@@ -220,6 +241,29 @@ MongoClient.connect(db.url, (err, database) => {
   app.use(bodyParser.urlencoded({ extended: true }));
   //app.use(bodyParser.json());
   require('./routes')(app, database.db("nodjsapitutdb"));
+  app.use(bodyParser.urlencoded({ extended: true }));
+  app.use(bodyParser.json());
+
+  app.use(session({secret: 'theycutthefleeb', store: new MongoStore({db: database.db("nodjsapitutdb")}), saveUninitialized: true, resave: true}));
+  app.use(passport.initialize());
+  app.use(passport.session());
+
+  app.use((req, res, next) => {
+    var err = req.session.error,
+        msg = req.session.notice,
+        success = req.session.success;
+
+    delete req.session.error;
+    delete req.session.success;
+    delete req.session.notice;
+
+    if (err) res.locals.error = err;
+    if (msg) res.locals.notice = msg;
+    if (success) res.locals.success = success;
+
+    next();
+  });
+
 
   app.listen(port, () => {
     console.log('We are live on http://localhost:' + port);

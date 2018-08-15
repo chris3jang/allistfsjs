@@ -20,7 +20,24 @@ const AllistItem = require("AllistItem")
 class App extends React.Component {
 
 	state = {
-		redirectToReferrer: false
+		authenticated: false,
+		user: null
+	}
+
+	componentDidMount() {
+		this.getAuthentication()
+	}
+
+	componentWillUpdate() {
+		this.getAuthentication()
+	}
+
+	getAuthentication = () => {
+		const self = this
+		fetch('http://localhost:8080/users')
+			.then(resp => { 
+				console.log("then: ", resp)
+			})
 	}
 
 	login = (e) => {
@@ -29,6 +46,7 @@ class App extends React.Component {
 		console.log(e.target[0].value)
 		console.log(e.target[1].value)
 		e.preventDefault()
+		this.setState({user: e.target[1].value})
 		const data = {
 			username: e.target[0].value,
 			password: e.target[1].value
@@ -43,7 +61,9 @@ class App extends React.Component {
 		})
 		.then(resp => {
 			console.log(resp)
-			this.setState({ redirectToReferrer: true})
+			if(resp.status == 200) {
+				this.setState({ authenticated: true})
+			}
 		})
 	}
 
@@ -65,7 +85,7 @@ class App extends React.Component {
 		})
 		.then(resp => {
 			console.log(resp)
-			this.setState({ redirectToReferrer: true})
+			this.setState({ authenticated: true})
 		})
 	}
 
@@ -77,40 +97,37 @@ class App extends React.Component {
 		e.preventDefault()
 	}	
 
-
-
-
 	render() {
-
 		return (
 			<div>
-				{/*)
-				<BrowserRouter>
-					<Route path="" component={Home}></Route>
-				</BrowserRouter>
-				*/}
-				<form method="post" onSubmit={this.login}>
-					<div className="form-group">
-						<label>Email</label>
-						<input type="text" className="form-control" name="username"></input>
+				{this.state.authenticated ? (
+					<Home username={this.state.user}></Home>
+				) : (
+					<div>
+						<form method="post" onSubmit={this.login}>
+							<div className="form-group">
+								<label>Email</label>
+								<input type="text" className="form-control" name="username"></input>
+							</div>
+							<div className="form-group">
+								<label>Password</label>
+								<input type="password" className="form-control" name="password"></input>
+							</div>
+							<button type="submit" className="btn btn-warning btn-lg">Login</button>
+						</form>
+						<form method="post" onSubmit={this.register}>
+							<div className="form-group">
+								<label>Email</label>
+								<input type="text" className="form-control" name="username"></input>
+							</div>
+							<div className="form-group">
+								<label>Password</label>
+								<input type="password" className="form-control" name="password"></input>
+							</div>
+							<button type="submit" className="btn btn-warning btn-lg">Register</button>
+						</form>
 					</div>
-					<div className="form-group">
-						<label>Password</label>
-						<input type="password" className="form-control" name="password"></input>
-					</div>
-					<button type="submit" className="btn btn-warning btn-lg">Login</button>
-				</form>
-				<form method="post" onSubmit={this.register}>
-					<div className="form-group">
-						<label>Email</label>
-						<input type="text" className="form-control" name="username"></input>
-					</div>
-					<div className="form-group">
-						<label>Password</label>
-						<input type="password" className="form-control" name="password"></input>
-					</div>
-					<button type="submit" className="btn btn-warning btn-lg">Register</button>
-				</form>
+				)}
 			</div>
 		)
 	}
@@ -119,5 +136,10 @@ class App extends React.Component {
 export default App;
 
 
+/*
+				<BrowserRouter>
+					<Route path="" component={Home}></Route>
+				</BrowserRouter>
+*/
 
 
