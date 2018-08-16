@@ -29,7 +29,7 @@ class App extends React.Component {
 	}
 
 	componentWillUpdate() {
-		this.getAuthentication()
+		//this.getAuthentication()
 	}
 
 	getAuthentication = () => {

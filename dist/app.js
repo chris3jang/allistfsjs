@@ -15,11 +15,12 @@ const router = express.Router()
 
 const bcrypt = require('bcrypt')
 
-const MongoStore = require('connect-mongo')(session)
+//const MongoStore = require('connect-mongo')(session)
 
 
 
 function localReg(un, pw) {
+  console.log("localReg function")
   return new Promise((resolve, reject) =>  {
     MongoClient.connect(db.url, (err, database) => {
       database.db("nodjsapitutdb").collection('localusers').findOne({username: un})
@@ -83,8 +84,6 @@ function localAuth(un, pw) {
     })
   })
 }
-
-
 
 
 /*
@@ -188,6 +187,26 @@ passport.deserializeUser((obj, done) => {
 //************************************************************************************s
 
 
+app.use(session({secret: 'theycutthefleeb', saveUninitialized: true, resave: true}));
+app.use(passport.initialize());
+app.use(passport.session());
+
+app.use((req, res, next) => {
+  var err = req.session.error,
+      msg = req.session.notice,
+      success = req.session.success;
+
+  delete req.session.error;
+  delete req.session.success;
+  delete req.session.notice;
+
+  if (err) res.locals.error = err;
+  if (msg) res.locals.notice = msg;
+  if (success) res.locals.success = success;
+
+  next();
+});
+
 
 
 if (process.env.NODE_ENV !== 'production') {
@@ -239,30 +258,8 @@ MongoClient.connect(db.url, (err, database) => {
 
   if (err) return console.log(err);
   app.use(bodyParser.urlencoded({ extended: true }));
-  //app.use(bodyParser.json());
+  app.use(bodyParser.json())
   require('./routes')(app, database.db("nodjsapitutdb"));
-  app.use(bodyParser.urlencoded({ extended: true }));
-  app.use(bodyParser.json());
-
-  app.use(session({secret: 'theycutthefleeb', store: new MongoStore({db: database.db("nodjsapitutdb")}), saveUninitialized: true, resave: true}));
-  app.use(passport.initialize());
-  app.use(passport.session());
-
-  app.use((req, res, next) => {
-    var err = req.session.error,
-        msg = req.session.notice,
-        success = req.session.success;
-
-    delete req.session.error;
-    delete req.session.success;
-    delete req.session.notice;
-
-    if (err) res.locals.error = err;
-    if (msg) res.locals.notice = msg;
-    if (success) res.locals.success = success;
-
-    next();
-  });
 
 
   app.listen(port, () => {
@@ -270,6 +267,6 @@ MongoClient.connect(db.url, (err, database) => {
   });               
 })
 
-
+//store: new MongoStore({db: database.db("nodjsapitutdb")})
 //app.listen(port, 
 //console.log(`Listening at http://localhost:${port}`))

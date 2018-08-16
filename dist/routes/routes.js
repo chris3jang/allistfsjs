@@ -77,9 +77,9 @@ module.exports = function(app, db) {
   })
 
 
-  app.post('/register/', passport.authenticate('register', {
+  app.post('/register/', (req, res, next) => {console.log("GOTHERE"); next()}, passport.authenticate('register', {
     successRedirect: '/',
-    failureRedirect: '/'
+    failureRedirect: '/signin'
   }))
 
   /*
@@ -93,7 +93,7 @@ module.exports = function(app, db) {
 
   app.post('/login/', passport.authenticate('login', {
     successRedirect: '/',
-    failureRedirect: '/'
+    failureRedirect: '/signin'
   }))
 
   /*
