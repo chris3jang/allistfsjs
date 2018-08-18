@@ -5,6 +5,9 @@ const LocalStrategy = require('passport-local').Strategy
 const express = require('express')
 const router = express.Router()
 
+const jwt = require('jsonwebtoken')
+const expressJwt = require('express-jwt')
+const authenticate = expressJwt({secret: 'theycutthefleeb'})
 
 
 module.exports = function(app, db) {
@@ -63,13 +66,18 @@ module.exports = function(app, db) {
 
 
   const isLoggedIn = (req, res, next) => {
+    console.log("req.query", req.query)
+    console.log("req.headers ", req.headers)
+    console.log("req.isAuthenticated: ", req.isAuthenticated())
+    console.log("req.user: ", req.user)
     if(req.isAuthenticated()) {
       return next()
     }
+    console.log("isAuthenticated: false")
     res.redirect('/')
   }
 
-  app.get('/users/', (req, res) => {
+  app.get('/users/', authenticate, isLoggedIn, (req, res) => {
     console.log("users get: ", req.user)
     res.send()
     //req.isAuthenticated()
@@ -77,85 +85,98 @@ module.exports = function(app, db) {
   })
 
 
+  //THEYCUTTHEFLEEB
+  /*
   app.post('/register/', (req, res, next) => {console.log("GOTHERE"); next()}, passport.authenticate('register', {
     successRedirect: '/',
     failureRedirect: '/signin'
   }))
+  */
+
+
+
+  //*******************************************REGISTER WITH AUTH*************************************************
+  const dbSerialize = {
+    updateOrCreate: (user, cb) => {
+      console.log("dbSerialize updateOrCreate")
+      console.log("user", user)
+      cb(null, user)
+    }
+  }
+
+  const serialize = (req, res, next) => {
+    console.log("serialize")
+    console.log(req.user)
+    dbSerialize.updateOrCreate(req.user, (err, user) => {
+      if(err) return next(err)
+      console.log("HERE", user)
+      req.user = {
+        id: user._id
+      }
+      console.log(req.user)
+      next()
+  })}
+
+  const generateToken = (req, res, next) => {
+    console.log("generateToken")
+    console.log("req.user: ", req.user)
+    req.token = jwt.sign({
+      id: req.user,
+    }, 'theycutthefleeb', {
+      expiresIn: 2 * 60 * 60
+    })
+    next()
+  }
+
+  const respond = (req, res, next) => {
+    console.log("respond")
+    console.log("req.user", req.user)
+    console.log("req.token", req.token)
+    console.log("isAuthenticated: ", req.isAuthenticated())
+    res.status(200).json({
+      user: req.user,
+      token: req.token
+    })
+  }
+
+  app.post('/registertoken/', passport.authenticate(
+    'registerbytoken', {
+      session: false
+  }), serialize, generateToken, respond)
+
 
   /*
-  app.post('/register/', (req, res) => {
-    db.collection('localusers').insert({ username: req.body.username, password: req.body.password })
-    .then((inserted) => {
-      res.send("new user inserted")
-    })
-  })
+  function serializeClient(req, res, next) {  
+    console.log("req.query", req.query)
+    if (req.query.permanent === ‘true’) {
+      db.client.updateOrCreate({
+        user: req.user
+      }, function(err, client) {
+        if (err) {
+          return next(err);
+        }
+        // we store information needed in req.user
+        req.user.clientId = client.id;
+        next();
+      });
+    } else {
+      next();
+    }
+  }
   */
+
+//***********************************************************************************************************************
+
+
+
 
   app.post('/login/', passport.authenticate('login', {
     successRedirect: '/',
     failureRedirect: '/signin'
   }))
 
-  /*
-  app.post('/login/', passport.authenticate('local', { failureRedirect: '/login' }), (req, res) => {
-    console.log("login")
-    passport.authenticate('local', { failureRedirect: '/login' })
-    .then(() => {
-      return req.session.save()
-    })
-    .then(() => {
-      res.status(200).send('OK')
-    })
-    
-  });
-  */
 
-/*
-  app.post('/login', function(req, res, next) {
-    passport.authenticate('local', function(err, user, info) {
-      console.log('/login handler', req.body);
-      if (err) { return next(err); }
-      if (!user) { return res.status(500).json({ error: 'User not found.' }); }
-      req.session.save((err) => {
-          if (err) {
-              return next(err);
-          }
-          res.status(200).json({ success: true });
-      });
-    })(req, res, next);
-  });
-  */
-
-  /*
-
-  app.get('/', function(req, res) {
-      res.render('index.ejs');
-  });
-
-  app.get('/login', function(req, res) {
-      res.render('login.ejs', { message: req.flash('loginMessage') }); 
-  });
-
-  app.get('/signup', function(req, res) {
-
-      // render the page and pass in any flash data if it exists
-      res.render('signup.ejs', { message: req.flash('signupMessage') });
-  });
-
-  app.get('/profile', isLoggedIn, function(req, res) {
-      res.render('profile.ejs', {
-          user : req.user // get the user out of session and pass to template
-      });
-  });
-
-  app.get('/logout', function(req, res) {
-      req.logout();
-      res.redirect('/');
-  });
-
-  */
-
-
+  //********************************************************************************************
 
   
   const listsCol = db.collection('lists')

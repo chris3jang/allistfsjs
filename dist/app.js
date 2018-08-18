@@ -15,8 +15,6 @@ const router = express.Router()
 
 const bcrypt = require('bcrypt')
 
-//const MongoStore = require('connect-mongo')(session)
-
 
 
 function localReg(un, pw) {
@@ -52,6 +50,7 @@ function localReg(un, pw) {
   })
 }
 
+
 function localAuth(un, pw) {
   return new Promise((resolve, reject) => {
     MongoClient.connect(db.url, (err, database) => {
@@ -86,47 +85,6 @@ function localAuth(un, pw) {
 }
 
 
-/*
-passport.use(new LocalStrategy(
-  { passReqToCallback: true},
-  (username, password, done) => {
-    User.findOne({ username: username }, function (err, user) {
-      if (err) { return done(err); }
-      
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      
-      if (!user.validPassword(password)) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      
-      return done(null, user);
-    });
-  }
-));
-*/
-
-
-
-
-/*
-passport.use(new LocalStrategy(
-  function(username, password, done) {
-    User.findOne({ username: username }, function (err, user) {
-      if (err) { return done(err); }
-      if (!user) {
-        return done(null, false, { message: 'Incorrect username.' });
-      }
-      if (!user.validPassword(password)) {
-        return done(null, false, { message: 'Incorrect password.' });
-      }
-      return done(null, user);
-    });
-  }
-));
-*/
-
 passport.use('login', new LocalStrategy(
   {passReqToCallback : true}, 
   (req, username, password, done) => {
@@ -150,7 +108,7 @@ passport.use('login', new LocalStrategy(
 ))
 
 
-passport.use('register', new LocalStrategy(
+passport.use('registerbytoken', new LocalStrategy(
   {passReqToCallback: true},
   (req, username, password, done) => {
     localReg(username, password)
@@ -158,12 +116,12 @@ passport.use('register', new LocalStrategy(
       console.log(user)
       if(user) {
         console.log("REGISTERED: " + user.username)
-        req.session.success = 'You are successfully registered and logged in ' + user.username + '!'
+        // THEY CUT THE FLEEB req.session.success = 'You are successfully registered and logged in ' + user.username + '!'
         done(null, user)
       }
       if(!user) {
         console.log("COULD NOT REGISTER")
-        req.session.error = 'That username is already in use, please try a different one.'
+        // THEY CUT THE FLEEB req.session.error = 'That username is already in use, please try a different one.'
         done(null, user)
       }
     })
@@ -184,9 +142,11 @@ passport.deserializeUser((obj, done) => {
 })
 
 
+
 //************************************************************************************s
 
 
+/* THEYCUTHTEFLEEB
 app.use(session({secret: 'theycutthefleeb', saveUninitialized: true, resave: true}));
 app.use(passport.initialize());
 app.use(passport.session());
@@ -206,7 +166,11 @@ app.use((req, res, next) => {
 
   next();
 });
+*/
 
+
+
+app.use(passport.initialize());
 
 
 if (process.env.NODE_ENV !== 'production') {
@@ -225,35 +189,6 @@ if (process.env.NODE_ENV !== 'production') {
 }
 
 
-
-/*
-
-app.use(session({
-  genid: function(req) {
-    return '_' + Math.random().toString(36).substr(2, 9)
-  },
-  secret: 'theycutthefleeb', resave: false, saveUninitialized: false}))
-app.use(passport.initialize())
-app.use(passport.session())
-
-*/
-
-/*
-passport.use(new LocalStrategy((username, password, done) => {
-  User.findOne({ username: username }, (err, user) => {
-    if (err) { return done(err); }
-    if (!user) {
-      return done(null, false, { message: 'Incorrect username.' });
-    }
-    if (!user.validPassword(password)) {
-      return done(null, false, { message: 'Incorrect password.' });
-    }
-    return done(null, user)
-  })
-
-}))
-*/
-
 MongoClient.connect(db.url, (err, database) => {
 
   if (err) return console.log(err);
@@ -266,7 +201,3 @@ MongoClient.connect(db.url, (err, database) => {
     console.log('We are live on http://localhost:' + port);
   });               
 })
-
-//store: new MongoStore({db: database.db("nodjsapitutdb")})
-//app.listen(port, 
-//console.log(`Listening at http://localhost:${port}`))

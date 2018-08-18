@@ -29,15 +29,23 @@ class App extends React.Component {
 	}
 
 	componentWillUpdate() {
-		//this.getAuthentication()
+		this.getAuthentication()
 	}
 
 	getAuthentication = () => {
 		const self = this
-		fetch('http://localhost:8080/users')
+		const myHeaders = new Headers()
+		myHeaders.append('authorization', 'Bearer ' + localStorage.getItem('userjwt'))
+		console.log("myHeaders", myHeaders)
+		console.log("HERE", localStorage.getItem('userjwt'))
+		if(localStorage.getItem('userjwt')) {
+			fetch('http://localhost:8080/users', {
+				headers: myHeaders
+			})
 			.then(resp => { 
 				console.log("then: ", resp)
 			})
+		}
 	}
 
 	login = (e) => {
@@ -75,7 +83,7 @@ class App extends React.Component {
 			username: e.target[0].value,
 			password: e.target[1].value
 		}
-		fetch('/register/', {
+		fetch('/registertoken/', {
 			method: 'POST',
 			body: JSON.stringify(data),
 			credentials: 'include',
@@ -84,8 +92,15 @@ class App extends React.Component {
 			},
 		})
 		.then(resp => {
-			console.log(resp)
+			console.log("frontend token resp", resp)
+			console.log("fe token resp.body: ", resp.body)
+			return resp.json()
+		})
+		.then(data => {
+			console.log("frontend token data: ", data)
+			localStorage.setItem('userjwt', data.token)
 			this.setState({ authenticated: true})
+			console.log('localStorageToken', localStorage.getItem('userjwt'))
 		})
 	}
 
