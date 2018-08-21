@@ -17,6 +17,10 @@ class NavBar extends React.Component {
 		this.props.trashCheckedItemsFromNav()
 	}
 
+	handleLogoutButtonClick = () => {
+		this.props.logout()
+	}
+
 	render() {
 		return (
 			<div className={styles.topnav}>
@@ -26,6 +30,7 @@ class NavBar extends React.Component {
 				<div className={styles.buttondiv}>
 					<button className={styles.button} onClick={this.handleEditButtonClick.bind(this)}>Edit</button>
 					<button className={styles.button} onClick={this.handleTrashButtonClick.bind(this)}>Trash</button>
+					<button className={styles.button} onClick={this.handleLogoutButtonClick.bind(this)}>Logout</button>
 				</div>
 			</div>
 		)

@@ -240,7 +240,7 @@ module.exports = function(app, db) {
       id: req.user,
       clientId: req.user.clientId
     }, 'theycutthefleeb', {
-      expiresIn: 60 * 10
+      expiresIn: 60
     })
     console.log("req.token.accessToken", req.token.accessToken)
     next()
@@ -277,7 +277,7 @@ module.exports = function(app, db) {
     'localtokenauth', {
       session: false
     }
-  ), serialize, generateAccessToken, respond)
+  ), serialize, serializeClient, generateAccessToken, generateRefreshToken, respond)
 
 
   /*

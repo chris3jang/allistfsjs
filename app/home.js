@@ -82,6 +82,10 @@ class Home extends React.Component {
 		this.trashCheckedItems()
 	}
 
+	handleLogout = () => {
+		this.props.logout()
+	}
+
 	handleFocusOnLists = () => {
 		this.setState({listsFocus: true})
 	}
@@ -102,7 +106,8 @@ class Home extends React.Component {
 				<div>
 					<NavBar
 						editListsFromNav={this.handleEditListsFromNav.bind(this)}
-						trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}>
+						trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}
+						logout={this.handleLogout.bind(this)}>
 					</NavBar>
 				</div>
 				<div style = {{ whiteSpace: 'nowrap', overflow: 'auto' }}>

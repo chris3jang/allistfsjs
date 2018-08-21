@@ -25,25 +25,35 @@ class App extends React.Component {
 	}
 
 	componentDidMount() {
+		console.log("did mount")
 		this.getAuthentication()
 	}
 
-	componentWillUpdate() {
-		this.getAuthentication()
+	/*
+	componentWillUpdate(nextProps, nextState) {
+		if(nextState.authenticated != this.state.authenticated) this.getAuthentication()
+	}
+*/
+
+	componentDidUpdate(prevProps, prevState, snapshot) {
+		if(prevState.authenticated == this.state.authenticated) this.getAuthentication()
 	}
 
 	getAuthentication = () => {
 		const self = this
 		const myHeaders = new Headers()
-		myHeaders.append('authorization', 'Bearer ' + localStorage.getItem('userjwt'))
+		myHeaders.append('authorization', 'Bearer ' + localStorage.getItem('access'))
 		console.log("myHeaders", myHeaders)
-		console.log("HERE", localStorage.getItem('userjwt'))
-		if(localStorage.getItem('userjwt')) {
+		console.log("HERE", localStorage.getItem('access'))
+		if(localStorage.getItem('access')) {
 			fetch('http://localhost:8080/users', {
 				headers: myHeaders
 			})
-			.then(resp => { 
+			.then(resp => { //resp.statusText either == "OK" or "Unauthorized"
 				console.log("then: ", resp)
+				if(resp.statusText == "OK") {
+					this.setState({ authenticated: true})
+				}
 			})
 		}
 	}
@@ -73,7 +83,8 @@ class App extends React.Component {
 		.then(data => {
 			//if(resp.status == 200)
 			console.log("frontend token data: ", data)
-			localStorage.setItem('userjwt', data.token)
+			localStorage.setItem('access', data.token.accessToken)
+			localStorage.setItem('refresh', data.token.refreshToken)
 			this.setState({ authenticated: true})
 		})
 	}
@@ -101,9 +112,10 @@ class App extends React.Component {
 		})
 		.then(data => {
 			console.log("frontend token data: ", data)
-			localStorage.setItem('userjwt', data.token.accessToken)
+			localStorage.setItem('access', data.token.accessToken)
+			localStorage.setItem('refresh', data.token.refreshToken)
 			this.setState({ authenticated: true})
-			console.log('localStorageToken', localStorage.getItem('userjwt'))
+			console.log('localStorageToken', localStorage.getItem('access'))
 		})
 	}
 
@@ -115,11 +127,21 @@ class App extends React.Component {
 		e.preventDefault()
 	}	
 
+	handleLogout = () => {
+		console.log("made it to the top")
+		localStorage.removeItem('access')
+		localStorage.removeItem('refresh')
+		this.setState({authenticated: false})
+	}
+
 	render() {
 		return (
 			<div>
 				{this.state.authenticated ? (
-					<Home username={this.state.user}></Home>
+					<Home 
+						username={this.state.user}
+						logout={this.handleLogout.bind(this)}>
+					</Home>
 				) : (
 					<div>
 						<form method="post" onSubmit={this.login}>
