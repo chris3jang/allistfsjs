@@ -16,7 +16,7 @@ const router = express.Router()
 const bcrypt = require('bcrypt')
 
 
-
+/*
 function localReg(un, pw) {
   console.log("localReg function")
   return new Promise((resolve, reject) =>  {
@@ -108,7 +108,7 @@ passport.use('login', new LocalStrategy(
 ))
 
 
-passport.use('registerbytoken', new LocalStrategy(
+passport.use('register', new LocalStrategy(
   {passReqToCallback: true},
   (req, username, password, done) => {
     localReg(username, password)
@@ -140,7 +140,7 @@ passport.deserializeUser((obj, done) => {
   console.log("deserializing " + obj)
   done(null, obj)
 })
-
+*/
 
 
 //************************************************************************************s

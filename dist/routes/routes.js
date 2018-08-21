@@ -9,6 +9,9 @@ const jwt = require('jsonwebtoken')
 const expressJwt = require('express-jwt')
 const authenticate = expressJwt({secret: 'theycutthefleeb'})
 
+const bcrypt = require('bcrypt')
+const crypto = require('crypto');
+
 
 module.exports = function(app, db) {
 
@@ -66,6 +69,7 @@ module.exports = function(app, db) {
 
 
   const isLoggedIn = (req, res, next) => {
+    console.log("middleware isLoggedIn")
     console.log("req.query", req.query)
     console.log("req.headers ", req.headers)
     console.log("req.isAuthenticated: ", req.isAuthenticated())
@@ -96,36 +100,161 @@ module.exports = function(app, db) {
 
 
   //*******************************************REGISTER WITH AUTH*************************************************
+
   const dbSerialize = {
-    updateOrCreate: (user, cb) => {
-      console.log("dbSerialize updateOrCreate")
-      console.log("user", user)
-      cb(null, user)
+    user: {
+      updateOrCreate: (user, cb) => {
+        console.log("dbSerialize updateOrCreate")
+        console.log("user", user)
+        cb(null, user)
+      },
+      authenticate: (un, pw, cb) => {
+        console.log("dbSerialize authenticate")
+        db.collection('localusers').findOne({username: un})
+        .then(result => {
+          if(null == result) {} //user not found
+          else { //user found
+            hash = result.password
+            console.log("result.password", result.password, result)
+            console.log("FOUND USER:  " + result.username)
+            if(bcrypt.compareSync(pw, hash)) {
+              //database.close()
+              console.log("make sure this is the user object, then delete this console.log: ", result)
+              cb(null, result)
+              return
+            }
+            else {
+              console.log("AUTH FAILED")
+              //database.close()
+              cb(null, false)
+            }
+          }
+        })
+      },
+      register: (un, pw, cb) => {
+        console.log("dbSerialize register")
+        db.collection('localusers').findOne({username: un})
+        .then(result => {
+          if(null != result) {
+            return console.log("USERNAME ALREADY EXISTS: ", result.username)
+            //database.close()
+            cb(null, false)
+          }
+          else {
+            const hash = bcrypt.hashSync(pw, 8)
+            console.log("hash", hash)
+            const newUser = {
+              username: un,
+              password: hash
+            }
+            console.log("CREATING USER: ", un)
+            db.collection('localusers').insert(newUser)
+            .then(inserted => {
+              //database.close()
+              console.log("make sure this is the user object, then delete this console.log: ", inserted.ops[0])
+              cb(null, inserted.ops[0])
+            })
+          }
+        })
+      }
+    },
+
+    client: {
+      updateOrCreate: (data, cb) => {
+        console.log("client updateOrCreate")
+        console.log("data: ", data)
+        db.collection('localclients').insert({user: data.user})
+        .then(inserted => {
+          console.log("inserted.ops[0]", inserted.ops[0])
+          cb(null, {id: inserted.ops[0]._id})
+        })
+      },
+      storeToken: (data, cb) => {
+        console.log("storeToken")
+        console.log("data arg", data)
+        db.collection('localclients').findOneAndUpdate({_id: data.id}, {$set: {refreshToken: data.refreshToken}})
+        .then(client => {
+          cb()
+        })
+      }//,
+
     }
+
   }
+
+  passport.use('localtokenauth', new LocalStrategy(
+    (username, password, done)=> {
+      dbSerialize.user.authenticate(username, password, done)
+  }))
+
+  passport.use('localtokenreg', new LocalStrategy(
+    (username, password, done)=> {
+      dbSerialize.user.register(username, password, done)
+  }))
+
 
   const serialize = (req, res, next) => {
     console.log("serialize")
-    console.log(req.user)
-    dbSerialize.updateOrCreate(req.user, (err, user) => {
+    console.log("req.user", req.user)
+    dbSerialize.user.updateOrCreate(req.user, (err, user) => {
       if(err) return next(err)
-      console.log("HERE", user)
+      console.log("req.user preupdateCreate", req.user)
+      console.log("user", user)
+      /*
       req.user = {
         id: user._id
       }
-      console.log(req.user)
+      */
+      req.user = user._id
+      console.log("req.user postupdateCreate", req.user)
       next()
   })}
 
-  const generateToken = (req, res, next) => {
-    console.log("generateToken")
+  serializeClient = (req, res, next) => {  
+    console.log("serializeClient")
+    console.log("req.query", req.query)
+    //if (req.query.permanent === ‘true’)
+    dbSerialize.client.updateOrCreate({
+      user: req.user
+    }, (err, client) => {
+      if (err) {
+        return next(err);
+      }
+      // we store information needed in req.user
+      console.log("req.user", req.user)
+      console.log("client arg", client)
+      req.user.clientId = client.id;
+      console.log("req.user.clientId", req.user.clientId)
+      console.log("req.user", req.user)
+      next()
+    });
+  }
+
+  const generateAccessToken = (req, res, next) => {
+    console.log("generateAccessToken")
     console.log("req.user: ", req.user)
-    req.token = jwt.sign({
+    console.log("req.user.id", req.user.id)
+    console.log("req.user.clientId", req.user.clientId)
+    req.token = req.token || {}
+    req.token.accessToken = jwt.sign({
       id: req.user,
+      clientId: req.user.clientId
     }, 'theycutthefleeb', {
-      expiresIn: 2 * 60 * 60
+      expiresIn: 60 * 10
     })
+    console.log("req.token.accessToken", req.token.accessToken)
     next()
+  }
+
+  generateRefreshToken = (req, res, next) => {
+    console.log("generateRefreshToken")
+    req.token.refreshToken = req.user.clientId.toString() + '.' + crypto.randomBytes(
+      40).toString('hex');
+    console.log("req.token.refreshToken: ", req.token.refreshToken)
+    dbSerialize.client.storeToken({
+      id: req.user.clientId,
+      refreshToken: req.token.refreshToken
+    }, next);
   }
 
   const respond = (req, res, next) => {
@@ -140,30 +269,34 @@ module.exports = function(app, db) {
   }
 
   app.post('/registertoken/', passport.authenticate(
-    'registerbytoken', {
+    'localtokenreg', {
       session: false
-  }), serialize, generateToken, respond)
+  }), serialize, serializeClient, generateAccessToken, generateRefreshToken, respond)
+
+  app.post('/logintoken/', passport.authenticate(
+    'localtokenauth', {
+      session: false
+    }
+  ), serialize, generateAccessToken, respond)
 
 
   /*
-  function serializeClient(req, res, next) {  
-    console.log("req.query", req.query)
-    if (req.query.permanent === ‘true’) {
-      db.client.updateOrCreate({
-        user: req.user
-      }, function(err, client) {
-        if (err) {
-          return next(err);
-        }
-        // we store information needed in req.user
-        req.user.clientId = client.id;
-        next();
-      });
-    } else {
-      next();
-    }
+  
+  generateRefreshToken = (req, res, next) => {  
+    //if (req.query.permanent === ‘true’)
+    console.log("generateRefreshToken")
+    console.log("req.token", req.token)
+    req.token.refreshToken = req.user.clientId.toString() + '.' + crypto.randomBytes(
+      40).toString('hex');
+    dbSerialize.client.storeToken({
+      id: req.user.clientId,
+      refreshToken: req.token.refreshToken
+    }, next);
   }
-  */
+
+  app.get('/refreshingfleshingHEY/', passport.authenticate('localtokenauth', {session: false}), serialize, serializeClient, generateToken)
+
+*/
 
 //***********************************************************************************************************************
 

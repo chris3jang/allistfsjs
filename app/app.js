@@ -59,7 +59,7 @@ class App extends React.Component {
 			username: e.target[0].value,
 			password: e.target[1].value
 		}
-		fetch('/login/', {
+		fetch('/logintoken/', {
 			method: 'POST',
 			body: JSON.stringify(data),
 			credentials: 'include',
@@ -68,10 +68,13 @@ class App extends React.Component {
 			},
 		})
 		.then(resp => {
-			console.log(resp)
-			if(resp.status == 200) {
-				this.setState({ authenticated: true})
-			}
+			return resp.json()
+		})
+		.then(data => {
+			//if(resp.status == 200)
+			console.log("frontend token data: ", data)
+			localStorage.setItem('userjwt', data.token)
+			this.setState({ authenticated: true})
 		})
 	}
 
@@ -98,7 +101,7 @@ class App extends React.Component {
 		})
 		.then(data => {
 			console.log("frontend token data: ", data)
-			localStorage.setItem('userjwt', data.token)
+			localStorage.setItem('userjwt', data.token.accessToken)
 			this.setState({ authenticated: true})
 			console.log('localStorageToken', localStorage.getItem('userjwt'))
 		})
