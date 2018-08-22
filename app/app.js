@@ -40,7 +40,8 @@ class App extends React.Component {
 	
 	componentWillUpdate(nextProps, nextState) {
 		console.log("cwu")
-		this.checkIfSessionsOver()
+
+		//this.checkIfSessionsOver()
 		//if(nextState.authenticated != this.state.authenticated) this.getAuthentication()
 	}
 	
@@ -57,6 +58,33 @@ class App extends React.Component {
 				this.handleLogout()
 			}
 		}
+	}
+
+	refreshAccessToken = () => {
+		console.log('localStorage.getItem(refresh)', localStorage.getItem('refresh'))
+		const data = {
+			refreshToken: localStorage.getItem('refresh')
+		}
+
+		fetch('/refreshAccessToken/', {
+			method: 'POST',
+			body: JSON.stringify(data),
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		})
+		.then(resp => {
+			return resp.json()
+		})
+		.then(data => {
+			//if(resp.status == 200)
+			console.log("frontend token data: ", data)
+			localStorage.setItem('access', data.token.accessToken)
+			localStorage.setItem('refresh', data.token.refreshToken)
+			//this.setState({ authenticated: true})
+			this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
+		})
 	}
 
 	getAuthentication = () => {
@@ -80,6 +108,11 @@ class App extends React.Component {
 
 	createLoginSession = (seconds) => {
 		setTimeout(()=>{this.setState({ authenticated: false})}, seconds * 1000)
+	}
+
+	timeOut = () => {
+		this.refreshAccessToken()
+		return
 	}
 
 	login = (e) => {
@@ -110,7 +143,8 @@ class App extends React.Component {
 			localStorage.setItem('access', data.token.accessToken)
 			localStorage.setItem('refresh', data.token.refreshToken)
 			//this.setState({ authenticated: true})
-			this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
+			//this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
+			this.setState({ authenticated: true}, () => setTimeout(this.refreshAccessToken(), 10*1000))
 		})
 	}
 

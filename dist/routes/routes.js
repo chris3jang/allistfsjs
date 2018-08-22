@@ -148,8 +148,19 @@ module.exports = function(app, db) {
         .then(client => {
           cb()
         })
-      }//,
-
+      },
+      findUserOfToken: (data, cb) => {
+        if(!data.refreshToken) return cb(new Error('invalid token'))
+        db.collection('localclients').findOne({refreshToken: data.refreshToken})
+        .then(client => {
+          console.log("client.user", client.user)
+          console.log("client._id", client._id)
+          return cb(null, {
+            id: client.user,
+            clientId: client._id
+          })
+        })
+      }
     }
 
   }
@@ -239,6 +250,25 @@ module.exports = function(app, db) {
       token: req.token
     })
   }
+
+  const validateRefreshToken = (req, res, next) => {
+    console.log("validateRefreshToken")
+    dbSerialize.client.findUserOfToken(req.body, (err, user) => {
+      if(err) return next(err)
+      console.log("req.user", req.user)
+      req.user = user
+      next()
+    })
+  }
+
+  const respondToken = (req, res) => {
+    console.log("respondToken")
+    res.status(201).json({
+      token: req.token
+    })
+  }
+
+  app.post('refreshAccessToken', validateRefreshToken, generateAccessToken, respondToken)
 
   app.post('/registertoken/', passport.authenticate(
     'localtokenreg', {
