@@ -38,6 +38,7 @@ class CurrentList extends React.Component {
 	assignFetchData = (method, paramData) => {
 		return { method: method, body: JSON.stringify(paramData),
 		    headers: new Headers({
+		    	'authorization': 'Bearer ' + localStorage.getItem('access'),
 		    	'content-type': 'application/json',
 		    	'X-Requested-With': 'XMLHttpRequest',
 		    })
@@ -47,7 +48,7 @@ class CurrentList extends React.Component {
 	fetchItems = () => {
 		let fetchedData = []
 		const self = this
-		fetch('http://localhost:8080/items')
+		fetch('http://localhost:8080/items', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
 			.then((resp) => resp.json())
 			.then((data) => {
 				for(var i = 0; i < data.length; i++) {
@@ -67,7 +68,7 @@ class CurrentList extends React.Component {
 	getSelectedItem = () => {
 		const self = this
 		const divs = this.divs
-		fetch('http://localhost:8080/items/selected')
+		fetch('http://localhost:8080/items/selected', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
 			.then((resp) => resp.json())
 			.then((data) => {
 				self.setState({selectedItemIndex: data.index}, (() => { if(self.props.currentListFocused) {

@@ -67,6 +67,7 @@ class Lists extends React.Component {
 		const assignFetchData = (method, paramData) => {
 			return { method: method, body: JSON.stringify(paramData), 
 				headers: new Headers({
+				'authorization': 'Bearer ' + localStorage.getItem('access'),
 				'content-type': 'application/json',
 				'X-Requested-With': 'XMLHttpRequest'
 			})}
@@ -78,6 +79,7 @@ class Lists extends React.Component {
 		switch(action) {
 			case 'fetch': {
 				resFunc = fetchList
+				fetchData = { headers: new Headers({ authorization: 'Bearer ' + localStorage.getItem('access')})}
 				break
 			}
 			case 'edit': {

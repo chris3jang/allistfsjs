@@ -40,34 +40,6 @@ module.exports = function(app, db) {
 
 
 
-  //**************************************************************************************************************************************
-
-
-
-  app.post('/signup/', (req, res) => {
-    if(req.body.email && req.body.username && req.body.password && req.body.passwordConf) {
-      const userData = {
-        email: req.body.email,
-        username: req.body.username,
-        password: req.body.password,
-        passwordConf: req.body.passwordConf,
-      }
-      db.createUser(
-        {
-          user: req.body.username,
-          pwd: req.body.password,
-          roles: [
-            {role: "readWrite", db: "nodejsapitutdb"}
-          ]
-      })
-    }
-
-  })
-
-
-  //*******************************************************************
-
-
   const isLoggedIn = (req, res, next) => {
     console.log("middleware isLoggedIn")
     console.log("req.query", req.query)
@@ -279,6 +251,8 @@ module.exports = function(app, db) {
     }
   ), serialize, serializeClient, generateAccessToken, generateRefreshToken, respond)
 
+
+  app.use(authenticate)
 
   /*
   

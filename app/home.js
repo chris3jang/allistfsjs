@@ -30,8 +30,11 @@ class Home extends React.Component {
 	}
 
 	getSelectedList = () => {
+		const myHeaders = new Headers()
+		myHeaders.append('authorization', 'Bearer ' + localStorage.getItem('access'))
+
 		const self = this
-		fetch('http://localhost:8080/lists/selected')
+		fetch('http://localhost:8080/lists/selected', { headers: myHeaders })
 			.then((resp) => resp.json()).then((data) => { 
 				self.setState({selectedListIndex: data.index})
 			})
@@ -43,6 +46,7 @@ class Home extends React.Component {
 		const fetchData = { 
 		    method: 'PUT', body: JSON.stringify({ orderNumber: orderNumber }),
 		    headers: new Headers({
+		    	'authorization': 'Bearer ' + localStorage.getItem('access'),
 		    	'content-type': 'application/json',
 		    	'X-Requested-With': 'XMLHttpRequest'
 		    })
@@ -59,6 +63,7 @@ class Home extends React.Component {
 		const fetchData = { 
 		    method: 'DELETE', body: JSON.stringify({orderNumber: 0}),
 		    headers: new Headers({
+		    	'authorization': 'Bearer ' + localStorage.getItem('access'),
 		    	'content-type': 'application/json',
 		    	'X-Requested-With': 'XMLHttpRequest'
 		    })

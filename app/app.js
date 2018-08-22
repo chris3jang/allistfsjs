@@ -11,6 +11,8 @@ import styles from './app.css'
 
 import {BrowserRouter, Route, Link} from 'react-router-dom'
 
+import jwt_decode from 'jwt-decode'
+
 /*
 const React = require("react")
 const ReactDom = require("react-dom")
@@ -27,16 +29,34 @@ class App extends React.Component {
 	componentDidMount() {
 		console.log("did mount")
 		this.getAuthentication()
+		if(localStorage.getItem('access')) {
+			const accessToken = localStorage.getItem('access')
+			console.log(jwt_decode(accessToken))
+			console.log(Date.now())
+		}
+		console.log("mount end")
 	}
 
-	/*
+	
 	componentWillUpdate(nextProps, nextState) {
-		if(nextState.authenticated != this.state.authenticated) this.getAuthentication()
+		console.log("cwu")
+		this.checkIfSessionsOver()
+		//if(nextState.authenticated != this.state.authenticated) this.getAuthentication()
 	}
-*/
+	
 
 	componentDidUpdate(prevProps, prevState, snapshot) {
 		if(prevState.authenticated == this.state.authenticated) this.getAuthentication()
+	}
+
+	checkIfSessionsOver = () => {
+		console.log("ciso")
+		if(this.state.authenticated && localStorage.getItem('access')) {
+			const accessToken = localStorage.getItem('access')
+			if(jwt_decode(accessToken).exp/1000 < Date.now()) {
+				this.handleLogout()
+			}
+		}
 	}
 
 	getAuthentication = () => {
@@ -56,6 +76,10 @@ class App extends React.Component {
 				}
 			})
 		}
+	}
+
+	createLoginSession = (seconds) => {
+		setTimeout(()=>{this.setState({ authenticated: false})}, seconds * 1000)
 	}
 
 	login = (e) => {
@@ -85,7 +109,8 @@ class App extends React.Component {
 			console.log("frontend token data: ", data)
 			localStorage.setItem('access', data.token.accessToken)
 			localStorage.setItem('refresh', data.token.refreshToken)
-			this.setState({ authenticated: true})
+			//this.setState({ authenticated: true})
+			this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
 		})
 	}
 
@@ -114,10 +139,11 @@ class App extends React.Component {
 			console.log("frontend token data: ", data)
 			localStorage.setItem('access', data.token.accessToken)
 			localStorage.setItem('refresh', data.token.refreshToken)
-			this.setState({ authenticated: true})
+			this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
 			console.log('localStorageToken', localStorage.getItem('access'))
 		})
 	}
+	//
 
 	submit = (e) => {
 		console.log(e)
