@@ -6,7 +6,7 @@ import Lists from './Lists'
 import CurrentList from './CurrentList'
 import NavBar from './NavBar'
 
-import styles from './app.css'
+import styles from './home.css'
 
 import {BrowserRouter, Route, Link} from 'react-router'
 

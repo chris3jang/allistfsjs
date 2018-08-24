@@ -23,28 +23,32 @@ class App extends React.Component {
 
 	state = {
 		authenticated: false,
+		timer: null,
 		user: null
 	}
 
 	checkIdleTime = () => {
 		console.log("checkIdleTimex")
 		const dateNowTime = new Date().getTime();
-		const lastActiveTime = new Date(window.allistWindow.lastActivity).getTime();
+		const lastActiveTime = new Date(this.lastActivity).getTime();
 		const remTime = Math.floor((dateNowTime - lastActiveTime)/ 1000);
-		console.log("Idle since "+remTime+" Seconds Last active at "+window.allistWindow.lastActivity)
+		console.log("Idle since "+remTime+" Seconds Last active at "+ this.lastActivity)
 
-		const accessToken = localStorage.getItem('access')
+		if(localStorage.getItem('access')){
+			const accessToken = localStorage.getItem('access')
+			console.log(jwt_decode(accessToken).exp)
+			console.log(Date.now()/1000)
+			if(jwt_decode(accessToken).exp < Date.now()/1000 + 30) {
+				this.refreshAccessToken()
+			}
+		}	
 
 		console.log("remTime", remTime)
 		if(remTime > 120) {
 			this.handleLogout()
 		}
 
-		console.log(jwt_decode(accessToken).exp)
-		console.log(Date.now()/1000)
-		if(jwt_decode(accessToken).exp < Date.now()/1000 + 30) {
-			this.refreshAccessToken()
-		}
+		
 	}
 
 	componentDidMount() {
@@ -55,7 +59,24 @@ class App extends React.Component {
 			//console.log(jwt_decode(accessToken))
 			console.log(Date.now())
 		}
+
+		window.addEventListener('mousemove', this.updateLastActivity)
+		window.addEventListener('keydown', this.updateLastActivity)
+		window.addEventListener('keypress', this.updateLastActivity)
+		window.addEventListener('click', this.updateLastActivity)
+		window.addEventListener('scroll', this.updateLastActivity)
+		this.lastActivity = Date.now()
+
+		this.timer = setInterval(this.checkIdleTime, 30000);
+
 		console.log("mount end")
+
+	}
+
+	updateLastActivity = () => {
+		console.log("updateLastActivity")
+		this.lastActivity = Date.now()
+		console.log(this.lastActivity)
 	}
 
 	
@@ -69,6 +90,15 @@ class App extends React.Component {
 
 	componentDidUpdate(prevProps, prevState, snapshot) {
 		if(prevState.authenticated == this.state.authenticated) this.getAuthentication()
+	}
+
+	componentWillUnmount() {
+		window.removeEventListener('mousemove', this.updateLastActivity)
+		window.removeEventListener('keydown', this.updateLastActivity)
+		window.removeEventListener('keypress', this.updateLastActivity)
+		window.removeEventListener('click', this.updateLastActivity)
+		window.removeEventListener('scroll', this.updateLastActivity)
+		clearInterval(this.timer)
 	}
 
 	checkIfSessionsOver = () => {
@@ -227,34 +257,6 @@ class App extends React.Component {
 
 
 	render() {
-
-		window.allistWindow = {}
-		allistWindow.lastActivity = Date.now()
-
-		window.onmousemove = function () {
-			console.log("notidle")
-			allistWindow.lastActivity = Date.now()
-		};
-		window.onClick = function () {
-			console.log("notidle")
-	        allistWindow.lastActivity = Date.now();
-		};
-		window.onkeypress = function () {
-			console.log("notidle")
-			allistWindow.lastActivity= Date.now();
-		};
-		window.onkeydown = function () {
-			console.log("notidle")
-			allistWindow.lastActivity = Date.now();
-		}
-		window.onscroll = function () {
-			console.log("notidle")
-			allistWindow.lastActivity = Date.now();
-		};
-
-		window.setInterval(this.checkIdleTime, 30000);
-		
-
 		return (
 			<div>
 				{this.state.authenticated ? (
@@ -263,29 +265,34 @@ class App extends React.Component {
 						logout={this.handleLogout.bind(this)}>
 					</Home>
 				) : (
-					<div>
-						<form method="post" onSubmit={this.login}>
-							<div className="form-group">
-								<label>Email</label>
-								<input type="text" className="form-control" name="username"></input>
+					<div className={styles.back}>
+						<div className={styles.center}>
+							<div className={styles.content}>
+								<i className={styles.logo}>ALList</i>
+								<form method="post" onSubmit={this.login}>
+									<div className="form-group">
+										<label>Email</label>
+										<input type="text" className={styles.formcontrol} name="username"></input>
+									</div>
+									<div className="form-group">
+										<label>Password</label>
+										<input type="password" className={styles.formcontrol} name="password"></input>
+									</div>
+									<button type="submit" className="btn btn-warning btn-lg">Login</button>
+								</form>
+								<form method="post" onSubmit={this.register}>
+									<div className="form-group">
+										<label>Email</label>
+										<input type="text" className={styles.formcontrol} name="username"></input>
+									</div>
+									<div className="form-group">
+										<label>Password</label>
+										<input type="password" className={styles.formcontrol} name="password"></input>
+									</div>
+									<button type="submit" className="btn btn-warning btn-lg">Register</button>
+								</form>
 							</div>
-							<div className="form-group">
-								<label>Password</label>
-								<input type="password" className="form-control" name="password"></input>
-							</div>
-							<button type="submit" className="btn btn-warning btn-lg">Login</button>
-						</form>
-						<form method="post" onSubmit={this.register}>
-							<div className="form-group">
-								<label>Email</label>
-								<input type="text" className="form-control" name="username"></input>
-							</div>
-							<div className="form-group">
-								<label>Password</label>
-								<input type="password" className="form-control" name="password"></input>
-							</div>
-							<button type="submit" className="btn btn-warning btn-lg">Register</button>
-						</form>
+						</div>
 					</div>
 				)}
 			</div>
