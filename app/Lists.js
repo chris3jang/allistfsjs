@@ -169,7 +169,8 @@ class Lists extends React.Component {
 			<div>
 				<ul style={{ display: 'inline-block', verticalAlign: 'top' }}>
 					{this.state.titles.map((title, i) => (
-						<div tabIndex="0" 
+						<div key={i/*removes warning but may need to be changed*/} 
+							tabIndex="0" 
 							onClick={this.handleDivClick.bind(this, i)}
 							onKeyDown={this.handleDivKeyDown.bind(this, i)}
 							ref = {node => this.handleRefCreate(node, i, 'div')}>

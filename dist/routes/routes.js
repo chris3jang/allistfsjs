@@ -223,7 +223,7 @@ module.exports = function(app, db) {
       id: req.user,
       clientId: req.user.clientId
     }, 'theycutthefleeb', {
-      expiresIn: 60
+      expiresIn: 120
     })
     console.log("req.token.accessToken", req.token.accessToken)
     next()
@@ -263,12 +263,13 @@ module.exports = function(app, db) {
 
   const respondToken = (req, res) => {
     console.log("respondToken")
+    console.log("REQ.TOKEN", req.token)
     res.status(201).json({
       token: req.token
     })
   }
 
-  app.post('refreshAccessToken', validateRefreshToken, generateAccessToken, respondToken)
+  app.post('/refreshAccessToken/', validateRefreshToken, generateAccessToken, respondToken)
 
   app.post('/registertoken/', passport.authenticate(
     'localtokenreg', {

@@ -26,12 +26,33 @@ class App extends React.Component {
 		user: null
 	}
 
+	checkIdleTime = () => {
+		console.log("checkIdleTimex")
+		const dateNowTime = new Date().getTime();
+		const lastActiveTime = new Date(window.allistWindow.lastActivity).getTime();
+		const remTime = Math.floor((dateNowTime - lastActiveTime)/ 1000);
+		console.log("Idle since "+remTime+" Seconds Last active at "+window.allistWindow.lastActivity)
+
+		const accessToken = localStorage.getItem('access')
+
+		console.log("remTime", remTime)
+		if(remTime > 120) {
+			this.handleLogout()
+		}
+
+		console.log(jwt_decode(accessToken).exp)
+		console.log(Date.now()/1000)
+		if(jwt_decode(accessToken).exp < Date.now()/1000 + 30) {
+			this.refreshAccessToken()
+		}
+	}
+
 	componentDidMount() {
 		console.log("did mount")
 		this.getAuthentication()
 		if(localStorage.getItem('access')) {
 			const accessToken = localStorage.getItem('access')
-			console.log(jwt_decode(accessToken))
+			//console.log(jwt_decode(accessToken))
 			console.log(Date.now())
 		}
 		console.log("mount end")
@@ -60,7 +81,9 @@ class App extends React.Component {
 		}
 	}
 
+	
 	refreshAccessToken = () => {
+		console.log("refreshAccessToken")
 		console.log('localStorage.getItem(refresh)', localStorage.getItem('refresh'))
 		const data = {
 			refreshToken: localStorage.getItem('refresh')
@@ -71,6 +94,7 @@ class App extends React.Component {
 			body: JSON.stringify(data),
 			credentials: 'include',
 			headers: {
+				'authorization': 'Bearer ' + localStorage.getItem('refresh'),
 				'Content-Type': 'application/json'
 			},
 		})
@@ -80,12 +104,14 @@ class App extends React.Component {
 		.then(data => {
 			//if(resp.status == 200)
 			console.log("frontend token data: ", data)
+			console.log("data.token", data.token)
 			localStorage.setItem('access', data.token.accessToken)
-			localStorage.setItem('refresh', data.token.refreshToken)
 			//this.setState({ authenticated: true})
-			this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
+			//this.setState({ authenticated: true}, this.loginSession = this.createLoginSession(60))
 		})
 	}
+
+	
 
 	getAuthentication = () => {
 		const self = this
@@ -102,7 +128,9 @@ class App extends React.Component {
 				if(resp.statusText == "OK") {
 					this.setState({ authenticated: true})
 				}
+				if(resp.statusText == "Unauthorized") console.log("Unauthorized")
 			})
+			.catch(function(error) {});
 		}
 	}
 
@@ -110,10 +138,12 @@ class App extends React.Component {
 		setTimeout(()=>{this.setState({ authenticated: false})}, seconds * 1000)
 	}
 
+	/*
 	timeOut = () => {
 		this.refreshAccessToken()
 		return
 	}
+	*/
 
 	login = (e) => {
 		console.log(e)
@@ -142,9 +172,10 @@ class App extends React.Component {
 			console.log("frontend token data: ", data)
 			localStorage.setItem('access', data.token.accessToken)
 			localStorage.setItem('refresh', data.token.refreshToken)
-			//this.setState({ authenticated: true})
+			this.setState({ authenticated: true})
 			//this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
-			this.setState({ authenticated: true}, () => setTimeout(this.refreshAccessToken(), 10*1000))
+			console.log('access token before setState', localStorage.getItem('access'))
+			//this.setState({ authenticated: true}, () => setTimeout(this.refreshAccessToken(), 10*1000))
 		})
 	}
 
@@ -194,7 +225,36 @@ class App extends React.Component {
 		this.setState({authenticated: false})
 	}
 
+
 	render() {
+
+		window.allistWindow = {}
+		allistWindow.lastActivity = Date.now()
+
+		window.onmousemove = function () {
+			console.log("notidle")
+			allistWindow.lastActivity = Date.now()
+		};
+		window.onClick = function () {
+			console.log("notidle")
+	        allistWindow.lastActivity = Date.now();
+		};
+		window.onkeypress = function () {
+			console.log("notidle")
+			allistWindow.lastActivity= Date.now();
+		};
+		window.onkeydown = function () {
+			console.log("notidle")
+			allistWindow.lastActivity = Date.now();
+		}
+		window.onscroll = function () {
+			console.log("notidle")
+			allistWindow.lastActivity = Date.now();
+		};
+
+		window.setInterval(this.checkIdleTime, 30000);
+		
+
 		return (
 			<div>
 				{this.state.authenticated ? (
