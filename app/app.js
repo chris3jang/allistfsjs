@@ -7,6 +7,8 @@ import Lists from './Lists'
 import CurrentList from './CurrentList'
 import NavBar from './NavBar'
 
+import Loginregister from './Loginregister'
+
 import styles from './app.css'
 
 import {BrowserRouter, Route, Link} from 'react-router-dom'
@@ -74,9 +76,9 @@ class App extends React.Component {
 	}
 
 	updateLastActivity = () => {
-		console.log("updateLastActivity")
+		//console.log("updateLastActivity")
 		this.lastActivity = Date.now()
-		console.log(this.lastActivity)
+		//console.log(this.lastActivity)
 	}
 
 	
@@ -265,35 +267,7 @@ class App extends React.Component {
 						logout={this.handleLogout.bind(this)}>
 					</Home>
 				) : (
-					<div className={styles.back}>
-						<div className={styles.center}>
-							<div className={styles.content}>
-								<i className={styles.logo}>ALList</i>
-								<form method="post" onSubmit={this.login}>
-									<div className="form-group">
-										<label>Email</label>
-										<input type="text" className={styles.formcontrol} name="username"></input>
-									</div>
-									<div className="form-group">
-										<label>Password</label>
-										<input type="password" className={styles.formcontrol} name="password"></input>
-									</div>
-									<button type="submit" className="btn btn-warning btn-lg">Login</button>
-								</form>
-								<form method="post" onSubmit={this.register}>
-									<div className="form-group">
-										<label>Email</label>
-										<input type="text" className={styles.formcontrol} name="username"></input>
-									</div>
-									<div className="form-group">
-										<label>Password</label>
-										<input type="password" className={styles.formcontrol} name="password"></input>
-									</div>
-									<button type="submit" className="btn btn-warning btn-lg">Register</button>
-								</form>
-							</div>
-						</div>
-					</div>
+					<Loginregister></Loginregister>
 				)}
 			</div>
 		)
