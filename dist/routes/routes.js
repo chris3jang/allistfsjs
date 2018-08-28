@@ -117,10 +117,23 @@ module.exports = function(app, db) {
             console.log("hash", hash)
             const newUser = {
               username: un,
-              password: hash
+              password: hash,
+              selectedListIndex: 0
             }
             console.log("CREATING USER: ", un)
-            db.collection('localusers').insert(newUser)
+            db.collection('lists').insert({listTitle: "New List", orderNumber: 0, selected: true, selectedItemIndex: 0, user: un})
+            .then(listInserted => {
+              console.log("LISTINSERTED", listInserted)
+              return db.collection('lists').findOne({user: un})
+            })
+            .then(newList => {
+              console.log("newList", newList)
+              return db.collection('items').insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()}) 
+            })
+            .then(itemInserted => {
+              console.log("itemInserted", itemInserted)
+              return db.collection('localusers').insert(newUser)
+            })
             .then(inserted => {
               //database.close()
               console.log("make sure this is the user object, then delete this console.log: ", inserted.ops[0])
@@ -281,6 +294,7 @@ module.exports = function(app, db) {
       session: false
     }
   ), serialize, serializeClient, generateAccessToken, generateRefreshToken, respond)
+
 
 
   app.use(authenticate)
@@ -539,9 +553,20 @@ module.exports = function(app, db) {
 
 
   //LISTS
+  const getUser = (req, res, next) => {
+    console.log("getUser")
+    console.log("req.user", req.user)
+    db.collection('localusers').findOne({_id: new ObjectID(req.user.id)})
+      .then(user => {
+        console.log(user)
+        res.locals.username = user.username
+        console.log("res.locals.username", res.locals.username)
+        next()
+      })
+  }
 
-  app.get('/lists/', (req, res) => {
-    db.collection('lists').find({ $query: {}, $orderby: { orderNumber : 1 } }).toArray((err, lists) => {
+  app.get('/lists/', getUser, (req, res) => {
+    db.collection('lists').find({ $query: {user: res.locals.username}, $orderby: { orderNumber : 1 } }).toArray((err, lists) => {
       if (err) {
         res.send({'error':'An error has occurred'});
       } else {
@@ -550,21 +575,23 @@ module.exports = function(app, db) {
     });
   });
 
-  app.get('/lists/selected', (req, res) => {
-    db.collection('lists').findOne({selected: true})
+  app.get('/lists/selected', getUser, (req, res) => {
+    console.log("req.user", req.user)
+    console.log("res.locals.username", res.locals.username)
+    db.collection('lists').findOne({$and: [{user: res.locals.username}, {selected: true}]})
       .then((list) => {
         const result = { index: list.orderNumber  }
         res.send(result)
       })
   })
 
-  app.post('/lists/', [parseOrderNumberFromFrontEnd], (req, res, next) => {
-    listsCol.updateMany({orderNumber: {$gt: res.locals.orderNumber}}, { $inc: {orderNumber: 1}})
+  app.post('/lists/', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
+    listsCol.updateMany({$and: [{user: res.locals.username}, {orderNumber: {$gt: res.locals.orderNumber}}]}, { $inc: {orderNumber: 1}})
     .then(() => {
-      return listsCol.insert({listTitle: '', orderNumber: res.locals.orderNumber+1, selected: false, selectedItemIndex: 0})
+      return listsCol.insert({listTitle: '', orderNumber: res.locals.orderNumber+1, selected: false, selectedItemIndex: 0, user: res.locals.username})
     })
     .then(() => {
-      return listsCol.findOne({orderNumber: res.locals.orderNumber+1})
+      return listsCol.findOne({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber+1}]})
     })
     .then(newList => {
       return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()})
@@ -574,15 +601,15 @@ module.exports = function(app, db) {
     })
   })
 
-  app.put('/lists/', [parseOrderNumberFromFrontEnd, getTitleFromFrontEnd], (req, res, next) => {
-    db.collection('lists').update({orderNumber: res.locals.orderNumber}, {$set: {listTitle: res.locals.title}}).then((result) => {
+  app.put('/lists/', [getUser, parseOrderNumberFromFrontEnd, getTitleFromFrontEnd], (req, res, next) => {
+    db.collection('lists').update({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]}, {$set: {listTitle: res.locals.title}}).then((result) => {
       res.send(result)
     });
   });
 
-  app.put('/lists/selected', [parseOrderNumberFromFrontEnd], (req, res, next) => {
-    const prevSelectedList = { selected: true }
-    const nextSelectedList = { orderNumber: res.locals.orderNumber};
+  app.put('/lists/selected', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
+    const prevSelectedList = {$and: [{user: res.locals.username}, { selected: true }]}
+    const nextSelectedList = {$and: [{ orderNumber: res.locals.orderNumber}]}
     console.log(prevSelectedList)
     console.log(nextSelectedList)
     db.collection('lists').update(prevSelectedList, { $set: {selected: false}})
@@ -595,16 +622,16 @@ module.exports = function(app, db) {
     })
   })
 
-  app.delete('/lists/', [parseOrderNumberFromFrontEnd], (req, res, next) => {
+  app.delete('/lists/', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
     listsCol.findOne({orderNumber: res.locals.orderNumber})
     .then(list => {
-      return itemsCol.deleteMany({list: list._id.toString()})
+      return itemsCol.deleteMany({$and: [{user: res.locals.username}, {list: list._id.toString()}]})
     })
     .then(() => {
-      return listsCol.remove({orderNumber: res.locals.orderNumber})
+      return listsCol.remove({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]})
     })
     .then(() => {
-      return listsCol.update({orderNumber: {$gt: res.locals.orderNumber}}, {$inc: {orderNumber : -1}})
+      return listsCol.update({$and: [{user: res.locals.username}, {orderNumber: {$gt: res.locals.orderNumber}}]}, {$inc: {orderNumber : -1}})
     })
     .then(result => {
       res.send(result)
@@ -630,8 +657,8 @@ module.exports = function(app, db) {
 
 
 
-  app.get('/items/', (req, res) => {
-    db.collection('lists').findOne({selected: true})
+  app.get('/items/', getUser, (req, res) => {
+    db.collection('lists').findOne({$and: [{user: res.locals.username}, {selected: true}]})
       .then((list) => {
         db.collection('items').find({ $query: {list: list._id.toString()}, $orderby: { orderNumber : 1 } }).toArray((err, items) => {
           if (err) res.send({'error':'An error has occurred'});

@@ -177,16 +177,18 @@ class App extends React.Component {
 	}
 	*/
 
-	login = (e) => {
+	login = (un, pw) => {
+		/*
 		console.log(e)
 		console.log(e.target)
 		console.log(e.target[0].value)
 		console.log(e.target[1].value)
 		e.preventDefault()
-		this.setState({user: e.target[1].value})
+		*/
+		this.setState({user: un})
 		const data = {
-			username: e.target[0].value,
-			password: e.target[1].value
+			username: un,
+			password: pw
 		}
 		fetch('/logintoken/', {
 			method: 'POST',
@@ -211,13 +213,15 @@ class App extends React.Component {
 		})
 	}
 
-	register = (e) => {
+	register = (un, pw) => {
+		/*
 		console.log(e.target[0].value)
 		console.log(e.target[1].value)
 		e.preventDefault()
+		*/
 		const data = {
-			username: e.target[0].value,
-			password: e.target[1].value
+			username: un,
+			password: pw
 		}
 		fetch('/registertoken/', {
 			method: 'POST',
@@ -257,6 +261,14 @@ class App extends React.Component {
 		this.setState({authenticated: false})
 	}
 
+	handleLogin = (un, pw) => {
+		this.login(un, pw)
+	}
+
+	handleRegister = (un, pw) => {
+		this.register(un, pw)
+	}
+
 
 	render() {
 		return (
@@ -267,7 +279,10 @@ class App extends React.Component {
 						logout={this.handleLogout.bind(this)}>
 					</Home>
 				) : (
-					<Loginregister></Loginregister>
+					<Loginregister
+						login={this.handleLogin.bind(this)}
+						register={this.handleRegister.bind(this)}>
+					</Loginregister>
 				)}
 			</div>
 		)

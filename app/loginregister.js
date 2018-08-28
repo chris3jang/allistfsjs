@@ -24,6 +24,17 @@ class Loginregister extends React.Component {
 		if(this.state.loginNotRegister) this.setState({ loginNotRegister: false })
 	}
 
+	login = (e) => {
+		console.log("login")
+		e.preventDefault()
+		this.props.login(e.target[0].value, e.target[1].value)
+	}
+
+	register = (e) => {
+		console.log("register")
+		e.preventDefault()
+		this.props.register(e.target[0].value, e.target[1].value)
+	}
 
 	render() {
 		const LogoFunc = (props) => {

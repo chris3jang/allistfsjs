@@ -19,6 +19,7 @@ const AllistItem = require("AllistItem")
 class Home extends React.Component {
 
 	state = {
+		username: this.props.username,
 		selectedListIndex: null,
 		editMenu: false,
 		listsFocus: false,
@@ -32,8 +33,9 @@ class Home extends React.Component {
 	getSelectedList = () => {
 		const myHeaders = new Headers()
 		myHeaders.append('authorization', 'Bearer ' + localStorage.getItem('access'))
-
 		const self = this
+		console.log("localStorage.getItem('access')", localStorage.getItem('access'))
+		console.log("myHeaders", myHeaders)
 		fetch('http://localhost:8080/lists/selected', { headers: myHeaders })
 			.then((resp) => resp.json()).then((data) => { 
 				self.setState({selectedListIndex: data.index})
