@@ -61,16 +61,21 @@ class CurrentList extends React.Component {
 						hidden: data[i].hidden ? data[i].hidden : false
 					}
 				}
-				self.setState({items: fetchedData}, (() => {self.getSelectedItem()}))
+				self.setState({items: fetchedData}, (() => {
+					console.log("getSelectedItem post fetch")
+					self.getSelectedItem()
+				}))
 			})
 	}
 
 	getSelectedItem = () => {
+		console.log("getSelectedItem")
 		const self = this
 		const divs = this.divs
 		fetch('http://localhost:8080/items/selected', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
 			.then((resp) => resp.json())
 			.then((data) => {
+				console.log("getSelectedItem", data)
 				self.setState({selectedItemIndex: data.index}, (() => { if(self.props.currentListFocused) {
 					divs[data.index].focus()
 				}
@@ -198,7 +203,7 @@ class CurrentList extends React.Component {
 		fetch('http://localhost:8080/items/collapse', fetchData)
 			.then(resp => resp.json())
 			.then((data) => {
-				
+				console.log("toggleCollapse callback")
 				editedList[orderNumber].decollapsed = !this.state.items[orderNumber].decollapsed
 				for(let i = 0; i < data.index.length; i++) {
 					editedList[data.index[i]].hidden = !this.state.items[data.index[i]].hidden
