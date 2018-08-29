@@ -260,12 +260,24 @@ class CurrentList extends React.Component {
 			this.divs[orderNumber-i].focus()
 		}
 		if(action == 'down' && orderNumber != this.state.items.length-1) {
-			let i = 1
+			let i = 1, largestVisibleIndex = this.state.items.length - 1
+			console.log("HERE")
+			console.log(this.state.items[orderNumber + i].hidden)
 			while(this.state.items[orderNumber + i].hidden) {
-				if(orderNumber + i == this.state.items.length - 1) break;
+				console.log(this.state.items[orderNumber + 1].hidden)
+				//if(orderNumber + i == this.state.items.length - 1) {
+				if(this.state.items[orderNumber + i + 1] == null) {
+					while(this.state.items[largestVisibleIndex].hidden) {
+						largestVisibleIndex--
+					}
+					break;
+				}
 				i++;
 			}
-			if(orderNumber + i != this.state.items.length-1 || (i == 1 && orderNumber + i == this.state.items.length-1)) {
+			console.log("i after loop", i)
+			//if(orderNumber + i != this.state.items.length-1 || (i == 1 && orderNumber + i == this.state.items.length-1)) {
+			if(orderNumber + i <= this.state.items.length - 1 && orderNumber != largestVisibleIndex) {
+				console.log("SELECTITEM", orderNumber)
 				this.selectItem(orderNumber + i)
 				this.divs[orderNumber+i].focus()
 			}

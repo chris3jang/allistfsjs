@@ -348,7 +348,9 @@ module.exports = function(app, db) {
   const getDescendantsOfItem = (req, res, next) => {
     console.log("getDescendantsOfItem")
     res.locals.descendants = []
-    itemsCol.find( {$and: [{orderNumber: {$gt: res.locals.orderNumber}}, {list: res.locals.listRef}]} ).sort({orderNumber: 1}).toArray().then((possible) => {
+    itemsCol.find( {$and: [{orderNumber: {$gt: res.locals.orderNumber}}, {list: res.locals.listRef}]} ).sort({orderNumber: 1}).toArray()
+    .then((possible) => {
+      console.log("possible", possible)
       for(let i = 0; i < possible.length; i++) {
         if(possible[i].indentLevel > res.locals.item.indentLevel) { 
           res.locals.descendants.push(possible[i]) 
@@ -376,75 +378,70 @@ module.exports = function(app, db) {
 
 
   app.get('/lists/', getUser, (req, res) => {
-    listsCol.find({ $query: {user: res.locals.username}, $orderby: { orderNumber : 1 } }).toArray((err, lists) => {
-      if (err) {
-        res.send({'error':'An error has occurred'});
-      } else {
-        res.send(lists); 
-      }
-    });
-  });
+    listsCol.find({ $query: {user: res.locals.username}, $orderby: { orderNumber : 1 } }).toArray()
+    .then(lists => {
+      res.send(lists)
+    })
+  })
+  
 
   app.get('/lists/selected', getUser, (req, res) => {
-    console.log("req.user", req.user)
-    console.log("res.locals.username", res.locals.username)
     listsCol.findOne({$and: [{user: res.locals.username}, {selected: true}]})
-      .then((list) => {
-        const result = { index: list.orderNumber  }
-        res.send(result)
-      })
+    .then(list => {
+      res.send({ index: list.orderNumber  })
+    })
   })
 
   app.post('/lists/', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
-    listsCol.updateMany({$and: [{user: res.locals.username}, {orderNumber: {$gt: res.locals.orderNumber}}]}, { $inc: {orderNumber: 1}})
-    .then(() => {
-      return listsCol.insert({listTitle: '', orderNumber: res.locals.orderNumber+1, selected: false, selectedItemIndex: 0, user: res.locals.username})
+    const { username, orderNumber } = res.locals
+    listsCol.updateMany({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, { $inc: {orderNumber: 1}})
+    .then(updated => {
+      return listsCol.insert({listTitle: '', orderNumber: orderNumber+1, selected: false, selectedItemIndex: 0, user: username})
     })
-    .then(() => {
-      return listsCol.findOne({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber+1}]})
+    .then(inserted => {
+      return listsCol.findOne({$and: [{user: username}, {orderNumber: orderNumber+1}]})
     })
     .then(newList => {
       return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()})
     })
     .then(result => {
-      res.send(result)
+      res.send()
     })
   })
 
   app.put('/lists/', [getUser, parseOrderNumberFromFrontEnd, getTitleFromFrontEnd], (req, res, next) => {
-    listsCol.update({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]}, {$set: {listTitle: res.locals.title}}).then((result) => {
-      res.send(result)
+    listsCol.update({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]}, {$set: {listTitle: res.locals.title}})
+    .then(result => {
+      res.send()
     });
   });
 
   app.put('/lists/selected', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
     const prevSelectedList = {$and: [{user: res.locals.username}, { selected: true }]}
     const nextSelectedList = {$and: [{ orderNumber: res.locals.orderNumber}]}
-    console.log(prevSelectedList)
-    console.log(nextSelectedList)
     listsCol.update(prevSelectedList, { $set: {selected: false}})
-    .then(() => {
-      console.log(nextSelectedList)
+    .then(updatedPrev => {
       return listsCol.update(nextSelectedList, { $set: {selected: true}})
     })
-    .then(() => {
-      res.send("new list selected")
+    .then(updatedNext => {
+      res.send()
     })
   })
 
   app.delete('/lists/', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
-    listsCol.findOne({orderNumber: res.locals.orderNumber})
+    const { orderNumber, username } = res.locals
+    listsCol.findOne({orderNumber: orderNumber})
     .then(list => {
-      return itemsCol.deleteMany({$and: [{user: res.locals.username}, {list: list._id.toString()}]})
+      return itemsCol.deleteMany({$and: [{user: username}, {list: list._id.toString()}]})
     })
     .then(() => {
-      return listsCol.remove({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]})
+      return listsCol.remove({$and: [{user: username}, {orderNumber: orderNumber}]})
     })
     .then(() => {
-      return listsCol.update({$and: [{user: res.locals.username}, {orderNumber: {$gt: res.locals.orderNumber}}]}, {$inc: {orderNumber : -1}})
+      return listsCol.update({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, {$inc: {orderNumber : -1}})
     })
     .then(result => {
-      res.send(result)
+      res.send()
     })
   })
 
@@ -584,7 +581,7 @@ module.exports = function(app, db) {
   }
 
   app.put('/items/selected/', [getUser, parseOrderNumberFromFrontEnd, selectItem], (req, res) => {
-    res.send()
+    res.send("something")
   });
 
 
@@ -674,7 +671,7 @@ module.exports = function(app, db) {
 
 
 
-  app.put('/items/collapse/', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem], (req, res, next) => {
+  app.put('/items/collapse/', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem, getItemByListAndOrderNumber], (req, res, next) => {
     console.log("put/items/collapse")
     const dclpsd = JSON.parse(req.body.decollapsed)
     itemsCol.update(res.locals.details, {$set: {decollapsed: !dclpsd}})
