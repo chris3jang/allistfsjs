@@ -16,6 +16,7 @@ class CurrentList extends React.Component {
 
 	componentDidMount = () => {
 		this.fetchItems()
+		document.addEventListener('keydown', this.handleHotKeys.bind(this))
 	}
 
 	componentWillReceiveProps = (nextProps) => {
@@ -27,6 +28,10 @@ class CurrentList extends React.Component {
 			this.fetchItems()
 			this.props.updateComplete()
 		}
+	}
+
+	componentWillUnmount() {
+		document.removeEventListener('keydown', this.handleHotKeys.bind(this))
 	}
 
 	/*
@@ -260,23 +265,21 @@ class CurrentList extends React.Component {
 			this.divs[orderNumber-i].focus()
 		}
 		if(action == 'down' && orderNumber != this.state.items.length-1) {
-			let i = 1, largestVisibleIndex = this.state.items.length - 1
+			let i = 1, visibleEnd = false
 			console.log("HERE")
 			console.log(this.state.items[orderNumber + i].hidden)
 			while(this.state.items[orderNumber + i].hidden) {
 				console.log(this.state.items[orderNumber + 1].hidden)
 				//if(orderNumber + i == this.state.items.length - 1) {
 				if(this.state.items[orderNumber + i + 1] == null) {
-					while(this.state.items[largestVisibleIndex].hidden) {
-						largestVisibleIndex--
-					}
+					visibleEnd = true
 					break;
 				}
 				i++;
 			}
 			console.log("i after loop", i)
 			//if(orderNumber + i != this.state.items.length-1 || (i == 1 && orderNumber + i == this.state.items.length-1)) {
-			if(orderNumber + i <= this.state.items.length - 1 && orderNumber != largestVisibleIndex) {
+			if(orderNumber + i <= this.state.items.length - 1 && !visibleEnd) {
 				console.log("SELECTITEM", orderNumber)
 				this.selectItem(orderNumber + i)
 				this.divs[orderNumber+i].focus()
@@ -286,6 +289,86 @@ class CurrentList extends React.Component {
 			this.props.focusOnLists()
 		}
 	}
+
+	handleHotKeyUp() {
+		let i = 1
+		while(this.state.items[this.state.selectedItemIndex - i].hidden) {
+			i++
+		}
+		this.selectItem(this.state.selectedItemIndex - i)
+		this.divs[this.state.selectedItemIndex-i].focus()
+	}
+
+	handleHotKeyDown() {
+		if(this.state.selectedItemIndex != this.state.items.length-1) {
+			let i = 1, visibleEnd = false
+			while(this.state.items[this.state.selectedItemIndex + i].hidden) {
+				//if(this.state.selectedItemIndex + i == this.state.items.length - 1) {
+				if(this.state.items[this.state.selectedItemIndex + i + 1] == null) {
+					visibleEnd = true
+					break;
+				}
+				i++;
+			}
+			//if(this.state.selectedItemIndex + i != this.state.items.length-1 || (i == 1 && this.state.selectedItemIndex + i == this.state.items.length-1)) {
+			if(this.state.selectedItemIndex + i <= this.state.items.length - 1 && !visibleEnd) {
+				this.selectItem(this.state.selectedItemIndex + i)
+				this.divs[this.state.selectedItemIndex+i].focus()
+			}
+		}
+	}
+
+	handleHotKeyLeft() {
+		this.props.focusOnLists()
+	}
+
+	handleHotKeys(e) {
+		console.log(e)
+		if(e.target.type != "textarea") {
+			if(e.key == "Enter") {
+				if(e.shiftKey) {
+					e.preventDefault()
+					e.target.lastElementChild.focus()
+				}
+				else {
+					this.createItem(this.state.selectedItemIndex)
+				}
+			}
+			if(e.key == "Backspace" && e.shiftKey && this.state.items.length != 1) {
+				this.deleteItem(this.state.selectedItemIndex);
+			}
+			if(e.key == 'Tab') {
+	  			e.preventDefault()
+	  			if(e.shiftKey) {
+	  				this.untabItem(this.state.selectedItemIndex)
+	  			}
+	  			else {
+	  				this.tabItem(this.state.selectedItemIndex)
+	  			}
+	  		}
+	  		if(e.key == '/') this.toggleCheckbox(this.state.selectedItemIndex)
+			if(e.key == "ArrowUp") this.handleHotKeyUp()
+			if(e.key == "ArrowDown") this.handleHotKeyDown()
+			if(e.key == "ArrowLeft") {
+				if(e.shiftKey) {
+					this.props.focusOnLists()
+				}
+				else {
+					//decollapse
+					const { items } = this.state
+					if(this.state.selectedItemIndex != items.length-1 
+						&& items[this.state.selectedItemIndex].indentlevel < items[this.state.selectedItemIndex+1].indentlevel 
+						&& !items[this.state.selectedItemIndex+1].hidden) {
+						this.toggleCollapse(this.state.selectedItemIndex, 'decollapse'); 
+					}
+				}
+			}
+			if(e.key == "ArrowRight") {
+				if(this.state.items[this.state.selectedItemIndex].decollapsed) this.toggleCollapse(this.state.selectedItemIndex)
+			}
+		}
+	}
+
 
 	handleFocusOnItem = (orderNumber, action) => {
 		if(action == 'div') this.divs[orderNumber].focus()

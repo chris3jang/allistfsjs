@@ -40,6 +40,7 @@ class AllistItem extends React.Component {
 	handleDivKeyDown = (e) => {
 		const {orderNumber} = this.props
 		if(e.currentTarget.tagName == "DIV") {
+			/*
 			if(e.key == 'Enter') {
 				if(e.shiftKey) {
 					//this.props.handleAction(orderNumber, 'focusTextArea')
@@ -50,6 +51,7 @@ class AllistItem extends React.Component {
 					this.props.handleAction(orderNumber, 'create')
 				}
 			}
+			
 	  		if(e.key == 'ArrowUp' && orderNumber != 0) this.props.handleAction(orderNumber, 'arrowUp')
 	  		if(e.key == 'ArrowDown') this.props.handleAction(orderNumber, 'arrowDown')
 	  		if(e.key == 'ArrowLeft') {
@@ -59,6 +61,7 @@ class AllistItem extends React.Component {
 	  		if(e.key == 'ArrowRight') {
 	  			this.props.handleAction(orderNumber, 'collapse')
 	  		}
+	  		
 	  		if(e.key == 'Backspace' && e.shiftKey) this.props.handleAction(orderNumber, 'delete')
 	  		if(e.key == 'Tab') {
 	  			e.preventDefault()
@@ -70,6 +73,7 @@ class AllistItem extends React.Component {
 	  			}
 	  		}
 	  		if(e.key == '/') this.props.handleAction(orderNumber, 'toggle')
+	  			*/
 		}
 	}
 

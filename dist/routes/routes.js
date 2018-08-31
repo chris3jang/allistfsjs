@@ -338,6 +338,7 @@ module.exports = function(app, db) {
   //requires getQueryDetailsForItem(getList, parseOrderNumberFromFrontEnd)
   const getItemByListAndOrderNumber = (req, res, next) => {
     console.log("getItemByListAndOrderNumber")
+    //itemsCol.findOne({$and: [{list: res.locals.listRef}, {orderNumber: res.locals.orderNumber}]}).then(item => {
     itemsCol.findOne(res.locals.details).then(item => {
       res.locals.item = item
       next()
@@ -361,7 +362,9 @@ module.exports = function(app, db) {
     })
   }
 
-
+  const getUserParseOrderNumber = [getUser, parseOrderNumberFromFrontEnd]
+  const getItemDetails = [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem]
+  const getItem = [getItemDetails, getItemByListAndOrderNumber]
 
 
 
@@ -392,7 +395,7 @@ module.exports = function(app, db) {
     })
   })
 
-  app.post('/lists/', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
+  app.post('/lists/', [getUserParseOrderNumber], (req, res, next) => {
     const { username, orderNumber } = res.locals
     listsCol.updateMany({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, { $inc: {orderNumber: 1}})
     .then(updated => {
@@ -409,14 +412,14 @@ module.exports = function(app, db) {
     })
   })
 
-  app.put('/lists/', [getUser, parseOrderNumberFromFrontEnd, getTitleFromFrontEnd], (req, res, next) => {
+  app.put('/lists/', [getUserParseOrderNumber, getTitleFromFrontEnd], (req, res, next) => {
     listsCol.update({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]}, {$set: {listTitle: res.locals.title}})
     .then(result => {
       res.send()
     });
   });
 
-  app.put('/lists/selected', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
+  app.put('/lists/selected', [getUserParseOrderNumber], (req, res, next) => {
     const prevSelectedList = {$and: [{user: res.locals.username}, { selected: true }]}
     const nextSelectedList = {$and: [{ orderNumber: res.locals.orderNumber}]}
     listsCol.update(prevSelectedList, { $set: {selected: false}})
@@ -428,7 +431,7 @@ module.exports = function(app, db) {
     })
   })
 
-  app.delete('/lists/', [getUser, parseOrderNumberFromFrontEnd], (req, res, next) => {
+  app.delete('/lists/', [getUserParseOrderNumber], (req, res, next) => {
     const { orderNumber, username } = res.locals
     listsCol.findOne({orderNumber: orderNumber})
     .then(list => {
@@ -518,8 +521,7 @@ module.exports = function(app, db) {
     })
   }
 
-  app.post('/items/', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem, 
-    getItemByListAndOrderNumber, getNextItemByListAndOrderNumber], (req, res, next) => {
+  app.post('/items/', [getItem, getNextItemByListAndOrderNumber], (req, res, next) => {
     const { nextItem, item, orderNumber, listRef } = res.locals
     let parentRef, indentLevel
     if(nextItem != null && nextItem.parent == item._id.toString()) {
@@ -552,7 +554,7 @@ module.exports = function(app, db) {
 
 
 
-  app.put('/items/', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem, getTitleFromFrontEnd], (req, res, next) => {
+  app.put('/items/', [getItemDetails, getTitleFromFrontEnd], (req, res, next) => {
     const { details, title } = res.locals
     itemsCol.update(details, { $set: {itemTitle: title} }).then(result => {
       res.send(result)
@@ -560,7 +562,7 @@ module.exports = function(app, db) {
   })
 
 
-  app.put('/items/check/', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem], (req, res, next) => {
+  app.put('/items/check/', [getItemDetails], (req, res, next) => {
     const checked = JSON.parse(req.body.checked)
     itemsCol.update(res.locals.details, {$set: {checked: checked}})
     .then(result => {
@@ -580,7 +582,7 @@ module.exports = function(app, db) {
     })
   }
 
-  app.put('/items/selected/', [getUser, parseOrderNumberFromFrontEnd, selectItem], (req, res) => {
+  app.put('/items/selected/', [getUserParseOrderNumber, selectItem], (req, res) => {
     res.send("something")
   });
 
@@ -608,7 +610,7 @@ module.exports = function(app, db) {
     next()
   }
 
-  app.put('/items/tab', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem, getItemByListAndOrderNumber, getNearestSiblingAbove], (req, res, next) => {
+  app.put('/items/tab', [getItem, getNearestSiblingAbove], (req, res, next) => {
     const { details, nearestSiblingAbove } = res.locals
     itemsCol.update(details, {$set: {parent: nearestSiblingAbove._id.toString()}, $inc: {indentLevel: 1}})
     .then(() => {
@@ -644,7 +646,7 @@ module.exports = function(app, db) {
     })
   }
 
-  app.put('/items/untab', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem, getItemByListAndOrderNumber], (req, res, next) => {
+  app.put('/items/untab', [getItem], (req, res, next) => {
     const { item, orderNumber, listRef } = res.locals
     const siblingsToChildrenProps = {$and: [ {parent: {$eq: item.parent}}, {orderNumber: {$gt: orderNumber}}, {list: listRef} ]}
     itemsCol.updateMany(siblingsToChildrenProps, {$set: {parent: item._id}})
@@ -671,7 +673,7 @@ module.exports = function(app, db) {
 
 
 
-  app.put('/items/collapse/', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem, getItemByListAndOrderNumber], (req, res, next) => {
+  app.put('/items/collapse/', [getItem], (req, res, next) => {
     console.log("put/items/collapse")
     const dclpsd = JSON.parse(req.body.decollapsed)
     itemsCol.update(res.locals.details, {$set: {decollapsed: !dclpsd}})
@@ -751,8 +753,7 @@ module.exports = function(app, db) {
     })
   }
 
-  app.delete('/items/', [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem, 
-    getItemByListAndOrderNumber, getDescendantsOfItem, removeItemByOrderNumber, decrementOrderNumbers, 
+  app.delete('/items/', [getItem, getDescendantsOfItem, removeItemByOrderNumber, decrementOrderNumbers, 
     updateDescendantsAfterDelete, selectPreviousItemAfterDelete], (req, res) => {
     res.send()
   })

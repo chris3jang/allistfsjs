@@ -40,13 +40,13 @@ class App extends React.Component {
 			const accessToken = localStorage.getItem('access')
 			console.log(jwt_decode(accessToken).exp)
 			console.log(Date.now()/1000)
-			if(jwt_decode(accessToken).exp < Date.now()/1000 + 30) {
+			if(jwt_decode(accessToken).exp < Date.now()/1000 + 2 * 60) {
 				this.refreshAccessToken()
 			}
 		}	
 
 		console.log("remTime", remTime)
-		if(remTime > 120) {
+		if(remTime > 60 * 5) {
 			this.handleLogout()
 		}
 
@@ -69,7 +69,7 @@ class App extends React.Component {
 		window.addEventListener('scroll', this.updateLastActivity)
 		this.lastActivity = Date.now()
 
-		this.timer = setInterval(this.checkIdleTime, 30000);
+		this.timer = setInterval(this.checkIdleTime, 60 * 1000);
 
 		console.log("mount end")
 
