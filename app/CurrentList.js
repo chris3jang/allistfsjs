@@ -14,6 +14,20 @@ class CurrentList extends React.Component {
 	divs = []
 	textareas = []
 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 	componentDidMount = () => {
 		this.fetchItems()
 		document.addEventListener('keydown', this.handleHotKeys.bind(this))
@@ -39,6 +53,16 @@ class CurrentList extends React.Component {
 		if(nextProps.shouldChildUpdate == true) return true
 	}
 	*/
+
+
+
+
+
+
+
+
+
+
 
 	assignFetchData = (method, paramData) => {
 		return { method: method, body: JSON.stringify(paramData),
@@ -217,80 +241,56 @@ class CurrentList extends React.Component {
 			})
 	}
 
+
+
+
+
+
+
+
+
+
+
+
+
+	handleFocusOnItem = (orderNumber, action) => {
+		if(action == 'div') this.divs[orderNumber].focus()
+		if(action == 'textarea') this.textareas[orderNumber].focus()
+	}
+
 	handleAction = (orderNumber, action, editedTitle) => {
 		switch (action) {
 			case 'edit': {this.editItemTitle(orderNumber, editedTitle); break;}
-			case 'create': {this.createItem(orderNumber); break;}
 			case 'delete': {
 				if(this.state.items.length != 1) this.deleteItem(orderNumber); 
 				break;
 			}
-			case 'tab': {this.tabItem(orderNumber); break;}
-			case 'untab': {this.untabItem(orderNumber); break;}
 			case 'select': {this.selectItem(orderNumber); break;}
-			case 'arrowUp': {this.handleArrowKey(orderNumber, 'up'); break;}
-			case 'arrowDown': {this.handleArrowKey(orderNumber, 'down'); break;}
-			case 'arrowLeft': {this.handleArrowKey(orderNumber, 'left'); break;}
 			case 'focusDiv': {this.handleFocusOnItem(orderNumber, 'div'); break;}
-			case 'focusInput': {this.handleFocusOnItem(orderNumber, 'input'); break;}
-			case 'focusTextArea': {this.handleFocusOnItem(orderNumber, 'textarea'); break;}
-			case 'toggle': {this.toggleCheckbox(orderNumber); break;}
-			case 'collapse': {
-				if(this.state.items[orderNumber].decollapsed) this.toggleCollapse(orderNumber); 
-				break;
-			}
-			case 'decollapse': {
-				console.log("here")
-				const { items } = this.state
-				console.log(items[orderNumber])
-				console.log(items[orderNumber+1].indentlevel)
-				if(orderNumber != items.length-1 
-					&& items[orderNumber].indentlevel < items[orderNumber+1].indentlevel 
-					&& !items[orderNumber+1].hidden) {
-					this.toggleCollapse(orderNumber, 'decollapse'); 
-				}
-				break;
-			}
+
+			
 		}
 	}
 
-
-	handleArrowKey(orderNumber, action) {
-		if(action == 'up') {
-			let i = 1
-			while(this.state.items[orderNumber - i].hidden) {
-				i++
-			}
-			this.selectItem(orderNumber - i)
-			this.divs[orderNumber-i].focus()
-		}
-		if(action == 'down' && orderNumber != this.state.items.length-1) {
-			let i = 1, visibleEnd = false
-			console.log("HERE")
-			console.log(this.state.items[orderNumber + i].hidden)
-			while(this.state.items[orderNumber + i].hidden) {
-				console.log(this.state.items[orderNumber + 1].hidden)
-				//if(orderNumber + i == this.state.items.length - 1) {
-				if(this.state.items[orderNumber + i + 1] == null) {
-					visibleEnd = true
-					break;
-				}
-				i++;
-			}
-			console.log("i after loop", i)
-			//if(orderNumber + i != this.state.items.length-1 || (i == 1 && orderNumber + i == this.state.items.length-1)) {
-			if(orderNumber + i <= this.state.items.length - 1 && !visibleEnd) {
-				console.log("SELECTITEM", orderNumber)
-				this.selectItem(orderNumber + i)
-				this.divs[orderNumber+i].focus()
-			}
-		}
-		if(action == 'left') {
-			this.props.focusOnLists()
-		}
+	handleCreateRef(orderNumber, node, action) {
+		if(action == 'div') this.divs[orderNumber] = node
+		if(action == 'textarea') this.textareas[orderNumber] = node
 	}
 
-	handleHotKeyUp() {
+
+
+
+
+
+
+
+
+
+
+
+
+	hotKeyUp(e) {
+		e.preventDefault()
 		let i = 1
 		while(this.state.items[this.state.selectedItemIndex - i].hidden) {
 			i++
@@ -299,7 +299,8 @@ class CurrentList extends React.Component {
 		this.divs[this.state.selectedItemIndex-i].focus()
 	}
 
-	handleHotKeyDown() {
+	hotKeyDown(e) {
+		e.preventDefault()
 		if(this.state.selectedItemIndex != this.state.items.length-1) {
 			let i = 1, visibleEnd = false
 			while(this.state.items[this.state.selectedItemIndex + i].hidden) {
@@ -318,68 +319,84 @@ class CurrentList extends React.Component {
 		}
 	}
 
-	handleHotKeyLeft() {
+	hotKeyLeft(e) {
+		e.preventDefault()
+		const { items } = this.state
+		if(this.state.selectedItemIndex != items.length-1 
+			&& items[this.state.selectedItemIndex].indentlevel < items[this.state.selectedItemIndex+1].indentlevel 
+			&& !items[this.state.selectedItemIndex+1].hidden) {
+			this.toggleCollapse(this.state.selectedItemIndex, 'decollapse'); 
+		}
+	}
+
+	hotKeyShiftLeft() {
 		this.props.focusOnLists()
 	}
 
+	hotKeyRight(e) {
+		e.preventDefault()
+		if(this.state.items[this.state.selectedItemIndex].decollapsed) this.toggleCollapse(this.state.selectedItemIndex)
+	}
+
+
+	hotKeyShiftEnter(e) {
+		e.preventDefault()
+		e.target.lastElementChild.focus()
+	}
+
+	hotKeyShiftBackspace() {
+		if(this.state.items.length != 1) this.deleteItem(this.state.selectedItemIndex)
+	}
+
+	hotKeyEnter() {
+		this.createItem(this.state.selectedItemIndex)
+	}
+
+	hotKeyTab() {
+		this.tabItem(this.state.selectedItemIndex)
+	}
+
+	hotKeyShiftTab() {
+		this.untabItem(this.state.selectedItemIndex)
+	}
+
+	hotKeyForwardSlash() {
+		this.toggleCheckbox(this.state.selectedItemIndex)
+	}
+
 	handleHotKeys(e) {
-		console.log(e)
 		if(e.target.type != "textarea") {
-			if(e.key == "Enter") {
-				if(e.shiftKey) {
-					e.preventDefault()
-					e.target.lastElementChild.focus()
-				}
-				else {
-					this.createItem(this.state.selectedItemIndex)
-				}
-			}
-			if(e.key == "Backspace" && e.shiftKey && this.state.items.length != 1) {
-				this.deleteItem(this.state.selectedItemIndex);
-			}
-			if(e.key == 'Tab') {
-	  			e.preventDefault()
-	  			if(e.shiftKey) {
-	  				this.untabItem(this.state.selectedItemIndex)
-	  			}
-	  			else {
-	  				this.tabItem(this.state.selectedItemIndex)
-	  			}
-	  		}
-	  		if(e.key == '/') this.toggleCheckbox(this.state.selectedItemIndex)
-			if(e.key == "ArrowUp") this.handleHotKeyUp()
-			if(e.key == "ArrowDown") this.handleHotKeyDown()
-			if(e.key == "ArrowLeft") {
-				if(e.shiftKey) {
-					this.props.focusOnLists()
-				}
-				else {
-					//decollapse
-					const { items } = this.state
-					if(this.state.selectedItemIndex != items.length-1 
-						&& items[this.state.selectedItemIndex].indentlevel < items[this.state.selectedItemIndex+1].indentlevel 
-						&& !items[this.state.selectedItemIndex+1].hidden) {
-						this.toggleCollapse(this.state.selectedItemIndex, 'decollapse'); 
-					}
+			if(e.shiftKey) {
+				switch (e.key) {
+					case 'Enter': {this.hotKeyShiftEnter(e); break;}
+					case 'Backspace': {this.hotKeyShiftBackspace(); break}
+					case 'Tab': {this.hotKeyShiftTab(); break}
+					case 'ArrowLeft': {this.hotKeyShiftLeft(); break}
 				}
 			}
-			if(e.key == "ArrowRight") {
-				if(this.state.items[this.state.selectedItemIndex].decollapsed) this.toggleCollapse(this.state.selectedItemIndex)
+			else {
+				switch (e.key) {
+					case 'Enter': {this.hotKeyEnter(); break;}
+					case 'Tab': {this.hotKeyTab(); break}
+					case 'ArrowUp': {this.hotKeyUp(e); break}
+					case 'ArrowDown': {this.hotKeyDown(e); break}
+					case 'ArrowLeft': {this.hotKeyLeft(e); break}
+					case 'ArrowRight': {this.hotKeyRight(e); break}
+					case '/': {this.hotKeyForwardSlash(); break}
+				}
 			}
 		}
 	}
 
 
-	handleFocusOnItem = (orderNumber, action) => {
-		if(action == 'div') this.divs[orderNumber].focus()
-		if(action == 'input') this.inputs[orderNumber].focus()
-		if(action == 'textarea') this.textareas[orderNumber].focus()
-	}
 
-	handleCreateRef(orderNumber, node, action) {
-		if(action == 'div') this.divs[orderNumber] = node
-		if(action == 'textarea') this.textareas[orderNumber] = node
-	}
+
+
+
+
+
+
+
 
 	render() {
 
@@ -412,7 +429,3 @@ class CurrentList extends React.Component {
 }
 
 export default CurrentList;
-
-
-
-
