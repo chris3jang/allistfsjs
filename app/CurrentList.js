@@ -402,7 +402,7 @@ class CurrentList extends React.Component {
 
 		return (
 			<div>
-			<ul style={{ display: 'inline-block', verticalAlign: 'top', whiteSpace: 'nowrap' }}>
+			<ul className={styles.ul}>
 				{this.state.items.map((item, i) => (
 					<div key={this.state.items[i].primarykey} style={{textIndent: this.state.items[i].indentlevel * 40}} >
 						<div className={this.state.items[i].hidden ? styles.hidden : styles.normal}>

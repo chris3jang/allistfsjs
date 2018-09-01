@@ -6,3 +6,19 @@
 .currentListPosition {
 	display: inline-block;
 }
+
+.console {
+	white-space: nowrap; 
+	overflow: auto;
+}
+
+.l {
+	display: inline-block;
+	vertical-align: top;
+}
+
+.cl {
+	display: inline-block;
+	vertical-align: top;
+	width: calc(100% - 348px);
+}

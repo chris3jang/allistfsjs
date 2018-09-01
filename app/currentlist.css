@@ -1,12 +1,9 @@
-.inpt {
-	border: none;
-    background-color: inherit;
-    font: 20px arial, sans-serif;
-    padding: 14px 28px;
-    cursor: pointer;
-    display: inline-block;
-    border-width: 0px;
-    width: 300px;
+.ul {
+    display: inline-block; 
+    vertical-align: top;
+    white-space: nowrap;
+    padding-left: 20px;
+    width: 100%;
 }
 
 .hidden {

@@ -118,7 +118,7 @@ class Home extends React.Component {
 					</NavBar>
 				</div>
 				<div style = {{ whiteSpace: 'nowrap', overflow: 'auto' }}>
-					<div style={{ display: 'inline-block', verticalAlign: 'top' }}>
+					<div className={styles.l}>
 						<Lists
 							editMenu={this.state.editMenu}
 							selectList={this.handleSelectList.bind(this)}
@@ -128,7 +128,7 @@ class Home extends React.Component {
 							focusOnCurrentList={this.handleFocusOnCurrentList.bind(this)}>
 						</Lists>
 					</div>
-					<div style={{ display: 'inline-block', verticalAlign: 'top' }}>
+					<div className={styles.cl}>
 						<CurrentList
 							focusOnLists={this.handleFocusOnLists.bind(this)}
 							selectedListIndex={this.state.selectedListIndex}

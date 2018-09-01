@@ -167,7 +167,7 @@ class Lists extends React.Component {
 
 		return (
 			<div>
-				<ul style={{ display: 'inline-block', verticalAlign: 'top' }}>
+				<ul className={styles.ul}>
 					{this.state.titles.map((title, i) => (
 						<div key={i/*removes warning but may need to be changed*/} 
 							tabIndex="0" 
