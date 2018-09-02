@@ -10,12 +10,21 @@ class AllistItem extends React.Component {
 	}
 
 	componentDidMount = () => {
-		this.textArea.style = 'height: auto'
+		console.log("allistitem cdm")
 		this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
+		console.log("this.textArea.style", this.textArea.style)
 		this.setState({height: this.textArea.scrollHeight})
 	}
 
 	componentWillReceiveProps = (nextProps) => {
+		console.log("allist cWRP")
+		/*
+		if(this.props.width != nextProps.width) {
+			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
+			console.log("this.textArea.style", this.textArea.style)
+			this.setState({height: this.textArea.scrollHeight})
+		}
+		*/
 		/*
 		if(this.props.hidden != nextProps.hidden) {
 			console.log("changed")
@@ -29,9 +38,22 @@ class AllistItem extends React.Component {
 	}
 
 	componentDidUpdate = (prevProps) => {
+		console.log('cDU')
 		if(this.props.hidden != prevProps.hidden) {
+			console.log("allistitem cdu")
 			this.textArea.style = 'height: auto'
 			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
+			console.log("this.textArea.style", this.textArea.style)
+			this.setState({height: this.textArea.scrollHeight})
+		}
+		console.log("this.props.width", this.props.width)
+		console.log("prevProps.width", prevProps.width)
+		if(this.props.width != prevProps.width) {
+			console.log("different widths, setState to occur")
+			this.textArea.style = 'height: auto'
+			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
+			console.log("this.textArea.style", this.textArea.style)
+			console.log("this.textArea.scrollHeight", this.textArea.scrollHeight)
 			this.setState({height: this.textArea.scrollHeight})
 		}
 	}

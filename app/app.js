@@ -75,6 +75,10 @@ class App extends React.Component {
 
 	}
 
+	componentWillUnmount() {
+		clearInterval(this.timer)
+	}
+
 	updateLastActivity = () => {
 		//console.log("updateLastActivity")
 		this.lastActivity = Date.now()

@@ -13,3 +13,14 @@
 .normal {
 	display: block;
 }
+
+.div {
+
+}
+
+/*from home*/
+.cl {
+    display: inline-block;
+    vertical-align: top;
+    width: calc(100% - 348px);
+}

@@ -8,7 +8,8 @@ class CurrentList extends React.Component {
 
 	state = {
 		items: [],
-		selectedItemIndex: null
+		selectedItemIndex: null,
+		width: null
 	}
 
 	divs = []
@@ -20,18 +21,13 @@ class CurrentList extends React.Component {
 
 
 
-
-
-
-
-
-
-
-
 	componentDidMount = () => {
-		this.fetchItems()
 		document.addEventListener('keydown', this.handleHotKeys.bind(this))
+		this.fetchItems()
 	}
+
+
+
 
 	componentWillReceiveProps = (nextProps) => {
 		if(this.props.selectedListIndex != nextProps.selectedListIndex || 
@@ -41,6 +37,10 @@ class CurrentList extends React.Component {
 		if(nextProps.shouldChildUpdate) {
 			this.fetchItems()
 			this.props.updateComplete()
+		}
+
+		if(this.props.width != nextProps.width) {
+			this.setState({width: nextProps.width})
 		}
 	}
 
@@ -401,13 +401,14 @@ class CurrentList extends React.Component {
 	render() {
 
 		return (
-			<div>
+			<div className={styles.div}>
 			<ul className={styles.ul}>
 				{this.state.items.map((item, i) => (
 					<div key={this.state.items[i].primarykey} style={{textIndent: this.state.items[i].indentlevel * 40}} >
 						<div className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
 							<AllistItem 
 								style={{outline: '0'}}
+								width={this.state.width}
 								primaryKey = {this.state.items[i].primarykey}
 								itemTitle={this.state.items[i].itemtitle} 
 								orderNumber = {i} 

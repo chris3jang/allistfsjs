@@ -23,11 +23,30 @@ class Home extends React.Component {
 		selectedListIndex: null,
 		editMenu: false,
 		listsFocus: false,
-		updateChild: false
+		updateChild: false,
+		clwidth: null
 	}
 
 	componentDidMount() {
 		this.getSelectedList()
+		console.log("cdm div width", this.currentList.clientWidth)
+		this.setState({clwidth: this.currentList.clientWidth})
+
+		document.body.clientWidth
+		window.addEventListener('resize', this.handleResize)
+	}
+
+	componentDidUnmount() {
+		window.removeEventListener('resize', this.handleResize)
+	}
+
+	handleResize = (e) => {
+		console.log(e)
+		console.log("this.currentList.clientWidth", this.currentList.clientWidth)
+		console.log("this.state.clwidth", this.state.clwidth)
+		if(this.currentList.clientWidth != this.state.clwidth) {
+			this.setState({clwidth: this.currentList.clientWidth})
+		}
 	}
 
 	getSelectedList = () => {
@@ -128,13 +147,14 @@ class Home extends React.Component {
 							focusOnCurrentList={this.handleFocusOnCurrentList.bind(this)}>
 						</Lists>
 					</div>
-					<div className={styles.cl}>
+					<div className={styles.cl} ref={node => this.currentList = node}>
 						<CurrentList
 							focusOnLists={this.handleFocusOnLists.bind(this)}
 							selectedListIndex={this.state.selectedListIndex}
 							currentListFocused={this.state.listsFocus ? false : true}
 							shouldChildUpdate={this.state.updateChild}
-							updateComplete={this.handleUpdateComplete.bind(this)}>
+							updateComplete={this.handleUpdateComplete.bind(this)}
+							width={this.state.clwidth}>
 						</CurrentList>
 					</div>
 				</div>
