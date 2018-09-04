@@ -9,9 +9,13 @@ class NavBar extends React.Component {
 
 	//state = {}
 
+
+	//<button className={styles.button} onClick={this.handleEditButtonClick.bind(this)}>Edit</button>
+	/*
 	handleEditButtonClick = () => {
 		this.props.editListsFromNav()
 	}
+	*/
 
 	handleTrashButtonClick = () => {
 		this.props.trashCheckedItemsFromNav()
@@ -24,11 +28,10 @@ class NavBar extends React.Component {
 	render() {
 		return (
 			<div className={styles.topnav}>
-				<div>
-					<i><a className={styles.logodiv} href='#'>ALList</a></i>
+				<div className={styles.logodiv}>
+					<a className={styles.a} href='#'><i>ALList</i></a>
 				</div>
 				<div className={styles.buttondiv}>
-					<button className={styles.button} onClick={this.handleEditButtonClick.bind(this)}>Edit</button>
 					<button className={styles.button} onClick={this.handleTrashButtonClick.bind(this)}>Trash</button>
 					<button className={styles.button} onClick={this.handleLogoutButtonClick.bind(this)}>Logout</button>
 				</div>

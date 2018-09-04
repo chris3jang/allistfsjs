@@ -1,7 +1,7 @@
 .topnav {
 	height: 10%;
 	width: 100%;
-	background-color: #333;
+	background-color: #6a7a93;
     overflow: auto;
 
 	/*
@@ -19,12 +19,44 @@
     border-bottom:1px solid #444; 
     cursor: pointer;
  */
- .logodiv {
-    
+.logodiv {
+    display: inline-block;
+    height: 100%;
+}
+
+
+.a {
+    display: inline-block;
+    color: #f2f2f2;
+    text-align: center;
+    padding: 24px;
+    text-decoration: none;
+    font-size: 17px;
+    font-family: arial;
+    font-size: 26px;
+    margin: auto;
+    color: white;
+    background-color: inherit;
+    vertical-align: middle
+}
+
+ .buttondiv {
+    float: right;
+    display: inline-block;
+ 	font-size: 16px;    
+    border: none;
+    outline: none;
+    color: white;
+    background-color: inherit;
+    font-family: inherit;
+    margin: 0;
+    height: 100%;
+    font-family: arial;
  }
 
- .buttondiv .button {
- 	font-size: 16px;    
+ .button {
+    display: inline-block;
+    font-size: 16px;    
     border: none;
     outline: none;
     color: white;
@@ -34,10 +66,6 @@
     margin: 0;
     height: 100%;
     font-family: arial;
- }
-
- .button {
- 	font-family: arial;
  }
 
 /*
@@ -60,18 +88,7 @@
 }
 
 .topnav a {
-	float: left;
-    color: #f2f2f2;
-    text-align: center;
-    padding: 18px 16px;
-    text-decoration: none;
-    font-size: 17px;
-    font-family: arial;
-    font-size: 26px;
-    margin: auto;
-    color: white;
-    background-color: inherit;
-    vertical-align: middle
+	
 }
 
 .topnav a:hover button:hover {

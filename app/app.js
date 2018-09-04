@@ -276,7 +276,7 @@ class App extends React.Component {
 
 	render() {
 		return (
-			<div>
+			<div className={styles.app}>
 				{this.state.authenticated ? (
 					<Home 
 						username={this.state.user}

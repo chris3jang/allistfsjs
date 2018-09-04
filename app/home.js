@@ -128,7 +128,7 @@ class Home extends React.Component {
 	render() {
 
 		return (
-			<div>
+			<div className={styles.home}>
 				<div>
 					<NavBar
 						editListsFromNav={this.handleEditListsFromNav.bind(this)}
