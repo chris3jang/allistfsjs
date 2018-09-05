@@ -2,7 +2,7 @@
 const Server = require('./server.js')
 const MongoClient = require('mongodb').MongoClient
 const bodyParser = require('body-parser')
-const db = require('./config/db');
+//const db = require('./config/db');
 const port = (process.env.PORT || 8080)
 const app = Server.app()
 
@@ -36,8 +36,7 @@ if (process.env.NODE_ENV !== 'production') {
   }))
 }
 
-//process.env.MONGODB_URI
-MongoClient.connect(db.url, (err, database) => {
+MongoClient.connect(process.env.MONGODB_URI, (err, database) => {
 
   if (err) return console.log(err);
   app.use(bodyParser.urlencoded({ extended: true }));
