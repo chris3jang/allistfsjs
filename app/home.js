@@ -55,7 +55,7 @@ class Home extends React.Component {
 		const self = this
 		console.log("localStorage.getItem('access')", localStorage.getItem('access'))
 		console.log("myHeaders", myHeaders)
-		fetch('http://localhost:8080/lists/selected', { headers: myHeaders })
+		fetch('/lists/selected/', { headers: myHeaders })
 			.then((resp) => resp.json()).then((data) => { 
 				self.setState({selectedListIndex: data.index})
 			})
@@ -72,7 +72,7 @@ class Home extends React.Component {
 		    	'X-Requested-With': 'XMLHttpRequest'
 		    })
 		}
-		fetch('http://localhost:8080/lists/selected', fetchData)
+		fetch('/lists/selected/', fetchData)
 			.then((resp) => {
 				self.setState({selectedListIndex: orderNumber})
 			});
@@ -89,7 +89,7 @@ class Home extends React.Component {
 		    	'X-Requested-With': 'XMLHttpRequest'
 		    })
 		}
-		fetch('http://localhost:8080/items/trash/', fetchData)
+		fetch('/items/trash/', fetchData)
 			//.then((resp) => resp.json())
 			.then((data) => {
 				self.setState({updateChild: true})

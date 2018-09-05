@@ -156,7 +156,7 @@ class App extends React.Component {
 		console.log("myHeaders", myHeaders)
 		console.log("HERE", localStorage.getItem('access'))
 		if(localStorage.getItem('access')) {
-			fetch('http://localhost:8080/users', {
+			fetch('/users/', {
 				headers: myHeaders
 			})
 			.then(resp => { //resp.statusText either == "OK" or "Unauthorized"

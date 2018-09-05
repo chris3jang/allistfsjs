@@ -77,7 +77,7 @@ class CurrentList extends React.Component {
 	fetchItems = () => {
 		let fetchedData = []
 		const self = this
-		fetch('http://localhost:8080/items', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
+		fetch('/items/', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
 			.then((resp) => resp.json())
 			.then((data) => {
 				for(var i = 0; i < data.length; i++) {
@@ -101,7 +101,7 @@ class CurrentList extends React.Component {
 		console.log("getSelectedItem")
 		const self = this
 		const divs = this.divs
-		fetch('http://localhost:8080/items/selected', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
+		fetch('/items/selected/', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
 			.then((resp) => resp.json())
 			.then((data) => {
 				console.log("getSelectedItem", data)
@@ -114,7 +114,7 @@ class CurrentList extends React.Component {
 
 	editItemTitle = (orderNumber, editedTitle) => {
 		const fetchData = this.assignFetchData('PUT', { title: editedTitle, orderNumber: orderNumber })
-		fetch('http://localhost:8080/items', fetchData)
+		fetch('/items/', fetchData)
 		.then(function() {});
 		var editedList = this.state.items
 		editedList[orderNumber].itemtitle = editedTitle
@@ -125,7 +125,7 @@ class CurrentList extends React.Component {
 		const self = this
 		let editedList = this.state.items
 		const fetchData = this.assignFetchData('POST', { orderNumber: orderNumber })
-		fetch('http://localhost:8080/items', fetchData)
+		fetch('/items/', fetchData)
 			.then((resp) => resp.json())
 			.then((data) => {
 				console.log(data)
@@ -141,7 +141,7 @@ class CurrentList extends React.Component {
 		let editedList = this.state.items
 		let newFocusItem
 		const fetchData = this.assignFetchData('DELETE', { orderNumber: orderNumber })
-		fetch('http://localhost:8080/items/', fetchData)
+		fetch('/items/', fetchData)
 		.then(function() {
 			var deletedIndentLevel = editedList[orderNumber].indentlevel
 			editedList.splice(orderNumber, 1)
@@ -163,7 +163,7 @@ class CurrentList extends React.Component {
 		const self = this
 		let editedList = this.state.items
 		const fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
-		fetch('http://localhost:8080/items/tab', fetchData)
+		fetch('/items/tab/', fetchData)
 		.then(function() {
 			console.log(editedList[orderNumber-1].indentlevel)
 			console.log(editedList[orderNumber].indentlevel)
@@ -184,7 +184,7 @@ class CurrentList extends React.Component {
 		const self = this
 		let editedList = this.state.items
 		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
-		fetch('http://localhost:8080/items/untab', fetchData)
+		fetch('/items/untab/', fetchData)
 		.then(function() {
 			console.log(editedList[orderNumber].indentlevel)
 			console.log(orderNumber)
@@ -204,7 +204,7 @@ class CurrentList extends React.Component {
 	selectItem(orderNumber) {
 		const self = this
 		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
-		fetch('http://localhost:8080/items/selected/', fetchData)
+		fetch('/items/selected/', fetchData)
 		.then(function() {
 			self.setState({selectedItemIndex: orderNumber})
 		});
@@ -217,7 +217,7 @@ class CurrentList extends React.Component {
 		if(editedList[orderNumber].checked) checked = false
 		else checked = true
 		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber, checked: checked })
-		fetch('http://localhost:8080/items/check', fetchData)
+		fetch('/items/check/', fetchData)
 		.then(() => {
 			editedList[orderNumber].checked = !editedList[orderNumber].checked
 			self.setState({items: editedList})
@@ -229,7 +229,7 @@ class CurrentList extends React.Component {
 		const self = this
 		const decollapsed = this.state.items[orderNumber].decollapsed
 		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber, decollapsed: decollapsed })
-		fetch('http://localhost:8080/items/collapse', fetchData)
+		fetch('/items/collapse/', fetchData)
 			.then(resp => resp.json())
 			.then((data) => {
 				console.log("toggleCollapse callback")
