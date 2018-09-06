@@ -36,7 +36,7 @@ class Home extends React.Component {
 		window.addEventListener('resize', this.handleResize)
 	}
 
-	componentDidUnmount() {
+	componentWillUnmount() {
 		window.removeEventListener('resize', this.handleResize)
 	}
 
@@ -62,6 +62,7 @@ class Home extends React.Component {
 	}
 
 	selectList(orderNumber) {
+		console.log("home selectList")
 		console.log("selectLIst")
 		const self = this
 		const fetchData = { 

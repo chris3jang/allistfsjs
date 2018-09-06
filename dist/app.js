@@ -2,7 +2,7 @@
 const Server = require('./server.js')
 const MongoClient = require('mongodb').MongoClient
 const bodyParser = require('body-parser')
-//const db = require('./config/db');
+const db = require('./config/db') || null;
 const port = (process.env.PORT || 8080)
 const app = Server.app()
 
@@ -17,8 +17,10 @@ const bcrypt = require('bcrypt')
 
 app.use(passport.initialize());
 
+let uri
+if(db) uri = db.url
 
-
+console.log("process.env.NODE_ENV", process.env.NODE_ENV)
 
 if (process.env.NODE_ENV !== 'production') {
   console.log("process.env.NODE_ENV IS NOT PRODUCTION")
@@ -35,8 +37,9 @@ if (process.env.NODE_ENV !== 'production') {
     publicPath: config.output.publicPathdist
   }))
 }
+else uri = process.env.MONGODB_URI
 
-MongoClient.connect(process.env.MONGODB_URI, (err, database) => {
+MongoClient.connect(uri, (err, database) => {
 
   if (err) return console.log(err);
   app.use(bodyParser.urlencoded({ extended: true }));

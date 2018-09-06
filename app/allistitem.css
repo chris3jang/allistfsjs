@@ -125,13 +125,13 @@ input[type=checkbox] {
 	font: 20px arial, sans-serif;
 	padding: 14px 28px;
 	resize: none;
-	width: 100%;
 	display: inline-block;
 	overflow: hidden;
 }
 
 .selectedTextArea {
 	border-color: red;
+	overflow: hidden;
 }
 
 .nonSelectedTextArea {

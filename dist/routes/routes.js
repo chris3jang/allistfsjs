@@ -315,6 +315,7 @@ module.exports = function(app, db) {
 
   const getTitleFromFrontEnd = (req, res, next) => {
     console.log("getTitleFromFrontEnd")
+    console.log(req.body.title)
     res.locals.title = req.body.title
     next()
   }
@@ -408,26 +409,31 @@ module.exports = function(app, db) {
       return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()})
     })
     .then(result => {
-      res.send()
+      console.log("RESULT")
+      res.send(result)
     })
   })
 
   app.put('/lists/', [getUserParseOrderNumber, getTitleFromFrontEnd], (req, res, next) => {
+    console.log("put lists")
+    console.log(res.locals.username)
+    console.log(res.locals.orderNumber)
+    console.log(res.locals.title)
     listsCol.update({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]}, {$set: {listTitle: res.locals.title}})
     .then(result => {
-      res.send()
+      res.send(result)
     });
   });
 
   app.put('/lists/selected', [getUserParseOrderNumber], (req, res, next) => {
     const prevSelectedList = {$and: [{user: res.locals.username}, { selected: true }]}
-    const nextSelectedList = {$and: [{ orderNumber: res.locals.orderNumber}]}
+    const nextSelectedList = {$and: [{user: res.locals.username}, { orderNumber: res.locals.orderNumber}]}
     listsCol.update(prevSelectedList, { $set: {selected: false}})
     .then(updatedPrev => {
       return listsCol.update(nextSelectedList, { $set: {selected: true}})
     })
     .then(updatedNext => {
-      res.send()
+      res.send(updatedNext)
     })
   })
 
@@ -444,7 +450,7 @@ module.exports = function(app, db) {
       return listsCol.update({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, {$inc: {orderNumber : -1}})
     })
     .then(result => {
-      res.send()
+      res.send(result)
     })
   })
 
@@ -534,8 +540,10 @@ module.exports = function(app, db) {
     }
     res.locals.newItemProps = { itemTitle: '', 
       orderNumber: orderNumber + 1, 
-      parent: parentRef, indentLevel: indentLevel, 
+      parent: parentRef, 
+      indentLevel: indentLevel, 
       list: listRef, 
+      checked: false,
       hidden: false
     }
     next()

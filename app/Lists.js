@@ -19,6 +19,7 @@ class Lists extends React.Component {
 
 	componentDidMount = () => {
 		this.fetchFromAPI('fetch')
+		document.addEventListener('keydown', this.handleHotKeys.bind(this))
 	}
 
 	componentWillReceiveProps = (nextProps) => {
@@ -30,6 +31,35 @@ class Lists extends React.Component {
 			}
 		}
 	}
+
+	componentWillUnmount = () => {
+		document.removeEventListener('keydown', this.handleHotKeys.bind(this))
+	}
+
+	handleHotKeys(e) {
+	}
+
+	hotKeyShiftEnter
+
+	assignFetchData = (method, paramData) => {
+		return { method: method, body: JSON.stringify(paramData), 
+			headers: new Headers({
+			'authorization': 'Bearer ' + localStorage.getItem('access'),
+			'content-type': 'application/json',
+			'X-Requested-With': 'XMLHttpRequest'
+		})}
+	}
+
+	editListTitle = (orderNumber, editedTitle) => {
+		const fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber, title: editedTitle })
+		fetch('/lists/', fetchData)
+		.then()
+		let editedLists = this.state.titles
+		console.log("editedLists", editedLists)
+		editedLists[orderNumber] = editedTitle
+		this.setState({titles: editedLists}, ()=>{})
+	}
+
 
 	fetchFromAPI = (action, params) => {
 
@@ -43,16 +73,23 @@ class Lists extends React.Component {
 
 		const editList = (data, params) => {
 			const orderNumber = params[0], editedTitle = params[1]
+			console.log("orderNumber", orderNumber)
+			console.log("editedTitle", editedTitle)
+			console.log("this.state.titles", this.state.titles)
 			let editedLists = this.state.titles
+			console.log("editedLists", editedLists)
 			editedLists[orderNumber] = editedTitle
-			this.setState({items: editedLists})
+			this.setState({titles: editedLists}, ()=>{})
 		}
 
 		const createList = (data, params) => {
 			const orderNumber = params[0]
 			let editedLists = this.state.titles
 			editedLists.splice(orderNumber+1, 0, "")
-			this.setState({titles: editedLists})
+			this.setState({titles: editedLists}, ()=>{
+				this.props.selectList(orderNumber+1)
+				this.inputs[orderNumber+1].focus()
+			})
 			
 		}
 
@@ -62,15 +99,6 @@ class Lists extends React.Component {
 			editedLists.splice(orderNumber, 1)
 			this.setState({titles: editedLists})
 			this.props.selectList(orderNumber-1)
-		}
-
-		const assignFetchData = (method, paramData) => {
-			return { method: method, body: JSON.stringify(paramData), 
-				headers: new Headers({
-				'authorization': 'Bearer ' + localStorage.getItem('access'),
-				'content-type': 'application/json',
-				'X-Requested-With': 'XMLHttpRequest'
-			})}
 		}
 
 		const url = '/lists/'
@@ -84,25 +112,28 @@ class Lists extends React.Component {
 			}
 			case 'edit': {
 				resFunc = editList
-				paramData = { title: params[1], ordernumber: params[0] }
-				fetchData = assignFetchData('PUT', paramData)
+				paramData = { title: params[1], orderNumber: params[0] }
+				fetchData = this.assignFetchData('PUT', paramData)
 				break
 			}
 			case 'create': {
 				resFunc = createList
 				paramData = { orderNumber: params[0]}
-				fetchData = assignFetchData('POST', paramData)
+				fetchData = this.assignFetchData('POST', paramData)
 				break
 			}
 			case 'delete': {
 				resFunc = deleteList
 				paramData = { orderNumber: params[0]}
-				fetchData = assignFetchData('DELETE', paramData)
+				fetchData = this.assignFetchData('DELETE', paramData)
 				break
 			}
 		}
 
-		fetch(url, fetchData).then((resp) => resp.json()).then((data) => {
+		fetch(url, fetchData)
+		.then(resp => resp.json())
+		.then((data) => {
+			console.log("data", data, "params", params)
 			resFunc(data, params)
 		})
 
@@ -116,6 +147,7 @@ class Lists extends React.Component {
 	}
 
 	handleDivKeyDown = (i, event) => {
+		console.log("handleDivKeyDown")
 		if(event.currentTarget.tagName == "DIV") {
 			if(event.key == 'ArrowUp' && i != 0) {
 				this.props.selectList(i - 1)
@@ -137,7 +169,7 @@ class Lists extends React.Component {
 	}
 
 	handleOnChange = (i, event) => {
-		if(event.key != 'Backspace' || event.target.value) this.fetchFromAPI('edit', [i, event.target.value])
+		if(event.key != 'Backspace' || event.target.value) this.editListTitle(i, event.target.value)
 	}
 
 	handleInputKeyDown = (orderNumber, event) => {

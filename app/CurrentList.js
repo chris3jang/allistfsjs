@@ -38,7 +38,8 @@ class CurrentList extends React.Component {
 			this.fetchItems()
 			this.props.updateComplete()
 		}
-
+		console.log("this.props.width", this.props.width)
+		console.log("nextProps.width", nextProps.width)
 		if(this.props.width != nextProps.width) {
 			this.setState({width: nextProps.width})
 		}
@@ -47,6 +48,7 @@ class CurrentList extends React.Component {
 	componentWillUnmount() {
 		document.removeEventListener('keydown', this.handleHotKeys.bind(this))
 	}
+
 
 	/*
 	shouldComponentUpdate = (nextProps, nextState) => {
@@ -365,24 +367,26 @@ class CurrentList extends React.Component {
 	}
 
 	handleHotKeys(e) {
-		if(e.target.type != "textarea") {
-			if(e.shiftKey) {
-				switch (e.key) {
-					case 'Enter': {this.hotKeyShiftEnter(e); break;}
-					case 'Backspace': {this.hotKeyShiftBackspace(); break}
-					case 'Tab': {this.hotKeyShiftTab(); break}
-					case 'ArrowLeft': {this.hotKeyShiftLeft(); break}
+		if(this.props.currentListFocused){
+			if(e.target.type != "textarea") {
+				if(e.shiftKey) {
+					switch (e.key) {
+						case 'Enter': {this.hotKeyShiftEnter(e); break;}
+						case 'Backspace': {this.hotKeyShiftBackspace(); break}
+						case 'Tab': {this.hotKeyShiftTab(); break}
+						case 'ArrowLeft': {this.hotKeyShiftLeft(); break}
+					}
 				}
-			}
-			else {
-				switch (e.key) {
-					case 'Enter': {this.hotKeyEnter(); break;}
-					case 'Tab': {this.hotKeyTab(); break}
-					case 'ArrowUp': {this.hotKeyUp(e); break}
-					case 'ArrowDown': {this.hotKeyDown(e); break}
-					case 'ArrowLeft': {this.hotKeyLeft(e); break}
-					case 'ArrowRight': {this.hotKeyRight(e); break}
-					case '/': {this.hotKeyForwardSlash(); break}
+				else {
+					switch (e.key) {
+						case 'Enter': {this.hotKeyEnter(); break;}
+						case 'Tab': {this.hotKeyTab(); break}
+						case 'ArrowUp': {this.hotKeyUp(e); break}
+						case 'ArrowDown': {this.hotKeyDown(e); break}
+						case 'ArrowLeft': {this.hotKeyLeft(e); break}
+						case 'ArrowRight': {this.hotKeyRight(e); break}
+						case '/': {this.hotKeyForwardSlash(); break}
+					}
 				}
 			}
 		}
@@ -408,7 +412,7 @@ class CurrentList extends React.Component {
 						<div className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
 							<AllistItem 
 								style={{outline: '0'}}
-								width={this.state.width}
+								width={this.state.width - this.state.items[i].indentlevel * 80}
 								primaryKey = {this.state.items[i].primarykey}
 								itemTitle={this.state.items[i].itemtitle} 
 								orderNumber = {i} 
