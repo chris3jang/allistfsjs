@@ -408,11 +408,11 @@ class CurrentList extends React.Component {
 			<div className={styles.div}>
 			<ul className={styles.ul}>
 				{this.state.items.map((item, i) => (
-					<div key={this.state.items[i].primarykey} style={{textIndent: this.state.items[i].indentlevel * 40}} >
+					<div key={this.state.items[i].primarykey}>
 						<div className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
 							<AllistItem 
 								style={{outline: '0'}}
-								width={this.state.width - this.state.items[i].indentlevel * 80}
+								width={this.state.width}
 								primaryKey = {this.state.items[i].primarykey}
 								itemTitle={this.state.items[i].itemtitle} 
 								orderNumber = {i} 

@@ -127,11 +127,13 @@ input[type=checkbox] {
 	resize: none;
 	display: inline-block;
 	overflow: hidden;
+	width: 100%;
 }
 
 .selectedTextArea {
 	border-color: red;
 	overflow: hidden;
+	width: 100%;
 }
 
 .nonSelectedTextArea {

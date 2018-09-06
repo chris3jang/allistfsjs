@@ -9,16 +9,20 @@ class AllistItem extends React.Component {
 		height: 51
 	}
 
+	adjustHeight = () => {
+		this.textArea.style = 'height: auto'
+		this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px; width: ' + (this.props.width - (this.props.indentLevel * 40))
+		this.setState({height: this.textArea.scrollHeight})
+	}
+
 	componentDidMount = () => {
 		console.log("allistitem cdm")
-		this.textArea.style = 'height: auto'
-		console.log("this.textArea.scrollHeight", this.textArea.scrollHeight)
-		this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px; width: ' + this.props.width
-		this.setState({height: this.textArea.scrollHeight})
+		this.adjustHeight()
 	}
 
 	/*
 	componentWillReceiveProps = (nextProps) => {
+		
 		if(this.props.width != nextProps.width) {
 			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
 			console.log("this.textArea.style", this.textArea.style)
@@ -33,27 +37,14 @@ class AllistItem extends React.Component {
 			consolle.log(this.textArea.styles)
 			this.setState({height: this.textArea.scrollHeight})
 		}
-		
-	}
+			}
 	*/
+	
 
 	componentDidUpdate = (prevProps) => {
 		console.log('cDU')
-		if(this.props.hidden != prevProps.hidden) {
-			console.log("***********************")
-			this.textArea.style = 'height: auto'
-			console.log("this.textArea.scrollHeight", this.textArea.scrollHeight)
-			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px; width: ' + this.props.width
-			this.setState({height: this.textArea.scrollHeight})
-		}
-		if(this.props.width != prevProps.width) {
-			console.log("this.props.width", this.props.width)
-			console.log("prevProps.width", prevProps.width)
-			console.log("&&&&&&&&&&&&&&&&&&&&&&&&")
-			this.textArea.style = 'height: auto'
-			console.log("this.textArea.scrollHeight", this.textArea.scrollHeight)
-			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px; width: ' + this.props.width
-			this.setState({height: this.textArea.scrollHeight})
+		if(this.props.hidden != prevProps.hidden || this.props.width != prevProps.width || this.props.indentLevel != prevProps.indentLevel) {
+			this.adjustHeight()
 		}
 	}
 
@@ -93,7 +84,7 @@ class AllistItem extends React.Component {
 		console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^")
 		e.target.style = 'height: auto'
 		console.log("e.target.scrollHeight", e.target.scrollHeight)
-		e.target.style = 'height: ' + (e.target.scrollHeight) + 'px; width: ' + this.props.width
+		e.target.style = 'height: ' + (e.target.scrollHeight) + 'px; width: ' + (this.props.width - (this.props.indentLevel * 40))
 		this.setState({height: e.target.scrollHeight})		
 	}
 
@@ -125,9 +116,10 @@ class AllistItem extends React.Component {
 
 	render() {
 		return (
-			<div className={styles.fulldiv} style={{whiteSpace: 'nowrap'}} tabIndex="0"
+			<div className={styles.fulldiv} style={{ whiteSpace: 'nowrap' }} tabIndex="0"
 				onClick={this.handleDivClick.bind(this)}
 				ref = {node => this.handleRefCreate(node, 'div')}>
+				<div style={{ display: 'inline-block', width: this.props.indentLevel * 40}}></div>
 				<div className={this.props.decollapsed ? (this.props.checked ? styles.divcollapsedcheckboxchecked : styles.divcollapsedcheckboxunchecked) : (this.props.checked ? styles.divcheckboxchecked : styles.divcheckboxunchecked)} 
 					onClick={this.handleCheckboxClick.bind(this)}>
 				</div>
@@ -135,18 +127,19 @@ class AllistItem extends React.Component {
 					checked={this.props.checked} 
 					onClick={this.handleCheckboxClick.bind(this)}>
 				</input>
-				<textarea 
-					rows={1}
-					style={{width: this.props.width}}
-					className={this.props.selected ? styles.selectedTextArea : styles.nonSelectedTextArea} 
-					disabled={!this.props.selected} 
-					value={this.props.itemTitle}
-					onChange={this.handleTextAreaChange.bind(this)}
-					onKeyDown={this.handleTextAreaKeyDown.bind(this)}
-					onClick={this.handleTextAreaClick.bind(this)}
-					ref = {node => this.handleRefCreate(node, 'textarea')}
-					tabIndex="-1">
-				</textarea>
+				<div style={{width: this.props.width - this.props.indentLevel * 40, display: 'inline-block'}}>
+					<textarea 
+						rows={1}
+						className={this.props.selected ? styles.selectedTextArea : styles.nonSelectedTextArea} 
+						disabled={!this.props.selected} 
+						value={this.props.itemTitle}
+						onChange={this.handleTextAreaChange.bind(this)}
+						onKeyDown={this.handleTextAreaKeyDown.bind(this)}
+						onClick={this.handleTextAreaClick.bind(this)}
+						ref = {node => this.handleRefCreate(node, 'textarea')}
+						tabIndex="-1">
+					</textarea>
+				</div>
 			</div>
 		)
 	}
