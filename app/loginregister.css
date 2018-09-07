@@ -24,7 +24,7 @@
   padding: 0 1em 0 1em;
   border-bottom: 2px solid #ccc;
   display: table;
-  font-family: helvetica;
+  font-family: Arimo;
 }
 
 .content {
@@ -36,13 +36,14 @@
 
 .formcontrol {
   width: 100%;
-  font-family: helvetica;
+  font-family: Arimo;
   font-size: 20px;
   margin-top: 10;
 }
 
 .logo {
   display: block;
+  height: 75px;
   margin-left: auto;
   margin-right: auto;
   margin-bottom: 40px;
@@ -55,12 +56,13 @@
 .sbmtBtn {
   width: 100%;
   background: #e3e1df;
+  color: #8e8e8e;
   padding: 10px;
-  font-family: helvetica;
-  font-size: 12px;
+  font-family: Arimo;
+  font-size: 18px;
 }
 
-.sbmtBtnDiv {
+.sbmtBtnDiv {;
   text-align: center;
   display: block;
   margin-top: 10;
@@ -93,20 +95,20 @@
 .unselectedBtnDiv {
   display: inline-block;
   width: 50%;
-  background: #faf5f1;
+  background: #B4BCC9;
   border-radius: 10px 10px 0 0;
 }
 
 .inUpSwitch {
-  color: black; 
+  color: #8e8e8e; 
   background: transparent;
   /*border: 2px solid #0099CC;*/
   border-radius: 10px; 
   width: 100%;
   padding: 10;
   border: none;
-  font-family: helvetica;
-  font-size: 12px;
+  font-family: 'Arimo';
+  font-size: 18px;
 }
 
 .inUpSwitch:hover {
@@ -115,5 +117,15 @@
 
 
 
-
+/* arimo-regular - latin */
+/*
+@font-face {
+  font-family: 'Arimo';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Arimo Regular'), local('Arimo-Regular'),
+       url('./fonts/arimo-v11-latin-regular.woff2') format('woff2'), 
+       url('./fonts/arimo-v11-latin-regular.woff') format('woff'); 
+}
+*/
 

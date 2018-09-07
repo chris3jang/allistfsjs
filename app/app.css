@@ -37,10 +37,14 @@
   width: 100%;
 }
 
-.logo {
-  display: block;
-  text-align: center;
-  font-family: arial;
-  font-size: 26px;
-  transform: translateY(-50%);
+/* arimo-regular - latin */
+/*
+@font-face {
+  font-family: 'Arimo';
+  font-style: normal;
+  font-weight: 400;
+  src: local('Arimo Regular'), local('Arimo-Regular'),
+       url('./fonts/arimo-v11-latin-regular.woff2') format('woff2'), 
+       url('./fonts/arimo-v11-latin-regular.woff') format('woff'); 
 }
+*/

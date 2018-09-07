@@ -14,6 +14,7 @@ import styles from './app.css'
 import {BrowserRouter, Route, Link} from 'react-router-dom'
 
 import jwt_decode from 'jwt-decode'
+import './fonts.css'
 
 /*
 const React = require("react")

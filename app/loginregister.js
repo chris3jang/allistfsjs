@@ -51,7 +51,7 @@ class Loginregister extends React.Component {
 							<input type="password" className={styles.formcontrol} name="password" placeholder="Password"></input>
 						</div>
 						<div className={styles.sbmtBtnDiv}>
-							<button type="submit" className={styles.sbmtBtn}>Login</button>
+							<button type="submit" className={styles.sbmtBtn}>LOGIN</button>
 						</div>
 					</form>
 		}
@@ -77,10 +77,10 @@ class Loginregister extends React.Component {
 				<div className={styles.center}>
 					<div className={styles.btnDiv}>
 						<div className={this.state.loginNotRegister ? styles.selectedBtnDiv : styles.unselectedBtnDiv}>
-							<button className={styles.inUpSwitch} onClick={this.signIn.bind(this)}>Sign In</button>
+							<button className={styles.inUpSwitch} onClick={this.signIn.bind(this)}>SIGN IN</button>
 						</div>
 						<div className={!this.state.loginNotRegister ? styles.selectedBtnDiv : styles.unselectedBtnDiv}>
-							<button className={styles.inUpSwitch} onClick={this.signUp.bind(this)}>Sign Up</button>
+							<button className={styles.inUpSwitch} onClick={this.signUp.bind(this)}>SIGN UP</button>
 						</div>
 					</div>
 					<div className={styles.content}>
