@@ -115,6 +115,7 @@ class CurrentList extends React.Component {
 	}
 
 	editItemTitle = (orderNumber, editedTitle) => {
+		console.log("on, et", orderNumber, editedTitle)
 		const fetchData = this.assignFetchData('PUT', { title: editedTitle, orderNumber: orderNumber })
 		fetch('/items/', fetchData)
 		.then(function() {});
@@ -125,15 +126,19 @@ class CurrentList extends React.Component {
 
 	createItem(orderNumber) {
 		const self = this
-		let editedList = this.state.items
+		let editedList = this.state.items, newItemOrderNum
 		const fetchData = this.assignFetchData('POST', { orderNumber: orderNumber })
 		fetch('/items/', fetchData)
 			.then((resp) => resp.json())
 			.then((data) => {
-				console.log(data)
-				editedList.splice(orderNumber+1, 0, {primarykey: data._id, itemtitle: '', indentlevel: data.indentLevel})
-				self.setState({items: editedList, selectedItemIndex: orderNumber+1}, ()=>{
-					self.handleFocusOnItem(orderNumber+1, 'textarea')
+				console.log("CREATEDATA", data)
+				newItemOrderNum = orderNumber + 1
+				if(this.state.items[newItemOrderNum] && this.state.items[newItemOrderNum].hidden) {
+					while(this.state.items[newItemOrderNum] && this.state.items[newItemOrderNum].hidden) newItemOrderNum++
+				}
+				editedList.splice(newItemOrderNum, 0, {primarykey: data._id, itemtitle: '', indentlevel: data.indentLevel})
+				self.setState({items: editedList, selectedItemIndex: newItemOrderNum}, ()=>{
+					self.handleFocusOnItem(newItemOrderNum, 'textarea')
 				})
 			});
 	}
@@ -262,7 +267,7 @@ class CurrentList extends React.Component {
 
 	handleAction = (orderNumber, action, editedTitle) => {
 		switch (action) {
-			case 'edit': {this.editItemTitle(orderNumber, editedTitle); break;}
+			case 'edit': {this.editItemTitle(orderNumber, editedTitle); console.log("edit"); break;}
 			case 'delete': {
 				if(this.state.items.length != 1) this.deleteItem(orderNumber); 
 				break;
@@ -293,12 +298,14 @@ class CurrentList extends React.Component {
 
 	hotKeyUp(e) {
 		e.preventDefault()
-		let i = 1
-		while(this.state.items[this.state.selectedItemIndex - i].hidden) {
-			i++
+		if(this.state.selectedItemIndex != 0) {
+			let i = 1
+			while(this.state.items[this.state.selectedItemIndex - i].hidden) {
+				i++
+			}
+			this.selectItem(this.state.selectedItemIndex - i)
+			this.divs[this.state.selectedItemIndex-i].focus()
 		}
-		this.selectItem(this.state.selectedItemIndex - i)
-		this.divs[this.state.selectedItemIndex-i].focus()
 	}
 
 	hotKeyDown(e) {
@@ -343,7 +350,11 @@ class CurrentList extends React.Component {
 
 	hotKeyShiftEnter(e) {
 		e.preventDefault()
-		e.target.lastElementChild.focus()
+		console.log("HERH:EKHKLSEHSE")
+		console.log(e)
+		console.log(e.target)
+		console.log(e.target.lastElementChild)
+		e.target.children[3].lastElementChild.focus()
 	}
 
 	hotKeyShiftBackspace() {

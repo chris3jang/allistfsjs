@@ -372,6 +372,48 @@ module.exports = function(app, db) {
   //******************************************************************************************************************************
 
 
+
+
+  const toggleItemCollapseProp = (req, res, next) => {
+    console.log("toggleItemCollapseProp")
+    const dclpsd = JSON.parse(req.body.decollapsed)
+    itemsCol.update(res.locals.details, {$set: {decollapsed: !dclpsd}})
+      .then((item) => {next()})
+  }
+
+  const toggleDescendantsCollapseProp = (req, res, next) => {
+    console.log('toggleDescendantsCollapseProp')
+    const { descendants } = res.locals
+    const dclpsd = JSON.parse(req.body.decollapsed)
+    console.log("dclpsd", dclpsd)
+    let dclpsdToRemain = [], stayHidden = false, descendantOrderNumbers = []
+    for(let i = 0; i < descendants.length; i++) {
+      if(descendants[i].decollapsed) dclpsdToRemain.push(descendants[i]._id.toString())
+      for(let j = 0; j < dclpsdToRemain.length; j++) {
+        if(descendants[i].parent === dclpsdToRemain[j]) {
+          stayHidden = true
+          break
+        }
+      }
+      if(!stayHidden) {
+        descendantOrderNumbers.push(descendants[i].orderNumber)
+        itemsCol.update({_id: descendants[i]._id}, {$set: {hidden: !dclpsd}})
+      }
+    }
+    res.send({index: descendantOrderNumbers})
+  }
+
+  const toggleItemCollapse = [toggleItemCollapseProp, getDescendantsOfItem, toggleDescendantsCollapseProp]
+
+
+
+
+
+
+
+  //***************************************************************************************************************************************
+
+
   //LISTS
 
 
@@ -504,6 +546,7 @@ module.exports = function(app, db) {
   //requires getList, parseOrderNumberFromFrontEnd
   const incrementOrderNumbers = (req, res, next) => {
     console.log("incrementOrderNumbers")
+    console.log(res.locals.orderNumber)
     itemsCol.updateMany({$and: [{list: res.locals.listRef}, {orderNumber: {$gt: res.locals.orderNumber}}]}, { $inc: {orderNumber: 1}})
     .then(result => {
       next()
@@ -513,6 +556,7 @@ module.exports = function(app, db) {
   //SPECIFIC TO ITEM POST ROUTE HANDLER
   const insertAfterOrderNumbersAdjustment = (req, res, next) => {
     console.log("insertAfterOrderNumbersAdjustment")
+    console.log(res.locals.newItemProps)
     itemsCol.insert(res.locals.newItemProps).then(newItem => {
       res.locals.createdItem = newItem
       next()
@@ -527,10 +571,10 @@ module.exports = function(app, db) {
     })
   }
 
-  app.post('/items/', [getItem, getNextItemByListAndOrderNumber], (req, res, next) => {
-    const { nextItem, item, orderNumber, listRef } = res.locals
+  app.post('/items/', [getItem, getNextItemByListAndOrderNumber, getDescendantsOfItem], (req, res, next) => {
+    const { nextItem, item, orderNumber, listRef, descendants } = res.locals
     let parentRef, indentLevel
-    if(nextItem != null && nextItem.parent == item._id.toString()) {
+    if(nextItem != null && nextItem.parent == item._id.toString() && !nextItem.hidden) {
       parentRef = item._id.toString()
       indentLevel = item.indentLevel + 1
     }
@@ -538,13 +582,20 @@ module.exports = function(app, db) {
       parentRef = item.parent
       indentLevel = item.indentLevel
     }
+    if(nextItem != null && nextItem.hidden) {
+      console.log('descendants', descendants)
+      console.log('lastDescendant', descendants[descendants.length-1])
+      res.locals.orderNumber = descendants[descendants.length-1].orderNumber
+      console.log("new res.locals.oN", res.locals.orderNumber)
+    }
     res.locals.newItemProps = { itemTitle: '', 
-      orderNumber: orderNumber + 1, 
+      orderNumber: res.locals.orderNumber + 1, 
       parent: parentRef, 
       indentLevel: indentLevel, 
       list: listRef, 
       checked: false,
-      hidden: false
+      hidden: false,
+      decollapsed: false
     }
     next()
   }, [incrementOrderNumbers, insertAfterOrderNumbersAdjustment, selectNewItem], (req, res, next) => {
@@ -677,37 +728,7 @@ module.exports = function(app, db) {
   })
 
 
-
-
-
-
-  app.put('/items/collapse/', [getItem], (req, res, next) => {
-    console.log("put/items/collapse")
-    const dclpsd = JSON.parse(req.body.decollapsed)
-    itemsCol.update(res.locals.details, {$set: {decollapsed: !dclpsd}})
-      .then((item) => {
-        next()
-  })}, getDescendantsOfItem, (req, res) => {
-    const { descendants } = res.locals
-    const dclpsd = JSON.parse(req.body.decollapsed)
-    console.log("dclpsd", dclpsd)
-    let dclpsdToRemain = [], stayHidden = false, descendantOrderNumbers = []
-
-    for(let i = 0; i < descendants.length; i++) {
-      if(descendants[i].decollapsed) dclpsdToRemain.push(descendants[i]._id.toString())
-      for(let j = 0; j < dclpsdToRemain.length; j++) {
-        if(descendants[i].parent === dclpsdToRemain[j]) {
-          stayHidden = true
-          break
-        }
-      }
-      if(!stayHidden) {
-        descendantOrderNumbers.push(descendants[i].orderNumber)
-        itemsCol.update({_id: descendants[i]._id}, {$set: {hidden: !dclpsd}})
-      }
-    }
-    res.send({index: descendantOrderNumbers})
-  })
+  app.put('/items/collapse/', [getItem, toggleItemCollapse])
 
 
 
@@ -816,29 +837,21 @@ module.exports = function(app, db) {
   //not done yet
 
   
-  app.delete('/items/trash/', (req, res) => {
-
-    let listID, itemIndentLevel, incValue//, selectedItemIndex
-
-    listsCol.findOne({$and:[{user: req.user.id}, {selected: true}]})
-      .then((list) => {
-        //selectedItemIndex = list.selectedItemIndex
-        listID = list._id.toString()
-        return itemsCol.find({$and: [{checked: true}, {list: listID}]}).sort({orderNumber: 1}).toArray()
-      })
-      .then((itemsToRemove) => {
-        incValue = itemsToRemove[0].orderNumber
-        for(let i = 0; i < itemsToRemove.length; i++) {
-          liftDescendantIndentLevelsAndRemoveItem(itemsToRemove[i]._id, itemsToRemove[i].orderNumber, itemsToRemove[i].parent, itemsToRemove[i].indentLevel, listID)
-          itemsCol.remove({_id: itemsToRemove[i]._id})
+  app.delete('/items/trash/', getUser, getList, (req, res) => {
+    let incValue//, selectedItemIndex
+    itemsCol.find({$and: [{checked: true}, {list: res.locals.listRef}]}).sort({orderNumber: 1}).toArray()
+      .then(checkedItems => {
+        incValue = checkedItems[0].orderNumber
+        for(let i = 0; i < checkedItems.length; i++) {
+          liftDescendantIndentLevelsAndRemoveItem(checkedItems[i]._id, checkedItems[i].orderNumber, checkedItems[i].parent, checkedItems[i].indentLevel, res.locals.listRef)
+          itemsCol.remove({_id: checkedItems[i]._id})
         }
         return
       })
       .then(() => {
-        return itemsCol.find({$and: [{orderNumber: {$gt: incValue}}, {list: listID}]}).sort({orderNumber: 1}).toArray()
+        return itemsCol.find({$and: [{orderNumber: {$gt: incValue}}, {list: res.locals.listRef}]}).sort({orderNumber: 1}).toArray()
       })
-      .then((itemsToShiftDown) => {
-        console.log(itemsToShiftDown)
+      .then(itemsToShiftDown => {
         for(let i = 0; i < itemsToShiftDown.length; i++) {
           itemsCol.update({_id: itemsToShiftDown[i]._id}, {$set: {orderNumber: i + incValue}})
         }
@@ -847,8 +860,10 @@ module.exports = function(app, db) {
       .then((result) => {
         res.send(result)
       })
-
   })
+
+    
+        
 
   
 

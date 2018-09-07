@@ -37,9 +37,29 @@ class Lists extends React.Component {
 	}
 
 	handleHotKeys(e) {
+		if(this.props.listsFocus) {
+			if(e.target.type != "text") {
+				if(event.key == 'ArrowUp' && this.props.selectedListIndex != 0) {
+					this.props.selectList(this.props.selectedListIndex - 1)
+					this.divs[this.props.selectedListIndex - 1].focus()
+				}
+				if(event.key == 'ArrowDown' && this.props.selectedListIndex != this.state.titles.length - 1) {
+					this.props.selectList(this.props.selectedListIndex + 1)
+					this.divs[this.props.selectedListIndex + 1].focus()
+				}
+				if(event.key == 'ArrowRight' && event.shiftKey) this.props.focusOnCurrentList()
+				if(event.key == 'Enter') {
+					if(event.shiftKey) this.inputs[this.props.selectedListIndex].focus()//this.props.handleAction(orderNumber, 'focusInput')
+					else this.fetchFromAPI('create', [this.props.selectedListIndex])
+				}
+				if(event.key == 'Backspace' && event.shiftKey && event.altKey) {
+					this.fetchFromAPI('delete', [this.props.selectedListIndex])
+				}
+			}
+		}
 	}
 
-	hotKeyShiftEnter
+	//hotKeyShiftEnter
 
 	assignFetchData = (method, paramData) => {
 		return { method: method, body: JSON.stringify(paramData), 
@@ -146,28 +166,6 @@ class Lists extends React.Component {
 		event.stopPropagation()
 	}
 
-	handleDivKeyDown = (i, event) => {
-		console.log("handleDivKeyDown")
-		if(event.currentTarget.tagName == "DIV") {
-			if(event.key == 'ArrowUp' && i != 0) {
-				this.props.selectList(i - 1)
-				this.divs[i - 1].focus()
-			}
-			if(event.key == 'ArrowDown' && i != this.state.titles.length - 1) {
-				this.props.selectList(i + 1)
-				this.divs[i + 1].focus()
-			}
-			if(event.key == 'ArrowRight' && event.shiftKey) this.props.focusOnCurrentList()
-			if(event.key == 'Enter') {
-				if(event.shiftKey) this.inputs[i].focus()//this.props.handleAction(orderNumber, 'focusInput')
-				else this.fetchFromAPI('create', [i])
-			}
-			if(event.key == 'Backspace' && event.shiftKey && event.altKey) {
-				this.fetchFromAPI('delete', [i])
-			}
-		}
-	}
-
 	handleOnChange = (i, event) => {
 		if(event.key != 'Backspace' || event.target.value) this.editListTitle(i, event.target.value)
 	}
@@ -204,7 +202,6 @@ class Lists extends React.Component {
 						<div key={i/*removes warning but may need to be changed*/} 
 							tabIndex="0" 
 							onClick={this.handleDivClick.bind(this, i)}
-							onKeyDown={this.handleDivKeyDown.bind(this, i)}
 							ref = {node => this.handleRefCreate(node, i, 'div')}>
 							<input 
 								disabled={this.props.selectedListIndex != i }
