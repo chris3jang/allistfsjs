@@ -31,6 +31,10 @@ module.exports = {
           modules: true, 
           localIdentName: '[name]__[local]___[hash:base64:5]'
         }
+      },
+      {
+        test: /\.(pdf|jpg|jpeg|png|gif|svg|ico)$/,
+        loader: 'url-loader'
       }
     ]
   },

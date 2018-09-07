@@ -7,6 +7,7 @@ import CurrentList from './CurrentList'
 import NavBar from './NavBar'
 
 import styles from './loginregister.css'
+import logo from './static/AllistLogo.jpeg'
 
 class Loginregister extends React.Component {
 
@@ -83,7 +84,7 @@ class Loginregister extends React.Component {
 						</div>
 					</div>
 					<div className={styles.content}>
-						<LogoFunc></LogoFunc>
+						<img className={styles.logo} src={logo} />
 						<div>
 							{this.state.loginNotRegister ? (
 								<Login></Login>

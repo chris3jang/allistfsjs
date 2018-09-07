@@ -28,7 +28,8 @@
     "react-dom": "^16.4.1",
     "react-router": "^4.3.1",
     "react-router-dom": "^4.3.1",
-    "style-loader": "^0.21.0"
+    "style-loader": "^0.21.0",
+    "url-loader": "^1.1.1"
   },
   "devDependencies": {
     "babel-cli": "^6.26.0",
