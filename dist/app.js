@@ -17,8 +17,8 @@ const bcrypt = require('bcrypt')
 
 app.use(passport.initialize());
 
-let uri
-if(db) uri = db.url
+//let uri
+//if(db) uri = db.url
 
 console.log("process.env.NODE_ENV", process.env.NODE_ENV)
 
@@ -37,9 +37,8 @@ if (process.env.NODE_ENV !== 'production') {
     publicPath: config.output.publicPathdist
   }))
 }
-else uri = process.env.MONGODB_URI
 
-MongoClient.connect(uri, (err, database) => {
+MongoClient.connect(process.env.MONGODB_URI, (err, database) => {
 
   if (err) return console.log(err);
   app.use(bodyParser.urlencoded({ extended: true }));
