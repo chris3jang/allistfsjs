@@ -2,7 +2,7 @@
 const Server = require('./server.js')
 const MongoClient = require('mongodb').MongoClient
 const bodyParser = require('body-parser')
-const db = require('./config/db') || null;
+//const db = require('./config/db') || null;
 const port = (process.env.PORT || 8080)
 const app = Server.app()
 
