@@ -99,8 +99,8 @@ input[type=checkbox] {
 	top: 18px;
 	display: inline-block;
 	background: black;
-	width: 13px;
-	height: 13px;
+	width: 12px;
+	height: 12px;
 	border: 2px;
 	border-style: solid;
 	border-color: black;
@@ -113,8 +113,8 @@ input[type=checkbox] {
 	top: 18px;
 	display: inline-block;
     background: white;
-	width: 13px;
-	height: 13px;
+	width: 12px;
+	height: 12px;
 	border: 2px;
 	border-style: solid;
 	border-color: black;

@@ -16,17 +16,10 @@ import {BrowserRouter, Route, Link} from 'react-router-dom'
 import jwt_decode from 'jwt-decode'
 import './fonts.css'
 
-/*
-const React = require("react")
-const ReactDom = require("react-dom")
-const AllistItem = require("AllistItem")
-*/
-
 class App extends React.Component {
 
 	state = {
 		authenticated: false,
-		timer: null,
 		user: null
 	}
 
@@ -76,25 +69,12 @@ class App extends React.Component {
 
 	}
 
-	componentWillUnmount() {
-		clearInterval(this.timer)
-	}
-
 	updateLastActivity = () => {
 		//console.log("updateLastActivity")
 		this.lastActivity = Date.now()
 		//console.log(this.lastActivity)
 	}
-
 	
-	componentWillUpdate(nextProps, nextState) {
-		console.log("cwu")
-
-		//this.checkIfSessionsOver()
-		//if(nextState.authenticated != this.state.authenticated) this.getAuthentication()
-	}
-	
-
 	componentDidUpdate(prevProps, prevState, snapshot) {
 		if(prevState.authenticated == this.state.authenticated) this.getAuthentication()
 	}
@@ -139,12 +119,9 @@ class App extends React.Component {
 			return resp.json()
 		})
 		.then(data => {
-			//if(resp.status == 200)
 			console.log("frontend token data: ", data)
 			console.log("data.token", data.token)
 			localStorage.setItem('access', data.token.accessToken)
-			//this.setState({ authenticated: true})
-			//this.setState({ authenticated: true}, this.loginSession = this.createLoginSession(60))
 		})
 	}
 
@@ -171,25 +148,7 @@ class App extends React.Component {
 		}
 	}
 
-	createLoginSession = (seconds) => {
-		setTimeout(()=>{this.setState({ authenticated: false})}, seconds * 1000)
-	}
-
-	/*
-	timeOut = () => {
-		this.refreshAccessToken()
-		return
-	}
-	*/
-
 	login = (un, pw) => {
-		/*
-		console.log(e)
-		console.log(e.target)
-		console.log(e.target[0].value)
-		console.log(e.target[1].value)
-		e.preventDefault()
-		*/
 		this.setState({user: un})
 		const data = {
 			username: un,
@@ -207,23 +166,15 @@ class App extends React.Component {
 			return resp.json()
 		})
 		.then(data => {
-			//if(resp.status == 200)
 			console.log("frontend token data: ", data)
 			localStorage.setItem('access', data.token.accessToken)
 			localStorage.setItem('refresh', data.token.refreshToken)
 			this.setState({ authenticated: true})
-			//this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
 			console.log('access token before setState', localStorage.getItem('access'))
-			//this.setState({ authenticated: true}, () => setTimeout(this.refreshAccessToken(), 10*1000))
 		})
 	}
 
 	register = (un, pw) => {
-		/*
-		console.log(e.target[0].value)
-		console.log(e.target[1].value)
-		e.preventDefault()
-		*/
 		const data = {
 			username: un,
 			password: pw
@@ -245,19 +196,10 @@ class App extends React.Component {
 			console.log("frontend token data: ", data)
 			localStorage.setItem('access', data.token.accessToken)
 			localStorage.setItem('refresh', data.token.refreshToken)
-			this.setState({ authenticated: true}/*, this.loginSession = this.createLoginSession(60)*/)
+			this.setState({ authenticated: true})
 			console.log('localStorageToken', localStorage.getItem('access'))
 		})
 	}
-	//
-
-	submit = (e) => {
-		console.log(e)
-		console.log(e.target)
-		console.log(e.target[0].value)
-		console.log(e.target[1].value)
-		e.preventDefault()
-	}	
 
 	handleLogout = () => {
 		console.log("made it to the top")
@@ -295,12 +237,5 @@ class App extends React.Component {
 }
 
 export default App;
-
-
-/*
-				<BrowserRouter>
-					<Route path="" component={Home}></Route>
-				</BrowserRouter>
-*/
 
 

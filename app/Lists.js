@@ -18,6 +18,7 @@ class Lists extends React.Component {
 	divs = []
 
 	componentDidMount = () => {
+		console.log("lists cDM")
 		this.fetchFromAPI('fetch')
 		document.addEventListener('keydown', this.handleHotKeys.bind(this))
 	}
@@ -33,6 +34,7 @@ class Lists extends React.Component {
 	}
 
 	componentWillUnmount = () => {
+		console.log("lists cWUnmount")
 		document.removeEventListener('keydown', this.handleHotKeys.bind(this))
 	}
 

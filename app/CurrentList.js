@@ -22,6 +22,7 @@ class CurrentList extends React.Component {
 
 
 	componentDidMount = () => {
+		console.log("currentlist cDM")
 		document.addEventListener('keydown', this.handleHotKeys.bind(this))
 		this.fetchItems()
 	}
@@ -46,6 +47,7 @@ class CurrentList extends React.Component {
 	}
 
 	componentWillUnmount() {
+		console.log("currentlist cwUnmount")
 		document.removeEventListener('keydown', this.handleHotKeys.bind(this))
 	}
 
