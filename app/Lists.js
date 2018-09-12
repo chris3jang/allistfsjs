@@ -12,7 +12,7 @@ const AllistItem = require("AllistItem")
 
 class Lists extends React.Component {
 
-	state = { titles: [], editMenu: false, focused: false }
+	state = { titles: [], focused: true }
 
 	inputs = []
 	divs = []
@@ -20,25 +20,28 @@ class Lists extends React.Component {
 	componentDidMount = () => {
 		console.log("lists cDM")
 		this.fetchFromAPI('fetch')
-		document.addEventListener('keydown', this.handleHotKeys.bind(this))
+		document.addEventListener('keydown', this.handleHotKeys)
 	}
 
 	componentWillReceiveProps = (nextProps) => {
-		if(this.state.editMenu != nextProps.editMenu) this.setState({editMenu: nextProps.editMenu})
 		if(this.state.listsFocus != nextProps.listsFocus) {
 			this.setState({focused: nextProps.listsFocus })
+			/*
 			if(nextProps.listsFocus) {
+				console.log("nextProps", nextProps)
+				console.log("this.divs", this.divs)
 				this.divs[nextProps.selectedListIndex].focus()
 			}
+			*/
 		}
 	}
 
 	componentWillUnmount = () => {
 		console.log("lists cWUnmount")
-		document.removeEventListener('keydown', this.handleHotKeys.bind(this))
+		document.removeEventListener('keydown', this.handleHotKeys)
 	}
 
-	handleHotKeys(e) {
+	handleHotKeys = (e) => {
 		if(this.props.listsFocus) {
 			if(e.target.type != "text") {
 				if(event.key == 'ArrowUp' && this.props.selectedListIndex != 0) {
@@ -191,6 +194,7 @@ class Lists extends React.Component {
 	}
 
 	handleRefCreate(node, orderNumber, action) {
+		console.log("handleRefCreate", orderNumber)
 		if(action == 'div') this.divs[orderNumber] = node
 		if(action == 'input') this.inputs[orderNumber] = node
 	}
@@ -198,7 +202,7 @@ class Lists extends React.Component {
 	render() {
 
 		return (
-			<div>
+			<div className={styles.div}>
 				<ul className={styles.ul}>
 					{this.state.titles.map((title, i) => (
 						<div key={i/*removes warning but may need to be changed*/} 

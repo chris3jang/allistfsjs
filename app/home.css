@@ -7,11 +7,6 @@
 	left: 0;
 }
 
-.allListsPosition {
-	display: inline-block;
-	width: 200px;
-}
-
 .currentListPosition {
 	display: inline-block;
 }
@@ -22,12 +17,14 @@
 }
 
 .l {
-	display: inline-block;
-	vertical-align: top;
+	display: flex;
+	margin: auto;
 }
 
 .cl {
 	display: inline-block;
 	vertical-align: top;
-	width: calc(100% - 348px);
+	width: 100%;
+	/*width: calc(100% - 348px);*/
+
 }

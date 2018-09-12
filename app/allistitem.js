@@ -9,15 +9,16 @@ class AllistItem extends React.Component {
 		height: 51
 	}
 
-	adjustHeight = () => {
-		this.textArea.style = 'height: auto'
-		this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px; width: ' + (this.props.width - this.props.indentLevel * 40 - (this.props.decollapsed ? 8 : 0))
-		this.setState({height: this.textArea.scrollHeight})
+	adjustHeight = (el) => {
+		console.log("ADJUSTHEIGHT")
+		el.style = 'height: auto'
+		el.style = 'height: ' + (el.scrollHeight) + 'px; width:' + (this.props.width - (this.props.decollapsed ? 36 : 28 + (this.props.indentLevel * 40)))
+		this.setState({height: el.scrollHeight})
 	}
 
 	componentDidMount = () => {
 		console.log("allistitem cdm")
-		this.adjustHeight()
+		this.adjustHeight(this.textArea)
 	}
 
 	/*
@@ -44,7 +45,7 @@ class AllistItem extends React.Component {
 	componentDidUpdate = (prevProps) => {
 		console.log('cDU')
 		if(this.props.hidden != prevProps.hidden || this.props.width != prevProps.width || this.props.indentLevel != prevProps.indentLevel || this.props.decollapsed != prevProps.decollapsed) {
-			this.adjustHeight()
+			this.adjustHeight(this.textArea)
 		}
 	}
 
@@ -81,11 +82,7 @@ class AllistItem extends React.Component {
 		if(e.key != 'Backspace' || e.target.value) {
 			this.props.handleAction(this.props.orderNumber, 'edit', e.target.value)
 		}
-		console.log("^^^^^^^^^^^^^^^^^^^^^^^^^^")
-		e.target.style = 'height: auto'
-		console.log("e.target.scrollHeight", e.target.scrollHeight)
-		e.target.style = 'height: ' + (e.target.scrollHeight) + 'px; width: ' + (this.props.width - this.props.indentLevel * 40 - (this.props.decollapsed ? 8 : 0))
-		this.setState({height: e.target.scrollHeight})		
+		this.adjustHeight(e.target)	
 	}
 
 	handleDivClick = (event) => {
@@ -127,7 +124,7 @@ class AllistItem extends React.Component {
 					checked={this.props.checked} 
 					onClick={this.handleCheckboxClick.bind(this)}>
 				</input>
-				<div style={{width: this.props.width - this.props.indentLevel * 40 - (this.props.decollapsed ? 8 : 0), display: 'inline-block'}}>
+				<div style={{width: this.props.width - (this.props.decollapsed ? 36 : 28 + (this.props.indentLevel * 40)), display: 'inline-block'}}>
 					<textarea 
 						rows={1}
 						className={this.props.selected ? styles.selectedTextArea : styles.nonSelectedTextArea} 

@@ -22,18 +22,24 @@ class Home extends React.Component {
 		username: this.props.username,
 		selectedListIndex: null,
 		editMenu: false,
-		listsFocus: false,
+		listsFocus: true,
 		updateChild: false,
 		clwidth: null
 	}
 
 	componentDidMount() {
 		this.getSelectedList()
-		console.log("cdm div width", this.currentList.clientWidth)
-		this.setState({clwidth: this.currentList.clientWidth})
+		//this.setState({clwidth: this.currentList.clientWidth})
 
 		document.body.clientWidth
 		window.addEventListener('resize', this.handleResize)
+	}
+
+	componentDidUpdate(prevProps, prevState) {
+		if(this.currentList && prevState.clwidth != this.currentList.clientWidth) {
+			this.setState({clwidth: this.currentList.clientWidth})
+		}
+
 	}
 
 	componentWillUnmount() {
@@ -41,10 +47,7 @@ class Home extends React.Component {
 	}
 
 	handleResize = (e) => {
-		console.log(e)
-		console.log("this.currentList.clientWidth", this.currentList.clientWidth)
-		console.log("this.state.clwidth", this.state.clwidth)
-		if(this.currentList.clientWidth != this.state.clwidth) {
+		if(!this.state.listsFocus && this.currentList.clientWidth != this.state.clwidth) {
 			this.setState({clwidth: this.currentList.clientWidth})
 		}
 	}
@@ -132,15 +135,14 @@ class Home extends React.Component {
 			<div className={styles.home}>
 				<div>
 					<NavBar
-						editListsFromNav={this.handleEditListsFromNav.bind(this)}
 						trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}
 						logout={this.handleLogout.bind(this)}>
 					</NavBar>
 				</div>
 				<div style = {{ whiteSpace: 'nowrap', overflow: 'auto' }}>
+					{this.state.listsFocus ?
 					<div className={styles.l}>
 						<Lists
-							editMenu={this.state.editMenu}
 							selectList={this.handleSelectList.bind(this)}
 							selectedListIndex={this.state.selectedListIndex}
 							listsFocus={this.state.listsFocus}
@@ -148,6 +150,7 @@ class Home extends React.Component {
 							focusOnCurrentList={this.handleFocusOnCurrentList.bind(this)}>
 						</Lists>
 					</div>
+					:
 					<div className={styles.cl} ref={node => this.currentList = node}>
 						<CurrentList
 							focusOnLists={this.handleFocusOnLists.bind(this)}
@@ -157,7 +160,7 @@ class Home extends React.Component {
 							updateComplete={this.handleUpdateComplete.bind(this)}
 							width={this.state.clwidth}>
 						</CurrentList>
-					</div>
+					</div> }
 				</div>
 			</div>
 		)

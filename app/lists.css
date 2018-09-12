@@ -1,3 +1,11 @@
+.div {
+    
+    display: flex;
+    margin: auto;
+    
+    -webkit-animation: fadein .6s;
+}
+
 .ul {
     padding-left: 0;
     padding-right: 20px;
@@ -7,29 +15,36 @@
 
 .itemTextInput {
     border: none;
+    border-bottom: 2px solid #efefef;
     background-color: inherit;
     font: 20px arial, sans-serif;
     padding: 14px 28px;
     cursor: pointer;
     display: inline-block;
-    border-width: 0px;
-    width: 300px;
+    width: 700px;
 }
 
 .selected {
     background-color: inherit;
     font: 20px arial, sans-serif;
-    border-color: red;
+    border: none;
+    border-bottom: 2px solid #efefef;
     padding: 14px 28px;
     display: inline-block;
-    width: 300px;
+    width: 700px;
 }
 
 .focused {
-    background-color: inherit;
+    background-color: #f9f9f9;
+    border: none;
+    border-bottom: 2px solid #efefef;
     font: 20px arial, sans-serif;
-    border-color: blue;
     padding: 14px 28px;
     display: inline-block;
-    width: 300px;
+    width: 700px;
+}
+
+@-webkit-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }

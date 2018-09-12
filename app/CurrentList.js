@@ -9,21 +9,16 @@ class CurrentList extends React.Component {
 	state = {
 		items: [],
 		selectedItemIndex: null,
-		width: null
+		width: this.props.width
 	}
 
 	divs = []
 	textareas = []
 
 
-
-
-
-
-
 	componentDidMount = () => {
 		console.log("currentlist cDM")
-		document.addEventListener('keydown', this.handleHotKeys.bind(this))
+		document.addEventListener('keydown', this.handleHotKeys)
 		this.fetchItems()
 	}
 
@@ -39,16 +34,17 @@ class CurrentList extends React.Component {
 			this.fetchItems()
 			this.props.updateComplete()
 		}
-		console.log("this.props.width", this.props.width)
+		console.log("this.state.width", this.state.width)
 		console.log("nextProps.width", nextProps.width)
-		if(this.props.width != nextProps.width) {
+		if(this.state.width != nextProps.width) {
+			console.log("CLwidth Adjusted")
 			this.setState({width: nextProps.width})
 		}
 	}
 
 	componentWillUnmount() {
 		console.log("currentlist cwUnmount")
-		document.removeEventListener('keydown', this.handleHotKeys.bind(this))
+		document.removeEventListener('keydown', this.handleHotKeys)
 	}
 
 
@@ -379,7 +375,7 @@ class CurrentList extends React.Component {
 		this.toggleCheckbox(this.state.selectedItemIndex)
 	}
 
-	handleHotKeys(e) {
+	handleHotKeys = (e) => {
 		if(this.props.currentListFocused){
 			if(e.target.type != "textarea") {
 				if(e.shiftKey) {

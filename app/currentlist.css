@@ -2,7 +2,7 @@
     display: inline-block; 
     vertical-align: top;
     white-space: nowrap;
-    padding-left: 20px;
+    padding-left: 0;
     width: 100%;
 }
 
@@ -15,12 +15,20 @@
 }
 
 .div {
+    margin-left: 10px;
+    margin-right: 10px;
 
+    -webkit-animation: fadein .6s;
 }
 
 /*from home*/
 .cl {
     display: inline-block;
     vertical-align: top;
-    width: calc(100% - 348px);
+    /*width: calc(100% - 348px);*/
+}
+
+@-webkit-keyframes fadein {
+    from { opacity: 0; }
+    to   { opacity: 1; }
 }

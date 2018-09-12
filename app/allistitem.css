@@ -131,8 +131,9 @@ input[type=checkbox] {
 }
 
 .selectedTextArea {
-	border-color: red;
+	border: none;
 	overflow: hidden;
+	background-color: #f9f9f9;
 	width: 100%;
 }
 
