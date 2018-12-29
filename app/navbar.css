@@ -3,24 +3,8 @@
 	width: 100%;
 	background-color: #2A3139;
     overflow: auto;
-
-	/*
-	background-color: #333;
-	height: 50px;
-    overflow: hidden;
-    */
 }
 
-/*background:none!important;
-    color: white;
-    border:none; 
-    padding:0!important;
-    font: inherit, 20px arial, sans-serif;
-    border-bottom:1px solid #444; 
-    cursor: pointer;
-
- #6a7a93
- */
 .logodiv {
     display: inline-block;
     height: 100%;
@@ -48,7 +32,7 @@
     vertical-align: middle
 }
 
- .buttondiv {
+.buttondiv {
     float: right;
     display: inline-block;
  	font-size: 16px;    
@@ -60,9 +44,9 @@
     margin: 0;
     height: 100%;
     font-family: arial;
- }
+}
 
- .button {
+.button {
     display: inline-block;
     font-size: 16px;    
     border: none;
@@ -74,29 +58,10 @@
     margin: 0;
     height: 100%;
     font-family: arial;
- }
-
-/*
-.button {
-	height: 30px;
-	font: 30px arial, sans-serif;
-    border: none;
-    outline: none;
-    color: white;
-    padding: 14px 16px;
-    background-color: inherit;
-    font-family: inherit;
-    margin: 0;
-    vertical-align: middle;
 }
-*/
 
 .button:hover {
 	background-color: grey;
-}
-
-.topnav a {
-	
 }
 
 .topnav a:hover button:hover {

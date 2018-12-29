@@ -10,40 +10,17 @@ class AllistItem extends React.Component {
 	}
 
 	adjustHeight = (el) => {
-		console.log("ADJUSTHEIGHT")
 		el.style = 'height: auto'
 		el.style = 'height: ' + (el.scrollHeight) + 'px; width:' + (this.props.width - (this.props.decollapsed ? 36 : 28 + (this.props.indentLevel * 40)))
 		this.setState({height: el.scrollHeight})
 	}
 
 	componentDidMount = () => {
-		console.log("allistitem cdm")
 		this.adjustHeight(this.textArea)
 	}
-
-	/*
-	componentWillReceiveProps = (nextProps) => {
-		
-		if(this.props.width != nextProps.width) {
-			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
-			console.log("this.textArea.style", this.textArea.style)
-			this.setState({height: this.textArea.scrollHeight})
-		}
-		if(this.props.hidden != nextProps.hidden) {
-			console.log("changed")
-			console.log(this.textArea)
-			this.textArea.style = 'height: auto'
-			console.log("this.textArea.scrollHeight", this.textArea.scrollHeight)
-			this.textArea.style = 'height: ' + (this.textArea.scrollHeight) + 'px;'
-			consolle.log(this.textArea.styles)
-			this.setState({height: this.textArea.scrollHeight})
-		}
-			}
-	*/
 	
 
 	componentDidUpdate = (prevProps) => {
-		console.log('cDU')
 		if(this.props.hidden != prevProps.hidden || this.props.width != prevProps.width || this.props.indentLevel != prevProps.indentLevel || this.props.decollapsed != prevProps.decollapsed) {
 			this.adjustHeight(this.textArea)
 		}

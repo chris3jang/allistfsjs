@@ -4,21 +4,13 @@ import ReactDOM from 'react-dom';
 import AllistItem from './Allistitem';
 import styles from './lists.css';
 
-/*
-const React = require("react")
-const ReactDom = require("react-dom")
-const AllistItem = require("AllistItem")
-*/
-
 class Lists extends React.Component {
 
 	state = { titles: [], focused: true }
-
 	inputs = []
 	divs = []
 
 	componentDidMount = () => {
-		console.log("lists cDM")
 		this.fetchFromAPI('fetch')
 		document.addEventListener('keydown', this.handleHotKeys)
 	}
@@ -26,18 +18,10 @@ class Lists extends React.Component {
 	componentWillReceiveProps = (nextProps) => {
 		if(this.state.listsFocus != nextProps.listsFocus) {
 			this.setState({focused: nextProps.listsFocus })
-			/*
-			if(nextProps.listsFocus) {
-				console.log("nextProps", nextProps)
-				console.log("this.divs", this.divs)
-				this.divs[nextProps.selectedListIndex].focus()
-			}
-			*/
 		}
 	}
 
 	componentWillUnmount = () => {
-		console.log("lists cWUnmount")
 		document.removeEventListener('keydown', this.handleHotKeys)
 	}
 
@@ -64,8 +48,6 @@ class Lists extends React.Component {
 		}
 	}
 
-	//hotKeyShiftEnter
-
 	assignFetchData = (method, paramData) => {
 		return { method: method, body: JSON.stringify(paramData), 
 			headers: new Headers({
@@ -80,7 +62,6 @@ class Lists extends React.Component {
 		fetch('/lists/', fetchData)
 		.then()
 		let editedLists = this.state.titles
-		console.log("editedLists", editedLists)
 		editedLists[orderNumber] = editedTitle
 		this.setState({titles: editedLists}, ()=>{})
 	}
@@ -98,11 +79,7 @@ class Lists extends React.Component {
 
 		const editList = (data, params) => {
 			const orderNumber = params[0], editedTitle = params[1]
-			console.log("orderNumber", orderNumber)
-			console.log("editedTitle", editedTitle)
-			console.log("this.state.titles", this.state.titles)
 			let editedLists = this.state.titles
-			console.log("editedLists", editedLists)
 			editedLists[orderNumber] = editedTitle
 			this.setState({titles: editedLists}, ()=>{})
 		}
@@ -158,7 +135,6 @@ class Lists extends React.Component {
 		fetch(url, fetchData)
 		.then(resp => resp.json())
 		.then((data) => {
-			console.log("data", data, "params", params)
 			resFunc(data, params)
 		})
 
@@ -194,7 +170,6 @@ class Lists extends React.Component {
 	}
 
 	handleRefCreate(node, orderNumber, action) {
-		console.log("handleRefCreate", orderNumber)
 		if(action == 'div') this.divs[orderNumber] = node
 		if(action == 'input') this.inputs[orderNumber] = node
 	}

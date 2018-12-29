@@ -1,20 +1,10 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-
 import Lists from './Lists'
 import CurrentList from './CurrentList'
 import NavBar from './NavBar'
-
 import styles from './home.css'
-
-import {BrowserRouter, Route, Link} from 'react-router'
-
-/*
-const React = require("react")
-const ReactDom = require("react-dom")
-const AllistItem = require("AllistItem")
-*/
 
 class Home extends React.Component {
 
@@ -56,8 +46,6 @@ class Home extends React.Component {
 		const myHeaders = new Headers()
 		myHeaders.append('authorization', 'Bearer ' + localStorage.getItem('access'))
 		const self = this
-		console.log("localStorage.getItem('access')", localStorage.getItem('access'))
-		console.log("myHeaders", myHeaders)
 		fetch('/lists/selected/', { headers: myHeaders })
 			.then((resp) => resp.json()).then((data) => { 
 				self.setState({selectedListIndex: data.index})
@@ -65,8 +53,6 @@ class Home extends React.Component {
 	}
 
 	selectList(orderNumber) {
-		console.log("home selectList")
-		console.log("selectLIst")
 		const self = this
 		const fetchData = { 
 		    method: 'PUT', body: JSON.stringify({ orderNumber: orderNumber }),
@@ -83,7 +69,6 @@ class Home extends React.Component {
 	}
 
 	trashCheckedItems() {
-		console.log("fetch method in frontend")
 		const self = this
 		const fetchData = { 
 		    method: 'DELETE', body: JSON.stringify({orderNumber: 0}),

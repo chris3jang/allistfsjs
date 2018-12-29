@@ -77,14 +77,6 @@
   border-radius: 10px 10px 0 0;
 }
 
-/*
-.btnDivider{
-    width: 25%;
-    height: auto;
-    display: inline-block;
-}
-*/
-
 .selectedBtnDiv {
   display: inline-block;
   width: 50%;
@@ -114,18 +106,4 @@
 .inUpSwitch:hover {
   cursor: pointer;
 }
-
-
-
-/* arimo-regular - latin */
-/*
-@font-face {
-  font-family: 'Arimo';
-  font-style: normal;
-  font-weight: 400;
-  src: local('Arimo Regular'), local('Arimo-Regular'),
-       url('./fonts/arimo-v11-latin-regular.woff2') format('woff2'), 
-       url('./fonts/arimo-v11-latin-regular.woff') format('woff'); 
-}
-*/
 

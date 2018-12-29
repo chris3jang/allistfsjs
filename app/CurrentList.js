@@ -17,13 +17,9 @@ class CurrentList extends React.Component {
 
 
 	componentDidMount = () => {
-		console.log("currentlist cDM")
 		document.addEventListener('keydown', this.handleHotKeys)
 		this.fetchItems()
 	}
-
-
-
 
 	componentWillReceiveProps = (nextProps) => {
 		if(this.props.selectedListIndex != nextProps.selectedListIndex || 
@@ -34,35 +30,14 @@ class CurrentList extends React.Component {
 			this.fetchItems()
 			this.props.updateComplete()
 		}
-		console.log("this.state.width", this.state.width)
-		console.log("nextProps.width", nextProps.width)
 		if(this.state.width != nextProps.width) {
-			console.log("CLwidth Adjusted")
 			this.setState({width: nextProps.width})
 		}
 	}
 
 	componentWillUnmount() {
-		console.log("currentlist cwUnmount")
 		document.removeEventListener('keydown', this.handleHotKeys)
 	}
-
-
-	/*
-	shouldComponentUpdate = (nextProps, nextState) => {
-		if(nextProps.shouldChildUpdate == true) return true
-	}
-	*/
-
-
-
-
-
-
-
-
-
-
 
 	assignFetchData = (method, paramData) => {
 		return { method: method, body: JSON.stringify(paramData),
@@ -91,20 +66,17 @@ class CurrentList extends React.Component {
 					}
 				}
 				self.setState({items: fetchedData}, (() => {
-					console.log("getSelectedItem post fetch")
 					self.getSelectedItem()
 				}))
 			})
 	}
 
 	getSelectedItem = () => {
-		console.log("getSelectedItem")
 		const self = this
 		const divs = this.divs
 		fetch('/items/selected/', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
 			.then((resp) => resp.json())
 			.then((data) => {
-				console.log("getSelectedItem", data)
 				self.setState({selectedItemIndex: data.index}, (() => { if(self.props.currentListFocused) {
 					divs[data.index].focus()
 				}
@@ -113,7 +85,6 @@ class CurrentList extends React.Component {
 	}
 
 	editItemTitle = (orderNumber, editedTitle) => {
-		console.log("on, et", orderNumber, editedTitle)
 		const fetchData = this.assignFetchData('PUT', { title: editedTitle, orderNumber: orderNumber })
 		fetch('/items/', fetchData)
 		.then(function() {});
@@ -129,7 +100,6 @@ class CurrentList extends React.Component {
 		fetch('/items/', fetchData)
 			.then((resp) => resp.json())
 			.then((data) => {
-				console.log("CREATEDATA", data)
 				newItemOrderNum = orderNumber + 1
 				if(this.state.items[newItemOrderNum] && this.state.items[newItemOrderNum].hidden) {
 					while(this.state.items[newItemOrderNum] && this.state.items[newItemOrderNum].hidden) newItemOrderNum++
@@ -170,8 +140,6 @@ class CurrentList extends React.Component {
 		const fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
 		fetch('/items/tab/', fetchData)
 		.then(function() {
-			console.log(editedList[orderNumber-1].indentlevel)
-			console.log(editedList[orderNumber].indentlevel)
 			if(editedList[orderNumber-1].indentlevel >= editedList[orderNumber].indentlevel) {
 				editedList[orderNumber].indentlevel += 1
 				for(var i = orderNumber + 1; i < editedList.length; i++) {
@@ -191,8 +159,6 @@ class CurrentList extends React.Component {
 		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber })
 		fetch('/items/untab/', fetchData)
 		.then(function() {
-			console.log(editedList[orderNumber].indentlevel)
-			console.log(orderNumber)
 			if(editedList[orderNumber].indentlevel != 0 && orderNumber != 0) {
 				editedList[orderNumber].indentlevel -= 1
 				for(var i = orderNumber+1; i < editedList.length; i++) {
@@ -237,7 +203,6 @@ class CurrentList extends React.Component {
 		fetch('/items/collapse/', fetchData)
 			.then(resp => resp.json())
 			.then((data) => {
-				console.log("toggleCollapse callback")
 				editedList[orderNumber].decollapsed = !this.state.items[orderNumber].decollapsed
 				for(let i = 0; i < data.index.length; i++) {
 					editedList[data.index[i]].hidden = !this.state.items[data.index[i]].hidden
@@ -247,17 +212,6 @@ class CurrentList extends React.Component {
 	}
 
 
-
-
-
-
-
-
-
-
-
-
-
 	handleFocusOnItem = (orderNumber, action) => {
 		if(action == 'div') this.divs[orderNumber].focus()
 		if(action == 'textarea') this.textareas[orderNumber].focus()
@@ -265,7 +219,7 @@ class CurrentList extends React.Component {
 
 	handleAction = (orderNumber, action, editedTitle) => {
 		switch (action) {
-			case 'edit': {this.editItemTitle(orderNumber, editedTitle); console.log("edit"); break;}
+			case 'edit': {this.editItemTitle(orderNumber, editedTitle); break;}
 			case 'delete': {
 				if(this.state.items.length != 1) this.deleteItem(orderNumber); 
 				break;
@@ -281,18 +235,6 @@ class CurrentList extends React.Component {
 		if(action == 'div') this.divs[orderNumber] = node
 		if(action == 'textarea') this.textareas[orderNumber] = node
 	}
-
-
-
-
-
-
-
-
-
-
-
-
 
 	hotKeyUp(e) {
 		e.preventDefault()
@@ -348,10 +290,6 @@ class CurrentList extends React.Component {
 
 	hotKeyShiftEnter(e) {
 		e.preventDefault()
-		console.log("HERH:EKHKLSEHSE")
-		console.log(e)
-		console.log(e.target)
-		console.log(e.target.lastElementChild)
 		e.target.children[3].lastElementChild.focus()
 	}
 
@@ -400,16 +338,6 @@ class CurrentList extends React.Component {
 			}
 		}
 	}
-
-
-
-
-
-
-
-
-
-
 
 	render() {
 

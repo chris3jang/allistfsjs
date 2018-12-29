@@ -1,8 +1,6 @@
 .div {
-    
     display: flex;
     margin: auto;
-    
     -webkit-animation: fadein .6s;
 }
 
@@ -35,7 +33,7 @@
 }
 
 .focused {
-    background-color: #f9f9f9;
+    background-color: #f2f2f2;
     border: none;
     border-bottom: 2px solid #efefef;
     font: 20px arial, sans-serif;

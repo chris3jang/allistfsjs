@@ -21,11 +21,9 @@
     -webkit-animation: fadein .6s;
 }
 
-/*from home*/
 .cl {
     display: inline-block;
     vertical-align: top;
-    /*width: calc(100% - 348px);*/
 }
 
 @-webkit-keyframes fadein {

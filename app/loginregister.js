@@ -16,23 +16,19 @@ class Loginregister extends React.Component {
 	}
 
 	signIn() {
-		console.log("signIn")
 		if(!this.state.loginNotRegister) this.setState({ loginNotRegister: true })
 	}
 
 	signUp() {
-		console.log("signUp")
 		if(this.state.loginNotRegister) this.setState({ loginNotRegister: false })
 	}
 
 	login = (e) => {
-		console.log("login")
 		e.preventDefault()
 		this.props.login(e.target[0].value, e.target[1].value)
 	}
 
 	register = (e) => {
-		console.log("register")
 		e.preventDefault()
 		this.props.register(e.target[0].value, e.target[1].value)
 	}
@@ -67,7 +63,7 @@ class Loginregister extends React.Component {
 							<input type="password" className={styles.formcontrol} name="password" placeholder="Password"></input>
 						</div>
 						<div className={styles.sbmtBtnDiv}>
-							<button type="submit" className={styles.sbmtBtn}>Register</button>
+							<button type="submit" className={styles.sbmtBtn}>REGISTER</button>
 						</div>
 					</form>
 		}
