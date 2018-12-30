@@ -19,6 +19,7 @@ app.use(passport.initialize());
 
 //let uri
 //if(db) uri = db.url
+
 //process.env.MONGODB_URI 
 
 //console.log("process.env.NODE_ENV", process.env.NODE_ENV)
@@ -39,7 +40,7 @@ if (process.env.NODE_ENV !== 'production') {
   }))
 }
 
-MongoClient.connect(db.url, (err, database) => {
+MongoClient.connect(process.env.MONGODB_URI, (err, database) => {
 
   if (err) return console.log(err);
   app.use(bodyParser.urlencoded({ extended: true }));
