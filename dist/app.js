@@ -2,7 +2,7 @@
 const Server = require('./server.js')
 const MongoClient = require('mongodb').MongoClient
 const bodyParser = require('body-parser')
-const db = require('./config/db') || null;
+//const db = require('./config/db') || null;
 const port = (process.env.PORT || 8080)
 const app = Server.app()
 
@@ -21,14 +21,14 @@ app.use(passport.initialize());
 //if(db) uri = db.url
 //process.env.MONGODB_URI 
 
-console.log("process.env.NODE_ENV", process.env.NODE_ENV)
+//console.log("process.env.NODE_ENV", process.env.NODE_ENV)
 
 if (process.env.NODE_ENV !== 'production') {
-  console.log("process.env.NODE_ENV IS NOT PRODUCTION")
+  //console.log("process.env.NODE_ENV IS NOT PRODUCTION")
   const webpack = require('webpack')
   const webpackDevMiddleware = require('webpack-dev-middleware')
   const webpackHotMiddleware = require('webpack-hot-middleware')
-  const config = require('../webpack.config.js')
+  //const config = require('../webpack.config.js')
   //const config = require('../webpack.deployment.config.js')
   const compiler = webpack(config)
 
