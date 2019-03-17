@@ -79,15 +79,22 @@
 
 .selectedBtnDiv {
   display: inline-block;
-  width: 50%;
+  width: 33.33333%;
   background: white;
   border-radius: 10px 10px 0 0;
 }
 
 .unselectedBtnDiv {
   display: inline-block;
-  width: 50%;
+  width: 33.33333%;
   background: #B4BCC9;
+  border-radius: 10px 10px 0 0;
+}
+
+.testBtnDiv {
+  display: inline-block;
+  width: 33.33333%;
+  background: #DADEE4;
   border-radius: 10px 10px 0 0;
 }
 

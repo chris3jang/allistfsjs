@@ -21,7 +21,6 @@ class Home extends React.Component {
 		this.getSelectedList()
 		//this.setState({clwidth: this.currentList.clientWidth})
 
-		document.body.clientWidth
 		window.addEventListener('resize', this.handleResize)
 	}
 

@@ -78,6 +78,9 @@ class Loginregister extends React.Component {
 						<div className={!this.state.loginNotRegister ? styles.selectedBtnDiv : styles.unselectedBtnDiv}>
 							<button className={styles.inUpSwitch} onClick={this.signUp.bind(this)}>SIGN UP</button>
 						</div>
+						<div className={styles.testBtnDiv}>
+							<button className={styles.inUpSwitch}>TEST</button>
+						</div>
 					</div>
 					<div className={styles.content}>
 						<img className={styles.logo} src={logo} />

@@ -147,6 +147,29 @@ class App extends React.Component {
 		})
 	};
 
+	test = () => {
+		const data = {
+			username: 'TESTePU3ieiI7X',
+			password: 'TESTPWtHUCg3yd'
+		};
+		fetch('/testtoken/', {
+			method: 'POST',
+			body: JSON.stringify(data),
+			credentials: 'include',
+			headers: {
+				'Content-Type': 'application/json'
+			},
+		})
+		.then(resp => {
+			return resp.json();
+		})
+		.then(data => {
+			localStorage.setItem('access', data.token.accessToken);
+			localStorage.setItem('refresh', data.token.refreshToken);
+			this.setState({ authenticated: true});
+		})
+	};
+
 	handleLogOut = () => {
 		localStorage.removeItem('access');
 		localStorage.removeItem('refresh');
@@ -161,6 +184,10 @@ class App extends React.Component {
 		this.register(un, pw);
 	};
 
+	handleTest = () => {
+		//this.test();
+	};
+
 
 	render() {
 		return (
@@ -173,7 +200,8 @@ class App extends React.Component {
 				) : (
 					<Loginregister
 						login={this.handleLogIn.bind(this)}
-						register={this.handleRegister.bind(this)}>
+						register={this.handleRegister.bind(this)}
+						test={this.handleTest.bind(this)}>
 					</Loginregister>
 				)}
 			</div>

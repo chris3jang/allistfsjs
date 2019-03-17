@@ -186,6 +186,29 @@ module.exports = function(app, db) {
     })
   }
 
+  const nukeTestUser = (req, res, next) => {
+    //itemsCol.deleteMany({$and: [{user: username}, {list: list._id.toString()}]})
+    listsCol.find({ $query: {user: 'TESTePU3ieiI7X'}}).toArray()
+    .then((lists) => {
+      for(let i = 0; i < lists.length; i++) {
+        //lists[i]._id.toString()
+        itemsCol.deleteMany({$and: [{user: 'TESTePU3ieiI7X'}, {list: lists[i]._id.toString()}]})
+      }
+      return
+    })
+    .then(() => {
+      listsCol.deleteMany({ $query: {user: 'TESTePU3ieiI7X'}});
+      next();
+    })
+  }
+
+  const populateTestUser = (req, res, next) => {
+    listsCol.insert({listTitle: 'Usage', orderNumber: 0, selected: true, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'});
+    listsCol.insert({listTitle: 'More Usage', orderNumber: 1, selected: false, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'});
+    //itemsCol.insert({itemTitle: '', orderNumber: 0, parent: , indentLevel: , list: , checked: , hidden: , decollapsed: })
+    next()
+  }
+
   app.post('/refreshAccessToken/', validateRefreshToken, generateAccessToken, respondToken)
 
   app.post('/registertoken/', passport.authenticate(
@@ -198,6 +221,12 @@ module.exports = function(app, db) {
       session: false
     }
   ), serialize, serializeClient, generateAccessToken, generateRefreshToken, respond)
+
+  app.post('/testtoken/', passport.authenticate(
+    'localtokenauth', {
+      session: false
+    }
+  ), serialize, serializeClient, generateAccessToken, generateRefreshToken, nukeTestUser, populateTestUser, respond)
 
   app.use(authenticate)
 
