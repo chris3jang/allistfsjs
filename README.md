@@ -1,14 +1,13 @@
 # ALList
-<p align="center">
-<img src=""  />
-</p>
+![Alt text](https://github.com/chris3jang/chris3jang.github.io/blob/master/static/ALListProject.png)
 
 ## Introduction
-
+Organize and manage practical and arbitrary data completely from the keyboard
 
 ## Features
-- stuff1
-- stuff2
+- recursive sub-categorizing functionality
+- test the product before signing up
+- json web token user authentication
 
 ## Built With
 - [React] (https://reactjs.org/)
