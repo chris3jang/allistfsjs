@@ -40,7 +40,7 @@ if (process.env.NODE_ENV !== 'production') {
   }))
 }
 
-MongoClient.connect(uri, (err, database) => {
+MongoClient.connect(process.env.MONGODB_URI, (err, database) => {
 
   if (err) return console.log(err);
   app.use(bodyParser.urlencoded({ extended: true }));
