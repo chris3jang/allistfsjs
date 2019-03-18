@@ -185,7 +185,7 @@ class App extends React.Component {
 	};
 
 	handleTest = () => {
-		//this.test();
+		this.test();
 	};
 
 

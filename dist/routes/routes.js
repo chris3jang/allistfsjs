@@ -188,25 +188,112 @@ module.exports = function(app, db) {
 
   const nukeTestUser = (req, res, next) => {
     //itemsCol.deleteMany({$and: [{user: username}, {list: list._id.toString()}]})
-    listsCol.find({ $query: {user: 'TESTePU3ieiI7X'}}).toArray()
-    .then((lists) => {
-      for(let i = 0; i < lists.length; i++) {
-        //lists[i]._id.toString()
-        itemsCol.deleteMany({$and: [{user: 'TESTePU3ieiI7X'}, {list: lists[i]._id.toString()}]})
-      }
-      return
+    listsCol.findOne({ $and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 0}]})
+    .then(list => {
+      return itemsCol.deleteMany({list: list._id.toString()});
+    })
+    .then((deleted) => {
+      return listsCol.findOne({ $and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 1}]})
+    })
+    .then(list => {
+      return itemsCol.deleteMany({list: list._id.toString()});
     })
     .then(() => {
-      listsCol.deleteMany({ $query: {user: 'TESTePU3ieiI7X'}});
+      return listsCol.deleteMany({user: 'TESTePU3ieiI7X'});
+    })
+    .then(() => {
       next();
     })
   }
 
   const populateTestUser = (req, res, next) => {
-    listsCol.insert({listTitle: 'Usage', orderNumber: 0, selected: true, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'});
-    listsCol.insert({listTitle: 'More Usage', orderNumber: 1, selected: false, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'});
+    listsCol.insert({listTitle: 'Useage (hit shift + arrowkey right while this list is highlighted to enter)', orderNumber: 0, selected: true, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'})
+    .then(inserted => {
+      return listsCol.findOne({$and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 0}]})
+    })
+    .then(newList => {
+      res.locals.currentList = newList._id.toString()
+      return itemsCol.insert({itemTitle: 'use arrowkeys up and down to select through items', orderNumber: 0, parent: null, indentLevel: 0, list: res.locals.currentList, checked: false})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'check/uncheck this item using the \"/\" key', orderNumber: 1, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false, checked: true})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'decollapse an item with a large checkbox using arrowkey right', orderNumber: 2, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false, decollapsed: true})
+    })
+    .then(inserted => {
+      res.locals.currentParent = inserted.ops[0]._id.toString()
+      return itemsCol.insert({itemTitle: 'hit enter to create a new item', orderNumber: 3, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList, hidden: true})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'hit enter after editing item to save', orderNumber: 4, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList, hidden: true})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'hit tab on an item to subcategorize it to the item above', orderNumber: 5, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList, hidden: true})
+    })
+    .then(inserted => {
+      res.locals.currentParent = inserted.ops[0]._id.toString()
+      return itemsCol.insert({itemTitle: 'hit shift-tab to remove an item from its category', orderNumber: 6, parent: res.locals.currentParent, indentLevel: 2, list: res.locals.currentList, hidden: true})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'recollapse an item with subitems with arrowkey left', orderNumber: 7, parent: res.locals.currentParent, indentLevel: 2, list: res.locals.currentList, hidden: true})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'edit items using shift-enter, hit enter to save', orderNumber: 8, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'delete an item using shift-backspace, or backspace an empty item while editing', orderNumber: 9, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'use shift-left to enter lists menu', orderNumber: 10, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false})
+    })
+    .then(inserted => {
+      return listsCol.insert({listTitle: 'More Usage (hit arrowkey up/down to navigate to next list)', orderNumber: 1, selected: false, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'})
+    })
+    .then(inserted => {
+      return listsCol.findOne({$and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 1}]})
+    })
+    .then(newList => {
+      res.locals.currentList = newList._id.toString()
+      return itemsCol.insert({itemTitle: 'if a list (previous page, not this one) is highlighted grey:', orderNumber: 0, parent: null, indentLevel: 0, list: res.locals.currentList})
+    })
+    .then(inserted => {
+      res.locals.currentParent = inserted.ops[0]._id.toString()
+      return itemsCol.insert({itemTitle: 'use up and down arrow keys to navigate through', orderNumber: 1, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'just as with items:', orderNumber: 2, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList})
+    })
+    .then(inserted => {
+      res.locals.levTwoParent = inserted.ops[0]._id.toString()
+      return itemsCol.insert({itemTitle: 'enter creates a new list right under', orderNumber: 3, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'shift-enter allows editing', orderNumber: 4, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: 'you can delete list by hitting backspace while editing if there are no more characters', orderNumber: 5, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: "what's different:", orderNumber: 6, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList})
+    })
+    .then(inserted => {
+      res.locals.levTwoParent = inserted.ops[0]._id.toString()
+      return itemsCol.insert({itemTitle: "hit shift-alt-backspace", orderNumber: 7, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: "re-enter selected list by hitting shift-arrowright", orderNumber: 8, parent: null, indentLevel: 0, list: res.locals.currentList})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: "clear all checked items by hitting the trash button in the top right corner", orderNumber: 9, parent: null, indentLevel: 0, list: res.locals.currentList})
+    })
+    .then(() => {
+      return itemsCol.insert({itemTitle: "once again, to reenter lists, hit shift-arrowleft", orderNumber: 10, parent: null, indentLevel: 0, list: res.locals.currentList})
+    })
+    .then(inserted => {
+      next();
+    })
     //itemsCol.insert({itemTitle: '', orderNumber: 0, parent: , indentLevel: , list: , checked: , hidden: , decollapsed: })
-    next()
   }
 
   app.post('/refreshAccessToken/', validateRefreshToken, generateAccessToken, respondToken)

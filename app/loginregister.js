@@ -23,6 +23,10 @@ class Loginregister extends React.Component {
 		if(this.state.loginNotRegister) this.setState({ loginNotRegister: false })
 	}
 
+	test() {
+		this.props.test();
+	}
+
 	login = (e) => {
 		e.preventDefault()
 		this.props.login(e.target[0].value, e.target[1].value)
@@ -79,7 +83,7 @@ class Loginregister extends React.Component {
 							<button className={styles.inUpSwitch} onClick={this.signUp.bind(this)}>SIGN UP</button>
 						</div>
 						<div className={styles.testBtnDiv}>
-							<button className={styles.inUpSwitch}>TEST</button>
+							<button className={styles.inUpSwitch} onClick={this.test.bind(this)}>TEST</button>
 						</div>
 					</div>
 					<div className={styles.content}>
