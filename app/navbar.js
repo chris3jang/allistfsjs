@@ -9,11 +9,11 @@ import logo from './static/AllistLogo.jpeg'
 class NavBar extends React.Component {
 
 	handleTrashButtonClick = () => {
-		this.props.trashCheckedItemsFromNav()
+		this.props.trashCheckedItemsFromNav();
 	}
 
 	handleLogoutButtonClick = () => {
-		this.props.logout()
+		this.props.logout();
 	}
 
 	render() {

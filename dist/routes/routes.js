@@ -207,7 +207,7 @@ module.exports = function(app, db) {
   }
 
   const populateTestUser = (req, res, next) => {
-    listsCol.insert({listTitle: 'Useage (hit shift + arrowkey right while this list is highlighted to enter)', orderNumber: 0, selected: true, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'})
+    listsCol.insert({listTitle: 'Useage', orderNumber: 0, selected: true, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'})
     .then(inserted => {
       return listsCol.findOne({$and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 0}]})
     })
@@ -219,7 +219,7 @@ module.exports = function(app, db) {
       return itemsCol.insert({itemTitle: 'check/uncheck this item using the \"/\" key', orderNumber: 1, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false, checked: true})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: 'decollapse an item with a large checkbox using arrowkey right', orderNumber: 2, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false, decollapsed: true})
+      return itemsCol.insert({itemTitle: 'press arrowkey right highlighted on an item with a large checkbox to collapse its hidden sub items', orderNumber: 2, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false, decollapsed: true})
     })
     .then(inserted => {
       res.locals.currentParent = inserted.ops[0]._id.toString()
@@ -245,50 +245,39 @@ module.exports = function(app, db) {
       return itemsCol.insert({itemTitle: 'delete an item using shift-backspace, or backspace an empty item while editing', orderNumber: 9, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: 'use shift-left to enter lists menu', orderNumber: 10, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false})
+      return itemsCol.insert({itemTitle: 'use shift-left to enter lists menu, use up and down to navigate when you are there', orderNumber: 10, parent: null, indentLevel: 0, list: res.locals.currentList, hidden: false})
     })
     .then(inserted => {
-      return listsCol.insert({listTitle: 'More Usage (hit arrowkey up/down to navigate to next list)', orderNumber: 1, selected: false, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'})
+      return listsCol.insert({listTitle: 'More Usage', orderNumber: 1, selected: false, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'})
     })
     .then(inserted => {
       return listsCol.findOne({$and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 1}]})
     })
     .then(newList => {
       res.locals.currentList = newList._id.toString()
-      return itemsCol.insert({itemTitle: 'if a list (previous page, not this one) is highlighted grey:', orderNumber: 0, parent: null, indentLevel: 0, list: res.locals.currentList})
+      return itemsCol.insert({itemTitle: 'just as with items in the right column:', orderNumber: 0, parent: null, indentLevel: 0, list: res.locals.currentList})
     })
     .then(inserted => {
-      res.locals.currentParent = inserted.ops[0]._id.toString()
-      return itemsCol.insert({itemTitle: 'use up and down arrow keys to navigate through', orderNumber: 1, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList})
+      res.locals.levOneParent = inserted.ops[0]._id.toString()
+      return itemsCol.insert({itemTitle: 'enter creates a new list right under', orderNumber: 1, parent: res.locals.levOneParent, indentLevel: 1, list: res.locals.currentList})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: 'just as with items:', orderNumber: 2, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList})
-    })
-    .then(inserted => {
-      res.locals.levTwoParent = inserted.ops[0]._id.toString()
-      return itemsCol.insert({itemTitle: 'enter creates a new list right under', orderNumber: 3, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+      return itemsCol.insert({itemTitle: 'shift-enter allows for editing, enter to save', orderNumber: 2, parent: res.locals.levOneParent, indentLevel: 1, list: res.locals.currentList})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: 'shift-enter allows editing', orderNumber: 4, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+      return itemsCol.insert({itemTitle: 'you can delete list by hitting backspace while editing if there are no more characters', orderNumber: 3, parent: res.locals.levOneParent, indentLevel: 1, list: res.locals.currentList})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: 'you can delete list by hitting backspace while editing if there are no more characters', orderNumber: 5, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+      return itemsCol.insert({itemTitle: "hit shift-alt-backspace to completely delete list, ALL of its items will be deleted too", orderNumber: 4, parent: null, indentLevel: 0, list: res.locals.currentList})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: "what's different:", orderNumber: 6, parent: res.locals.currentParent, indentLevel: 1, list: res.locals.currentList})
-    })
-    .then(inserted => {
-      res.locals.levTwoParent = inserted.ops[0]._id.toString()
-      return itemsCol.insert({itemTitle: "hit shift-alt-backspace", orderNumber: 7, parent: res.locals.levTwoParent, indentLevel: 2, list: res.locals.currentList})
+      return itemsCol.insert({itemTitle: "re-enter selected list by hitting shift-arrowright", orderNumber: 5, parent: null, indentLevel: 0, list: res.locals.currentList})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: "re-enter selected list by hitting shift-arrowright", orderNumber: 8, parent: null, indentLevel: 0, list: res.locals.currentList})
+      return itemsCol.insert({itemTitle: "remove all checked items by hitting the trash button in the top right corner", orderNumber: 6, parent: null, indentLevel: 0, list: res.locals.currentList})
     })
     .then(() => {
-      return itemsCol.insert({itemTitle: "clear all checked items by hitting the trash button in the top right corner", orderNumber: 9, parent: null, indentLevel: 0, list: res.locals.currentList})
-    })
-    .then(() => {
-      return itemsCol.insert({itemTitle: "once again, to reenter lists, hit shift-arrowleft", orderNumber: 10, parent: null, indentLevel: 0, list: res.locals.currentList})
+      return itemsCol.insert({itemTitle: "once again, to reenter lists, hit shift-arrowleft", orderNumber: 7, parent: null, indentLevel: 0, list: res.locals.currentList})
     })
     .then(inserted => {
       next();
@@ -639,8 +628,10 @@ module.exports = function(app, db) {
   }, [getQueryDetailsForItem, getParentItem], (req, res, next) => {
     let parentToSet = null
     const { parentItem, details } = res.locals
-    if(parentItem != null) parentToSet = parentItem.parent
-    itemsCol.update(details, { $set: {parent: parentToSet}, $inc:{indentLevel: -1}})
+    if(parentItem != null) {
+      parentToSet = parentItem.parent
+      itemsCol.update(details, { $set: {parent: parentToSet}, $inc:{indentLevel: -1}})
+    }
     next()
   }, [getChildrenItems], (req, res, next) => {
     const { childrenItems, orderNumber, listRef } = res.locals

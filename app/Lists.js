@@ -6,7 +6,7 @@ import styles from './lists.css';
 
 class Lists extends React.Component {
 
-	state = { titles: [], focused: true }
+	state = { titles: [], focused: false }
 	inputs = []
 	divs = []
 
@@ -177,10 +177,10 @@ class Lists extends React.Component {
 	render() {
 
 		return (
-			<div className={styles.div}>
+			<div>
 				<ul className={styles.ul}>
 					{this.state.titles.map((title, i) => (
-						<div key={i/*removes warning but may need to be changed*/} 
+						<div key={i} 
 							tabIndex="0" 
 							onClick={this.handleDivClick.bind(this, i)}
 							ref = {node => this.handleRefCreate(node, i, 'div')}>

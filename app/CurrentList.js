@@ -9,7 +9,7 @@ class CurrentList extends React.Component {
 	state = {
 		items: [],
 		selectedItemIndex: null,
-		width: this.props.width
+		width: null
 	}
 
 	divs = []
@@ -30,7 +30,7 @@ class CurrentList extends React.Component {
 			this.fetchItems()
 			this.props.updateComplete()
 		}
-		if(this.state.width != nextProps.width) {
+		if(this.props.width != nextProps.width) {
 			this.setState({width: nextProps.width})
 		}
 	}
