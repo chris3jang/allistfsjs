@@ -20,17 +20,11 @@ app.use(passport.initialize());
 let uri
 if(db) uri = db.url
 
-//process.env.MONGODB_URI 
-
-//console.log("process.env.NODE_ENV", process.env.NODE_ENV)
-
 if (process.env.NODE_ENV !== 'production') {
-  //console.log("process.env.NODE_ENV IS NOT PRODUCTION")
   const webpack = require('webpack')
   const webpackDevMiddleware = require('webpack-dev-middleware')
   const webpackHotMiddleware = require('webpack-hot-middleware')
   const config = require('../webpack.config.js')
-  //const config = require('../webpack.deployment.config.js')
   const compiler = webpack(config)
 
   app.use(webpackHotMiddleware(compiler))

@@ -1,7 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import styles from './allistitem.css';
+import styles from './css/allistitem.css';
 
 class AllistItem extends React.Component {
 

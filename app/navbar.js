@@ -1,8 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-//import AllistItem from './Allistitem';
-import styles from './navbar.css';
+import styles from './css/navbar.css';
 import logo from './static/AllistLogo.jpeg'
 
 

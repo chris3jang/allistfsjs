@@ -3,8 +3,8 @@ import React from 'react';
 import ReactDOM from 'react-dom';
 import Home from './home';
 import Loginregister from './Loginregister';
-import styles from './app.css';
-import './fonts.css';
+import styles from './css/app.css';
+import './css/fonts.css';
 import jwt_decode from 'jwt-decode';
 
 class App extends React.Component {

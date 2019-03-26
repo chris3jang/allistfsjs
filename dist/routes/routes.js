@@ -39,16 +39,14 @@ module.exports = function(app, db) {
       authenticate: (un, pw, cb) => {
         usersCol.findOne({username: un})
         .then(result => {
-          if(null == result) {} //user not found
-          else { //user found
+          if(null == result) {} 
+          else {
             hash = result.password
             if(bcrypt.compareSync(pw, hash)) {
-              //database.close()
               cb(null, result)
               return
             }
             else {
-              //database.close()
               cb(null, false)
             }
           }
@@ -59,7 +57,6 @@ module.exports = function(app, db) {
         .then(result => {
           if(null != result) {
             return console.log("USERNAME ALREADY EXISTS: ", result.username)
-            //database.close()
             cb(null, false)
           }
           else {
@@ -80,7 +77,6 @@ module.exports = function(app, db) {
               return usersCol.insert(newUser)
             })
             .then(inserted => {
-              //database.close()
               cb(null, inserted.ops[0])
             })
           }
@@ -187,7 +183,6 @@ module.exports = function(app, db) {
   }
 
   const nukeTestUser = (req, res, next) => {
-    //itemsCol.deleteMany({$and: [{user: username}, {list: list._id.toString()}]})
     listsCol.findOne({ $and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 0}]})
     .then(list => {
       return itemsCol.deleteMany({list: list._id.toString()});
@@ -282,7 +277,6 @@ module.exports = function(app, db) {
     .then(inserted => {
       next();
     })
-    //itemsCol.insert({itemTitle: '', orderNumber: 0, parent: , indentLevel: , list: , checked: , hidden: , decollapsed: })
   }
 
   app.post('/refreshAccessToken/', validateRefreshToken, generateAccessToken, respondToken)

@@ -2,7 +2,7 @@
 import React from 'react';
 import ReactDOM from 'react-dom';
 import AllistItem from './Allistitem'
-import styles from './currentlist.css';
+import styles from './css/currentlist.css';
 
 class CurrentList extends React.Component {
 

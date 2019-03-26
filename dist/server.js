@@ -1,8 +1,6 @@
 
 const path = require('path')
 const express = require('express')
-//const MongoClient = require('mongodb').MongoClient
-//const bodyParser = require('body-parser')
 
 module.exports = {
   app: function () {
@@ -12,9 +10,6 @@ module.exports = {
 
     app.use('/dist', publicPath);
     app.get('/', function (_, res) { res.sendFile(indexPath) });
-
-    //app.use(bodyParser.urlencoded({ extended: true }));
-
 
     return app;
   }

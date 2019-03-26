@@ -1,12 +1,8 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import AllistItem from './Allistitem'
-import Lists from './Lists'
-import CurrentList from './CurrentList'
-import NavBar from './NavBar'
 
-import styles from './loginregister.css'
+import styles from './css/loginregister.css'
 import logo from './static/AllistLogo.jpeg'
 
 class Loginregister extends React.Component {

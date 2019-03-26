@@ -1,2 +1,4 @@
 node_modules/
 dist/config/db.js
+dist/bundle.js
+webpack.deployment.config.js

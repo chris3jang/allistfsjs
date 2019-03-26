@@ -4,7 +4,7 @@ import ReactDOM from 'react-dom';
 import Lists from './Lists'
 import CurrentList from './CurrentList'
 import NavBar from './NavBar'
-import styles from './home.css'
+import styles from './css/home.css'
 
 class Home extends React.Component {
 
@@ -24,22 +24,12 @@ class Home extends React.Component {
 		window.addEventListener('resize', this.handleResize)
 	}
 
-	/*
-	componentDidUpdate(prevProps, prevState) {
-		if(this.currentList && prevState.clwidth != this.currentList.clientWidth) {
-			this.setState({clwidth: this.currentList.clientWidth})
-		}
-
-	}
-	*/
-
 	componentWillUnmount() {
 		window.removeEventListener('resize', this.handleResize)
 	}
 
 	handleResize = (e) => {
 		if(this.currentList.clientWidth != this.state.clwidth) {
-		//if(!this.state.listsFocus && this.currentList.clientWidth != this.state.clwidth) {
 			this.setState({clwidth: this.currentList.clientWidth})
 		}
 	}
@@ -81,7 +71,6 @@ class Home extends React.Component {
 		    })
 		}
 		fetch('/items/trash/', fetchData)
-			//.then((resp) => resp.json())
 			.then((data) => {
 				self.setState({updateChild: true})
 			});
