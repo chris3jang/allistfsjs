@@ -1,8 +1,12 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
-import AllistItem from './Allistitem'
+import AllistItem from './Allistitem';
 import styles from './css/currentlist.css';
+
+import { DragDropContextProvider } from 'react-dnd';
+import HTML5Backend from 'react-dnd-html5-backend';
+
 
 class CurrentList extends React.Component {
 
@@ -340,32 +344,33 @@ class CurrentList extends React.Component {
 	}
 
 	render() {
-
 		return (
-			<div className={styles.div}>
-			<ul className={styles.ul}>
-				{this.state.items.map((item, i) => (
-					<div key={this.state.items[i].primarykey}>
-						<div className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
-							<AllistItem 
-								style={{outline: '0'}}
-								width={this.state.width}
-								primaryKey = {this.state.items[i].primarykey}
-								itemTitle={this.state.items[i].itemtitle} 
-								orderNumber = {i} 
-								indentLevel = {this.state.items[i].indentlevel}
-								handleAction = {this.handleAction.bind(this)} 
-								createRef = {this.handleCreateRef.bind(this)}
-								selected = {i == this.state.selectedItemIndex}
-								checked={this.state.items[i].checked}
-								hidden={this.state.items[i].hidden}
-								decollapsed={this.state.items[i].decollapsed}>
-							</AllistItem>
-						</div>
-					</div>
-				))}
-			</ul>
-			</div>
+			<DragDropContextProvider backend={HTML5Backend}>
+				<div className={styles.div}>
+					<ul className={styles.ul}>
+						{this.state.items.map((item, i) => (
+							<div key={this.state.items[i].primarykey}>
+								<div style = {{transform: 'translate3d(0, 0, 0)'}} className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
+									<AllistItem 
+										style={{outline: '0'}}
+										width={this.state.width}
+										primaryKey = {this.state.items[i].primarykey}
+										itemTitle={this.state.items[i].itemtitle} 
+										orderNumber = {i} 
+										indentLevel = {this.state.items[i].indentlevel}
+										handleAction = {this.handleAction.bind(this)} 
+										createRef = {this.handleCreateRef.bind(this)}
+										selected = {i == this.state.selectedItemIndex}
+										checked={this.state.items[i].checked}
+										hidden={this.state.items[i].hidden}
+										decollapsed={this.state.items[i].decollapsed}>
+									</AllistItem>
+								</div>
+							</div>
+						))}
+					</ul>
+				</div>
+			</DragDropContextProvider>
 		)
 	}
 }
