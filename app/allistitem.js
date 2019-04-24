@@ -11,19 +11,22 @@ import _ from 'lodash';
 const itemSource = {
 	beginDrag(props, monitor, component) {
 		console.log("beganDrag", props)
-		return { id: props.primaryKey }
+		return { id: props.primaryKey, on: props.orderNumber }
 	}
 }
 
 const itemTarget = {
-	drop(props) {
+	drop(props, monitor) {
+		console.log("dragged", monitor.getItem())
 		console.log("dropped", props)
+		props.handleReOrder(monitor.getItem().id, monitor.getItem().on, props.primaryKey, props.orderNumber)
 	}
 }
 
 const sourceCollect = (connect, monitor) => {
 	return {
 		connectDragSource: connect.dragSource(),
+		connectDragPreview: connect.dragPreview(),
 		isDragging: monitor.isDragging()
 	}
 }
@@ -120,12 +123,13 @@ class AllistItem extends React.Component {
 	}
 
 	render() {
-		const { connectDragSource, connectDropTarget, isDragging } = this.props;
-		return connectDropTarget(connectDragSource(
+		const { connectDragSource, connectDropTarget, connectDragPreview, isDragging } = this.props;
+		return connectDropTarget(connectDragPreview(
 				<div className={styles.fulldiv} style={{ whiteSpace: 'nowrap', opacity: isDragging ? .5 : 1 }} tabIndex="0"
 					onClick={this.handleDivClick.bind(this)}
 					ref = {node => this.handleRefCreate(node, 'div')}>
 					<div style={{ display: 'inline-block', width: this.props.indentLevel * 40}}></div>
+					{connectDragSource(<div style={{ display: 'inline-block', position: 'relative', bottom: 14, backgroundColor: 'black', height: 20, width: 4, marginRight: 4, cursor: 'move'}}></div>)}
 					<div className={this.props.decollapsed ? (this.props.checked ? styles.divcollapsedcheckboxchecked : styles.divcollapsedcheckboxunchecked) : (this.props.checked ? styles.divcheckboxchecked : styles.divcheckboxunchecked)} 
 						onClick={this.handleCheckboxClick.bind(this)}>
 					</div>

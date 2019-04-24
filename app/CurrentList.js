@@ -4,10 +4,6 @@ import ReactDOM from 'react-dom';
 import AllistItem from './Allistitem';
 import styles from './css/currentlist.css';
 
-import { DragDropContextProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
-
-
 class CurrentList extends React.Component {
 
 	state = {
@@ -59,7 +55,7 @@ class CurrentList extends React.Component {
 		fetch('/items/', { headers: new Headers({authorization: 'Bearer ' + localStorage.getItem('access')})})
 			.then((resp) => resp.json())
 			.then((data) => {
-				for(var i = 0; i < data.length; i++) {
+				for(let i = 0; i < data.length; i++) {
 					fetchedData[data[i].orderNumber] = {
 						primarykey: data[i]._id, 
 						itemtitle: data[i].itemTitle, 
@@ -122,9 +118,9 @@ class CurrentList extends React.Component {
 		const fetchData = this.assignFetchData('DELETE', { orderNumber: orderNumber })
 		fetch('/items/', fetchData)
 		.then(function() {
-			var deletedIndentLevel = editedList[orderNumber].indentlevel
+			const deletedIndentLevel = editedList[orderNumber].indentlevel
 			editedList.splice(orderNumber, 1)
-			for(var i = orderNumber; i < editedList.length; i++) {
+			for(let i = orderNumber; i < editedList.length; i++) {
 				if(editedList[i].indentlevel > deletedIndentLevel) {
 					editedList[i].indentlevel -= 1
 				}
@@ -146,7 +142,7 @@ class CurrentList extends React.Component {
 		.then(function() {
 			if(editedList[orderNumber-1].indentlevel >= editedList[orderNumber].indentlevel) {
 				editedList[orderNumber].indentlevel += 1
-				for(var i = orderNumber + 1; i < editedList.length; i++) {
+				for(let i = orderNumber + 1; i < editedList.length; i++) {
 					if(editedList[i].indentlevel >= editedList[orderNumber].indentlevel) {
 						editedList[i].indentlevel += 1
 					}
@@ -165,7 +161,7 @@ class CurrentList extends React.Component {
 		.then(function() {
 			if(editedList[orderNumber].indentlevel != 0 && orderNumber != 0) {
 				editedList[orderNumber].indentlevel -= 1
-				for(var i = orderNumber+1; i < editedList.length; i++) {
+				for(let i = orderNumber+1; i < editedList.length; i++) {
 					if(editedList[i].indentlevel > editedList[orderNumber].indentlevel + 1) {
 						editedList[i].indentlevel -= 1
 					}
@@ -230,9 +226,38 @@ class CurrentList extends React.Component {
 			}
 			case 'select': {this.selectItem(orderNumber); break;}
 			case 'focusDiv': {this.handleFocusOnItem(orderNumber, 'div'); break;}
-
-			
 		}
+	}
+
+	handleReOrder = (draggedPK, draggedON, droppedPK, droppedON) => {
+		
+		
+		let fetchData = this.assignFetchData('PUT', { orderNumber: draggedON, newOrderNumber: droppedON })
+		fetch('/items/reorder/', fetchData)
+			.then(resp => resp.json())
+			.then((data) => {
+				/*
+				editedList[orderNumber].decollapsed = !this.state.items[orderNumber].decollapsed
+				for(let i = 0; i < data.index.length; i++) {
+					editedList[data.index[i]].hidden = !this.state.items[data.index[i]].hidden
+				}
+				self.setState({items: editedList})
+				*/
+			})
+		
+		
+		
+		var editedList = this.state.items;
+		let numChildren = 0;
+		for(let i = draggedON + 1; i < editedList.length; i++) {
+			if(editedList[i].indentlevel > editedList[draggedON].indentlevel) {
+				numChildren++;
+			}
+			else break
+		}
+		const dragged = editedList.splice(draggedON, numChildren + 1);
+		editedList.splice(droppedON - (draggedON < droppedON ? numChildren : 0), 0, ...dragged);
+		this.setState({items: editedList}, () => {})
 	}
 
 	handleCreateRef(orderNumber, node, action) {
@@ -294,7 +319,7 @@ class CurrentList extends React.Component {
 
 	hotKeyShiftEnter(e) {
 		e.preventDefault()
-		e.target.children[3].lastElementChild.focus()
+		e.target.children[4].lastElementChild.focus()
 	}
 
 	hotKeyShiftBackspace() {
@@ -345,32 +370,31 @@ class CurrentList extends React.Component {
 
 	render() {
 		return (
-			<DragDropContextProvider backend={HTML5Backend}>
-				<div className={styles.div}>
-					<ul className={styles.ul}>
-						{this.state.items.map((item, i) => (
-							<div key={this.state.items[i].primarykey}>
-								<div style = {{transform: 'translate3d(0, 0, 0)'}} className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
-									<AllistItem 
-										style={{outline: '0'}}
-										width={this.state.width}
-										primaryKey = {this.state.items[i].primarykey}
-										itemTitle={this.state.items[i].itemtitle} 
-										orderNumber = {i} 
-										indentLevel = {this.state.items[i].indentlevel}
-										handleAction = {this.handleAction.bind(this)} 
-										createRef = {this.handleCreateRef.bind(this)}
-										selected = {i == this.state.selectedItemIndex}
-										checked={this.state.items[i].checked}
-										hidden={this.state.items[i].hidden}
-										decollapsed={this.state.items[i].decollapsed}>
-									</AllistItem>
-								</div>
+			<div className={styles.div}>
+				<ul className={styles.ul}>
+					{this.state.items.map((item, i) => (
+						<div key={this.state.items[i].primarykey}>
+							<div style = {{transform: 'translate3d(0, 0, 0)'}} className={this.state.items[i].hidden ? styles.hidden : styles.normal}>
+								<AllistItem 
+									style={{outline: '0'}}
+									width={this.state.width}
+									primaryKey = {this.state.items[i].primarykey}
+									itemTitle={this.state.items[i].itemtitle} 
+									orderNumber = {i} 
+									indentLevel = {this.state.items[i].indentlevel}
+									handleAction = {this.handleAction.bind(this)} 
+									handleReOrder = {this.handleReOrder.bind(this)}
+									createRef = {this.handleCreateRef.bind(this)}
+									selected = {i == this.state.selectedItemIndex}
+									checked={this.state.items[i].checked}
+									hidden={this.state.items[i].hidden}
+									decollapsed={this.state.items[i].decollapsed}>
+								</AllistItem>
 							</div>
-						))}
-					</ul>
-				</div>
-			</DragDropContextProvider>
+						</div>
+					))}
+				</ul>
+			</div>
 		)
 	}
 }
