@@ -230,33 +230,26 @@ class CurrentList extends React.Component {
 	}
 
 	handleReOrder = (draggedPK, draggedON, droppedPK, droppedON) => {
-		
-		
 		let fetchData = this.assignFetchData('PUT', { orderNumber: draggedON, newOrderNumber: droppedON })
 		fetch('/items/reorder/', fetchData)
 			.then(resp => resp.json())
-			.then((data) => {
-				/*
-				editedList[orderNumber].decollapsed = !this.state.items[orderNumber].decollapsed
-				for(let i = 0; i < data.index.length; i++) {
-					editedList[data.index[i]].hidden = !this.state.items[data.index[i]].hidden
-				}
-				self.setState({items: editedList})
-				*/
-			})
-		
-		
-		
+			.then((data) => {})
 		var editedList = this.state.items;
-		let numChildren = 0;
+		let numChildrenDragged = 0, numChildrenDropped = 0;
 		for(let i = draggedON + 1; i < editedList.length; i++) {
 			if(editedList[i].indentlevel > editedList[draggedON].indentlevel) {
-				numChildren++;
+				numChildrenDragged++;
 			}
 			else break
 		}
-		const dragged = editedList.splice(draggedON, numChildren + 1);
-		editedList.splice(droppedON - (draggedON < droppedON ? numChildren : 0), 0, ...dragged);
+		for(let j = droppedON + 1; j < editedList.length; j++) {
+			if(editedList[j].indentlevel > editedList[droppedON].indentlevel) {
+				numChildrenDropped++;
+			}
+			else break
+		}
+		const dragged = editedList.splice(draggedON, numChildrenDragged + 1);
+		editedList.splice(droppedON - (draggedON < droppedON ? (numChildrenDragged - numChildrenDropped) : 0), 0, ...dragged);
 		this.setState({items: editedList}, () => {})
 	}
 
