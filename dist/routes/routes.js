@@ -755,23 +755,25 @@ module.exports = function(app, db) {
   })
 
   app.put('/items/reorder', [getItem, getDescendantsOfItem, getItemAtNewOrderNumberAndDescendants], (req, res, next) => {
-    const { orderNumber, item, descendants, listRef, newOrderNumber, newItemDescendants } = res.locals
+    const { orderNumber, item, descendants, listRef, newOrderNumber, newOrderNumberItem, newItemDescendants } = res.locals
     const lowerRange = (orderNumber < req.body.newOrderNumber ? (orderNumber + descendants.length + 1) : req.body.newOrderNumber)
     const upperRange = (orderNumber < req.body.newOrderNumber ? (req.body.newOrderNumber + newItemDescendants.length) : (orderNumber - 1))
     const inc = (descendants.length+1) * (orderNumber < req.body.newOrderNumber ? -1 : 1)
     itemsCol.updateMany({$and: [{list: listRef}, {orderNumber: {$gte: lowerRange}}, {orderNumber: {$lte: upperRange}}]}, { $inc: {orderNumber: inc}})
     .then(() => {
       res.locals.descendantInc = (orderNumber < req.body.newOrderNumber ? req.body.newOrderNumber - orderNumber - descendants.length + newItemDescendants.length : req.body.newOrderNumber - orderNumber)
+      res.locals.indLevInc = newOrderNumberItem.indentLevel - item.indentLevel;
+      res.locals.newParent = newOrderNumberItem.parent;
       for(let i = 0; i < descendants.length; i++) {
-        itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.descendantInc}})
+        itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.descendantInc, indentLevel: res.locals.indLevInc}, $set: {parent: res.locals.newParent}})
       }
       return
     })
     .then(() => {
-      return itemsCol.findOneAndUpdate({_id: item._id}, {$inc: {orderNumber: res.locals.descendantInc}})
+      return itemsCol.findOneAndUpdate({_id: item._id}, {$inc: {orderNumber: res.locals.descendantInc, indentLevel: res.locals.indLevInc}, $set: {parent: res.locals.newParent}})
     })
-    .then(result => {
-      res.send(result)
+    .then(() => {
+      res.send()
     })
   })
 

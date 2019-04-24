@@ -234,6 +234,7 @@ class CurrentList extends React.Component {
 		fetch('/items/reorder/', fetchData)
 			.then(resp => resp.json())
 			.then((data) => {})
+
 		var editedList = this.state.items;
 		let numChildrenDragged = 0, numChildrenDropped = 0;
 		for(let i = draggedON + 1; i < editedList.length; i++) {
@@ -248,6 +249,15 @@ class CurrentList extends React.Component {
 			}
 			else break
 		}
+
+		let tempIndLev = editedList[draggedON].indentlevel;
+		const indentInc = editedList[droppedON].indentlevel - tempIndLev
+		editedList[draggedON].indentlevel = tempIndLev + indentInc
+		for(let k = draggedON + 1; k < draggedON + 1 + numChildrenDragged; k++) {
+			tempIndLev = editedList[k].indentlevel;
+			editedList[k].indentlevel = tempIndLev + indentInc
+		}
+
 		const dragged = editedList.splice(draggedON, numChildrenDragged + 1);
 		editedList.splice(droppedON - (draggedON < droppedON ? (numChildrenDragged - numChildrenDropped) : 0), 0, ...dragged);
 		this.setState({items: editedList}, () => {})
