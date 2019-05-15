@@ -1,0 +1,52 @@
+.divcheckboxchecked {
+  position: relative;
+  vertical-align: top;
+  top: 23px;
+  display: inline-block;
+  background: black;
+  width: 6px;
+  height: 6px;
+  border: 1px;
+  border-style: solid;
+  border-color: black;
+}
+
+.divcheckboxunchecked {
+  position: relative;
+  vertical-align: top;
+  top: 23px;
+  display: inline-block;
+  background: white;
+  width: 6px;
+  height: 6px;
+  border: 1px;
+  border-style: solid;
+  border-color: black;
+}
+
+.divcollapsedcheckboxchecked {
+  position: relative;
+  vertical-align: top;
+  top: 18px;
+  display: inline-block;
+  background: black;
+  width: 12px;
+  height: 12px;
+  border: 2px;
+  border-style: solid;
+  border-color: black;
+}
+
+.divcollapsedcheckboxunchecked {
+  position: relative;
+  vertical-align: top;
+  top: 18px;
+  display: inline-block;
+  background: white;
+  width: 12px;
+  height: 12px;
+  border: 2px;
+  border-style: solid;
+  border-color: black;
+}
+

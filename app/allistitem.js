@@ -1,6 +1,7 @@
 
 import React from 'react';
 import ReactDOM from 'react-dom';
+import Checkbox from './Checkbox';
 import styles from './css/allistitem.css';
 
 import { ItemTypes } from './Constants';
@@ -130,9 +131,7 @@ class AllistItem extends React.Component {
 					ref = {node => this.handleRefCreate(node, 'div')}>
 					<div style={{ display: 'inline-block', width: this.props.indentLevel * 40}}></div>
 					{connectDragSource(<div style={{ display: 'inline-block', position: 'relative', bottom: 14, backgroundColor: 'black', height: 20, width: 4, marginRight: 4, cursor: 'move'}}></div>)}
-					<div className={this.props.decollapsed ? (this.props.checked ? styles.divcollapsedcheckboxchecked : styles.divcollapsedcheckboxunchecked) : (this.props.checked ? styles.divcheckboxchecked : styles.divcheckboxunchecked)} 
-						onClick={this.handleCheckboxClick.bind(this)}>
-					</div>
+					<Checkbox isHidingChildren = {this.props.decollapsed} isChecked = {this.props.checked} click = {this.handleCheckboxClick.bind(this)}></Checkbox>
 					<input type="checkbox" className="chkbx-input"
 						checked={this.props.checked} 
 						onClick={this.handleCheckboxClick.bind(this)}>

@@ -401,8 +401,9 @@ module.exports = function(app, db) {
   const toggleDescendantsCollapseProp = (req, res, next) => {
     const { descendants } = res.locals
     const dclpsd = JSON.parse(req.body.decollapsed)
-    let dclpsdToRemain = [], stayHidden = false, descendantOrderNumbers = []
+    let dclpsdToRemain = [], stayHidden, descendantOrderNumbers = []
     for(let i = 0; i < descendants.length; i++) {
+      stayHidden = false;
       if(descendants[i].decollapsed) dclpsdToRemain.push(descendants[i]._id.toString())
       for(let j = 0; j < dclpsdToRemain.length; j++) {
         if(descendants[i].parent === dclpsdToRemain[j]) {
@@ -765,7 +766,7 @@ module.exports = function(app, db) {
       res.locals.indLevInc = newOrderNumberItem.indentLevel - item.indentLevel;
       res.locals.newParent = newOrderNumberItem.parent;
       for(let i = 0; i < descendants.length; i++) {
-        itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.descendantInc, indentLevel: res.locals.indLevInc}, $set: {parent: res.locals.newParent}})
+        itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.descendantInc, indentLevel: res.locals.indLevInc}})
       }
       return
     })
