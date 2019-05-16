@@ -72,7 +72,7 @@ class Lists extends React.Component {
 		const fetchList = (data) => {
 			let fetchedData = []
 			for(let i = 0; i < data.length; i++) {
-				fetchedData[data[i].orderNumber] = data[i].listTitle
+				fetchedData[data[i].orderNumber] = data[i].itemTitle
 			}
 			this.setState({titles: fetchedData})
 		}

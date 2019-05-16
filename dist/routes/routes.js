@@ -66,12 +66,12 @@ module.exports = function(app, db) {
               password: hash,
               selectedListIndex: 0
             }
-            listsCol.insert({listTitle: "New List", orderNumber: 0, selected: true, selectedItemIndex: 0, user: un})
+            itemsCol.insert({itemTitle: "New List", orderNumber: 0, selected: true, selectedItemIndex: 0, user: un})
             .then(listInserted => {
-              return listsCol.findOne({user: un})
+              return itemsCol.findOne({user: un})
             })
             .then(newList => {
-              return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()}) 
+              return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: newList._id.toString(), indentLevel: 0}) 
             })
             .then(itemInserted => {
               return usersCol.insert(newUser)
