@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import AllistItem from './Allistitem';
@@ -104,7 +103,7 @@ class CurrentList extends React.Component {
 				if(this.state.items[newItemOrderNum] && this.state.items[newItemOrderNum].hidden) {
 					while(this.state.items[newItemOrderNum] && this.state.items[newItemOrderNum].hidden) newItemOrderNum++
 				}
-				editedList.splice(newItemOrderNum, 0, {primarykey: data._id, itemtitle: '', indentlevel: data.indentLevel})
+				editedList.splice(newItemOrderNum, 0, {primarykey: data._id, itemtitle: '', indentlevel: data.indentLevel, decollapsed: false})
 				self.setState({items: editedList, selectedItemIndex: newItemOrderNum}, ()=>{
 					self.handleFocusOnItem(newItemOrderNum, 'textarea')
 				})
@@ -199,6 +198,7 @@ class CurrentList extends React.Component {
 		let editedList = this.state.items
 		const self = this
 		const decollapsed = this.state.items[orderNumber].decollapsed
+		console.log('decollapsed', decollapsed)
 		let fetchData = this.assignFetchData('PUT', { orderNumber: orderNumber, decollapsed: decollapsed })
 		fetch('/items/collapse/', fetchData)
 			.then(resp => resp.json())
@@ -301,11 +301,13 @@ class CurrentList extends React.Component {
 	}
 
 	hotKeyLeft(e) {
+		console.log('hotKeyLeft')
 		e.preventDefault()
 		const { items } = this.state
 		if(this.state.selectedItemIndex != items.length-1 
 			&& items[this.state.selectedItemIndex].indentlevel < items[this.state.selectedItemIndex+1].indentlevel 
 			&& !items[this.state.selectedItemIndex+1].hidden) {
+			console.log("here?")
 			this.toggleCollapse(this.state.selectedItemIndex, 'decollapse'); 
 		}
 	}
