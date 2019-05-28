@@ -6,10 +6,6 @@ import CurrentList from './CurrentList'
 import NavBar from './NavBar'
 import styles from './css/home.css'
 
-import { DragDropContextProvider } from 'react-dnd';
-import HTML5Backend from 'react-dnd-html5-backend';
-
-
 class Home extends React.Component {
 
 	state = {
@@ -112,37 +108,35 @@ class Home extends React.Component {
 	render() {
 
 		return (
-			<DragDropContextProvider backend={HTML5Backend}>
-				<div className={styles.home}>
-					<div>
-						<NavBar
-							trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}
-							logout={this.handleLogout.bind(this)}>
-						</NavBar>
+			<div className={styles.home}>
+				<div>
+					<NavBar
+						trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}
+						logout={this.handleLogout.bind(this)}>
+					</NavBar>
+				</div>
+				<div style = {{ whiteSpace: 'nowrap', overflow: 'auto' }}>
+					<div className={styles.l}>
+						<Lists
+							selectList={this.handleSelectList.bind(this)}
+							selectedListIndex={this.state.selectedListIndex}
+							listsFocus={this.state.listsFocus}
+							focusOnLists={this.handleFocusOnLists.bind(this)}
+							focusOnCurrentList={this.handleFocusOnCurrentList.bind(this)}>
+						</Lists>
 					</div>
-					<div style = {{ whiteSpace: 'nowrap', overflow: 'auto' }}>
-						<div className={styles.l}>
-							<Lists
-								selectList={this.handleSelectList.bind(this)}
-								selectedListIndex={this.state.selectedListIndex}
-								listsFocus={this.state.listsFocus}
-								focusOnLists={this.handleFocusOnLists.bind(this)}
-								focusOnCurrentList={this.handleFocusOnCurrentList.bind(this)}>
-							</Lists>
-						</div>
-						<div className={styles.cl} ref={node => this.currentList = node}>
-							<CurrentList
-								focusOnLists={this.handleFocusOnLists.bind(this)}
-								selectedListIndex={this.state.selectedListIndex}
-								currentListFocused={this.state.listsFocus ? false : true}
-								shouldChildUpdate={this.state.updateChild}
-								updateComplete={this.handleUpdateComplete.bind(this)}
-								width={this.state.clwidth}>
-							</CurrentList>
-						</div>
+					<div className={styles.cl} ref={node => this.currentList = node}>
+						<CurrentList
+							focusOnLists={this.handleFocusOnLists.bind(this)}
+							selectedListIndex={this.state.selectedListIndex}
+							currentListFocused={this.state.listsFocus ? false : true}
+							shouldChildUpdate={this.state.updateChild}
+							updateComplete={this.handleUpdateComplete.bind(this)}
+							width={this.state.clwidth}>
+						</CurrentList>
 					</div>
 				</div>
-			</DragDropContextProvider>
+			</div>
 		)
 	}
 }

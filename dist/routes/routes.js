@@ -688,10 +688,12 @@ module.exports = function(app, db) {
   //requires getItemByListAndOrderNumber, getDescendantsOfItem, getList
   const updateDescendantsAfterDelete = (req, res, next) => {
     const { descendants, item, listRef } = res.locals
-    descendants.forEach(descendant => {
-      itemsCol.update({_id: descendant._id}, {$inc: {indentLevel: -1}})
-    })
-    itemsCol.updateMany({ $and: [{parent: item._id.toString()}, {list: listRef}]}, {$set: {parent: item.parent}})
+    if(descendants.length !== 0) {
+      descendants.forEach(descendant => {
+        itemsCol.update({_id: descendant._id}, {$inc: {indentLevel: -1}})
+      })
+      itemsCol.updateMany({ $and: [{parent: item._id.toString()}, {list: listRef}]}, {$set: {parent: item.parent}})
+    }
     next()
   }
 
