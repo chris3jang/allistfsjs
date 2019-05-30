@@ -3,6 +3,8 @@ import ReactDOM from 'react-dom';
 import AllistItem from './Allistitem';
 import styles from './css/currentlist.css';
 
+import DefaultDragLayer from './DefaultDragLayer.js'
+
 class CurrentList extends React.Component {
 
 	state = {
@@ -231,10 +233,7 @@ class CurrentList extends React.Component {
 
 	handleReOrder = (draggedPK, draggedON, droppedPK, droppedON) => {
 		let fetchData = this.assignFetchData('PUT', { orderNumber: draggedON, newOrderNumber: droppedON })
-		fetch('/items/reorder/', fetchData)
-			.then(resp => resp.json())
-			.then((data) => {})
-
+		fetch('/items/reorder/', fetchData).then(resp => {})
 		var editedList = this.state.items;
 		let numChildrenDragged = 0, numChildrenDropped = 0;
 		for(let i = draggedON + 1; i < editedList.length; i++) {
@@ -249,7 +248,6 @@ class CurrentList extends React.Component {
 			}
 			else break
 		}
-
 		let tempIndLev = editedList[draggedON].indentlevel;
 		const indentInc = editedList[droppedON].indentlevel - tempIndLev
 		editedList[draggedON].indentlevel = tempIndLev + indentInc
@@ -398,6 +396,7 @@ class CurrentList extends React.Component {
 							</div>
 						</div>
 					))}
+					<DefaultDragLayer></DefaultDragLayer>
 				</ul>
 			</div>
 		)

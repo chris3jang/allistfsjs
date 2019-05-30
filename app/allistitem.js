@@ -1,4 +1,3 @@
-
 import React from 'react';
 import ReactDOM from 'react-dom';
 import Checkbox from './Checkbox';
@@ -6,20 +5,19 @@ import styles from './css/allistitem.css';
 
 import { ItemTypes } from './Constants';
 import { DragSource, DropTarget } from 'react-dnd';
+import { getEmptyImage } from 'react-dnd-html5-backend';
 
 import _ from 'lodash';
 
 const itemSource = {
 	beginDrag(props, monitor, component) {
 		console.log("beganDrag", props)
-		return { id: props.primaryKey, on: props.orderNumber }
+		return { id: props.primaryKey, on: props.orderNumber, properties: props }
 	}
 }
 
 const itemTarget = {
 	drop(props, monitor) {
-		console.log("dragged", monitor.getItem())
-		console.log("dropped", props)
 		props.handleReOrder(monitor.getItem().id, monitor.getItem().on, props.primaryKey, props.orderNumber)
 	}
 }
@@ -52,6 +50,12 @@ class AllistItem extends React.Component {
 	}
 
 	componentDidMount = () => {
+		const { connectDragPreview } = this.props
+	    if (connectDragPreview) {
+	      connectDragPreview(getEmptyImage(), {
+	        captureDraggingState: true,
+	      })
+	    }
 		this.adjustHeight(this.textArea)
 	}
 	
@@ -116,7 +120,9 @@ class AllistItem extends React.Component {
 
 	handleRefCreate = (node, action) => {
 		if(action == 'textarea') this.textArea = node;
-		this.props.createRef(this.props.orderNumber, node, action);
+		if(this.props.createRef) {
+			this.props.createRef(this.props.orderNumber, node, action);
+		}
 	}
 
 	handleCheckboxClick = () => {
@@ -125,7 +131,7 @@ class AllistItem extends React.Component {
 
 	render() {
 		const { connectDragSource, connectDropTarget, connectDragPreview, isDragging } = this.props;
-		return connectDropTarget(connectDragPreview(
+		return connectDropTarget(
 				<div className={styles.fulldiv} style={{ whiteSpace: 'nowrap', opacity: isDragging ? .5 : 1 }} tabIndex="0"
 					onClick={this.handleDivClick.bind(this)}
 					ref = {node => this.handleRefCreate(node, 'div')}>
@@ -150,7 +156,7 @@ class AllistItem extends React.Component {
 						</textarea>
 					</div>
 				</div>
-		))
+		)
 	}
 }
 
