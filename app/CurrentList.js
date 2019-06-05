@@ -128,7 +128,15 @@ class CurrentList extends React.Component {
 				else break
 			}
 			if(orderNumber == 0) newFocusItem = 0
-			else newFocusItem = orderNumber-1
+			else {
+				for(let i = orderNumber - 1; i >= 0; i--) {
+					if(!editedList[i].hidden) {
+						newFocusItem = i;
+						break
+					}
+				}
+			}
+
 			self.setState({items: editedList, selectedItemIndex: newFocusItem}, ()=> {
 				self.handleFocusOnItem(newFocusItem, 'div')
 			})

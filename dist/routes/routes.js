@@ -701,7 +701,12 @@ module.exports = function(app, db) {
   const selectPreviousItemAfterDelete = (req, res, next) => {
     if(res.locals.orderNumber == 0) res.locals.nextSelectedIndex = 0
     else res.locals.nextSelectedIndex = res.locals.orderNumber - 1
-    listsCol.update({_id: new ObjectID(res.locals.listRef)}, {$set: {selectedItemIndex: res.locals.nextSelectedIndex}}).then(() => {
+    itemsCol.find({$and: [{hidden: false}, {list: res.locals.listRef}, {orderNumber: {$lt: res.locals.orderNumber}}]}).sort({orderNumber: -1}).limit(1).next()
+    .then(item => {
+      console.log("YOP", item)
+      return listsCol.update({_id: new ObjectID(res.locals.listRef)}, {$set: {selectedItemIndex: item.orderNumber}})
+    })
+    .then(()=> {
       next()
     })
   }
