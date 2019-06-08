@@ -236,6 +236,7 @@ class CurrentList extends React.Component {
 			}
 			case 'select': {this.selectItem(orderNumber); break;}
 			case 'focusDiv': {this.handleFocusOnItem(orderNumber, 'div'); break;}
+			case 'toggle': {this.hotKeyForwardSlash(); break}
 		}
 	}
 
