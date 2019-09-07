@@ -11,9 +11,7 @@ const layerStyles = {
   pointerEvents: "none",
   zIndex: 100,
   left: 0,
-  top: -25,
-  width: "100%",
-  height: "100%"
+  top: -25
 };
 
 function getItemStyles(props) {
@@ -24,8 +22,6 @@ function getItemStyles(props) {
     };
   }
   let { x, y } = currentOffset;
-  let xx = x - 400, yy = y - 400
-  
   const transform = `translate(${x}px, ${y}px)`;
   return {
     transform,
