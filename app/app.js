@@ -7,11 +7,14 @@ import styles from './css/app.css';
 import './css/fonts.css';
 import jwt_decode from 'jwt-decode';
 
+import WorkFlowy from './WorkFlowy'
+
 class App extends React.Component {
 
 	state = {
 		authenticated: false,
-		user: null
+		user: null,
+		newFrontEnd: false
 	};
 
 	componentDidMount() {
@@ -100,7 +103,7 @@ class App extends React.Component {
 		})
 	};
 
-	logIn = (un, pw) => {
+	logIn = (un, pw, act) => {
 		this.setState({user: un});
 		const data = {
 			username: un,
@@ -120,7 +123,10 @@ class App extends React.Component {
 		.then(data => {
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
-			this.setState({ authenticated: true});
+			if(act) {
+				this.setState({ authenticated: true, newFrontEnd: true });
+			}
+			else this.setState({ authenticated: true});
 		})
 	};
 
@@ -176,8 +182,8 @@ class App extends React.Component {
 		this.setState({authenticated: false});
 	};
 
-	handleLogIn = (un, pw) => {
-		this.logIn(un, pw);
+	handleLogIn = (un, pw, act) => {
+		this.logIn(un, pw, act);
 	};
 
 	handleRegister = (un, pw) => {
@@ -192,7 +198,9 @@ class App extends React.Component {
 	render() {
 		return (
 			<div className={styles.app}>
-				{this.state.authenticated ? (
+				{this.state.authenticated && this.state.newFrontEnd ? (
+					<WorkFlowy></WorkFlowy>
+				) : this.state.authenticated ? (
 					<Home 
 						username={this.state.user}
 						logout={this.handleLogOut.bind(this)}>

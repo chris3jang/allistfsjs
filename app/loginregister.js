@@ -25,7 +25,16 @@ class Loginregister extends React.Component {
 
 	login = (e) => {
 		e.preventDefault()
-		this.props.login(e.target[0].value, e.target[1].value)
+		const email = e.target.parentElement.parentNode[0].value
+		const password = e.target.parentElement.parentNode[1].value
+		this.props.login(email, password, false )
+	}
+
+	newLogin = (e) => {
+		e.preventDefault()
+		const email = e.target.parentElement.parentNode[0].value
+		const password = e.target.parentElement.parentNode[1].value
+		this.props.login(email, password, true )
 	}
 
 	register = (e) => {
@@ -39,7 +48,7 @@ class Loginregister extends React.Component {
 		}
 
 		const Login = (props) => {
-			return <form method="post" onSubmit={this.login}>
+			return <form method="post">
 						<div className="form-group">
 							<input type="text" className={styles.formcontrol} name="username" placeholder="Email"></input>
 						</div>
@@ -47,7 +56,10 @@ class Loginregister extends React.Component {
 							<input type="password" className={styles.formcontrol} name="password" placeholder="Password"></input>
 						</div>
 						<div className={styles.sbmtBtnDiv}>
-							<button type="submit" className={styles.sbmtBtn}>LOGIN</button>
+							<button type="submit" onClick={this.login} className={styles.sbmtBtn}>LOGIN</button>
+						</div>
+						<div className={styles.sbmtBtnDiv}>
+							<button type="submit" onClick={this.newLogin} className={styles.sbmtBtn}>NEW FRONTEND</button>
 						</div>
 					</form>
 		}
