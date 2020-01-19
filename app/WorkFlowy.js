@@ -1,4 +1,5 @@
 import React, {useState, useEffect} from 'react';
+import ItemContainer from './ItemContainer'
 
 const WorkFlowy = () => {
 
@@ -14,12 +15,8 @@ const WorkFlowy = () => {
 
 	}, [])
 
-	useEffect(() => {
-		console.log('items', items)
-	}, [items])
-
 	return (
-		<div></div>
+		<ItemContainer items={items}/>
 	)
 }
 
