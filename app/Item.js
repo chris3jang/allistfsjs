@@ -2,6 +2,8 @@ import React, {useState, useEffect, useRef} from 'react';
 import ContentEditable from 'react-contenteditable'
 import styles from './css/item.css';
 
+import Bullet from './Bullet.js'
+
 const Item = ({item}) => {
 
 	const contentEditableRef = useRef(null)
@@ -12,7 +14,7 @@ const Item = ({item}) => {
 
 	return (
 		<div className={styles.item}>
-			<span className={styles.dot}></span>
+			<Bullet decollapsed={true} checked={true}/>
 			<ContentEditable
 				className={styles.contentEditableDiv}
 				innerRef={contentEditableRef}
