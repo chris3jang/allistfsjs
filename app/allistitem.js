@@ -108,11 +108,6 @@ class AllistItem extends React.Component {
 		event.stopPropagation()
 	}
 
-	handleInputClick = (event) => {
-		event.preventDefault()
-		event.stopPropagation()
-	}
-
 	handleTextAreaClick = (e) => {
 		e.preventDefault()
 		e.stopPropagation()

@@ -15,8 +15,33 @@ const WorkFlowy = () => {
 
 	}, [])
 
+	const handleAction = (action, id, value) => {
+		switch (action) {
+			case 'edit': 
+				editItemTitle(id, value);
+				break
+		}	
+	}
+
+	const editItemTitle = (id, value) => {
+		fetch('/items/', { method: 'PUT', body: JSON.stringify({ title: value, orderNumber: id}),
+		    headers: new Headers({
+		    	'authorization': 'Bearer ' + localStorage.getItem('access'),
+		    	'content-type': 'application/json',
+		    	'X-Requested-With': 'XMLHttpRequest',
+		    })
+		}).then(() => {
+			const editedItem = items.find(item => item.orderNumber === id)
+			const editedItemInd = items.findIndex(item => item.orderNumber === id)
+			editedItem.itemTitle = value
+			const editedItems = items
+			editedItems[editedItemInd] = editedItem
+			setItems(editedItems)
+		})
+	}
+
 	return (
-		<ItemContainer items={items}/>
+		<ItemContainer items={items} handleAction={handleAction}/>
 	)
 }
 

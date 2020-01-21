@@ -3,24 +3,25 @@ import ContentEditable from 'react-contenteditable'
 import styles from './css/item.css';
 
 import Bullet from './Bullet.js'
+import EditableText from './EditableText.js'
 
-const Item = ({item}) => {
-
-	const contentEditableRef = useRef(null)
+const Item = ({item, handleAction}) => {
 
 	useEffect(() => {
 		console.log('items', item)
 	}, [item])
 
+	const handleTextChange = e => {
+		e.stopPropogation()
+		if(e.target.value) {
+			handleAction('edit', item._id, e.target.value)
+		}
+	}
+
 	return (
 		<div className={styles.item}>
 			<Bullet decollapsed={true} checked={true}/>
-			<ContentEditable
-				className={styles.contentEditableDiv}
-				innerRef={contentEditableRef}
-				html={item.itemTitle}
-				disabled={false}
-			/>
+			<EditableText item={item} handleAction={handleAction}/>
 		</div>
 	)
 }

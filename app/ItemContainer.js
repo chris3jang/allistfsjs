@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import Item from './Item'
 
-const ItemContainer = ({items}) => {
+const ItemContainer = ({items, handleAction}) => {
 
 	useEffect(() => {
 		console.log('items', items)
@@ -12,6 +12,7 @@ const ItemContainer = ({items}) => {
 			{items.sort((a, b) => a.orderNumber - b.orderNumber).map(item => 
 				<Item
 					item={item}
+					handleAction={handleAction}
 				/>
 			)}
 		</div>
