@@ -20,8 +20,8 @@ const Item = ({item, handleAction}) => {
 
 	return (
 		<div className={styles.item}>
-			<Bullet decollapsed={true} checked={true}/>
-			<EditableText item={item} handleAction={handleAction}/>
+			<Bullet orderNumber={item.orderNumber} decollapsed={true} checked={true} handleAction={handleAction}/>
+			<EditableText orderNumber={item.orderNumber} itemTitle={item.itemTitle} handleAction={handleAction}/>
 		</div>
 	)
 }

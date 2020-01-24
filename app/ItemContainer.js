@@ -12,6 +12,9 @@ const ItemContainer = ({items, handleAction}) => {
 			{items.sort((a, b) => a.orderNumber - b.orderNumber).map(item => 
 				<Item
 					item={item}
+					itemId={item._id}
+					itemTitle={item.itemTitle}
+					orderNumber={item.orderNumber}
 					handleAction={handleAction}
 				/>
 			)}

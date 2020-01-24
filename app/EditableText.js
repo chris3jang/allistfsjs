@@ -3,14 +3,14 @@ import styles from './css/editabletext.css'
 
 import ContentEditable from 'react-contenteditable'
 
-const EditableText = ({item, handleAction}) => {
+const EditableText = ({orderNumber, itemTitle, handleAction}) => {
 
 	const contentEditableRef = useRef(null)
 
 	const handleTextChange = e => {
 		console.log('event', e)
 		if(e.target.value) {
-			handleAction('edit', item.orderNumber, e.target.value)
+			handleAction('edit', orderNumber, e.target.value)
 		}
 	}
 
@@ -18,7 +18,7 @@ const EditableText = ({item, handleAction}) => {
 		<ContentEditable
 			className={styles.contentEditableDiv}
 			innerRef={contentEditableRef}
-			html={item.itemTitle}
+			html={itemTitle}
 			disabled={false}
 			spellCheck={false}
 			onChange={handleTextChange}
