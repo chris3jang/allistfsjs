@@ -2,35 +2,42 @@ const API = '/items/';
 
 const assignFetchData = (action, paramData) => {
 	const method = getMethod(action)
-	return { method: method, body: JSON.stringify(paramData),
-	    headers: new Headers({
+	const fetchData = {
+		headers: new Headers({
 	    	'authorization': 'Bearer ' + localStorage.getItem('access'),
 	    	'content-type': 'application/json',
 	    	'X-Requested-With': 'XMLHttpRequest',
 	    })
 	}
+	if(paramData) {
+		fetchData.method = method
+		fetchData.body = JSON.stringify(paramData)
+	}
+	return fetchData;
 }
 
 const getUrl = (action) => {
 	switch (action) {
+		case 'fetchInitialData': {
+			return API
+		}
+		case 'createItem': {
+			return API
+		}
 		case 'editItemTitle': {
 			return API
 		}
 		case 'toggleCheckbox': {
 			return `${API}check`
 		}
-		//example with break
-		case 'delete': {
-			if(this.state.items.length != 1) {
-				this.deleteItem(orderNumber); 
-			}
-			break;
-		}
 	}
 }
 
 const getMethod = (action) => {
 	switch (action) {
+		case 'createItem': {
+			return 'POST'
+		}
 		case 'editItemTitle': {
 			return 'PUT'
 		}

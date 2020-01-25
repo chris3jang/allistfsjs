@@ -7,11 +7,15 @@ const Bullet = ({orderNumber, decollapsed, checked, handleAction}) => {
 	const dot = decollapsed ? (checked ? styles.dotBlack : styles.dotWhite) : styles.dotBlack
 	const miniDot = checked ? styles.miniDotBlack : styles.miniDotWhite
 
+	const handleClick = e => {
+		handleAction('toggleCheckbox', orderNumber)
+	}
+
 	return (
 		<div className={styles.dotDiv}>
-			<span className={bigDot} onClick={handleAction('toggle', orderNumber)}></span>
+			<span className={bigDot}></span>
 			<span className={dot}></span>
-			<span className={miniDot}></span>
+			<span className={miniDot} onClick={handleClick}></span>
 		</div>
 	)
 }
