@@ -24,6 +24,9 @@ const getUrl = (action) => {
 		case 'createItem': {
 			return API
 		}
+		case 'deleteItem': {
+			return API
+		}
 		case 'editItemTitle': {
 			return API
 		}
@@ -37,6 +40,9 @@ const getMethod = (action) => {
 	switch (action) {
 		case 'createItem': {
 			return 'POST'
+		}
+		case 'deleteItem': {
+			return 'DELETE'
 		}
 		case 'editItemTitle': {
 			return 'PUT'

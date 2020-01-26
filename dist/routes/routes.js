@@ -701,9 +701,9 @@ module.exports = function(app, db) {
   const selectPreviousItemAfterDelete = (req, res, next) => {
     if(res.locals.orderNumber == 0) res.locals.nextSelectedIndex = 0
     else res.locals.nextSelectedIndex = res.locals.orderNumber - 1
+    //MAKE SURE ALL ITEMS BEGIN WIth HIDDEN SET TO FALSE, BUG IF ITEM AT ON 0 HAS NO HIDDEN VALUE
     itemsCol.find({$and: [{hidden: false}, {list: res.locals.listRef}, {orderNumber: {$lt: res.locals.orderNumber}}]}).sort({orderNumber: -1}).limit(1).next()
     .then(item => {
-      console.log("YOP", item)
       return listsCol.update({_id: new ObjectID(res.locals.listRef)}, {$set: {selectedItemIndex: item.orderNumber}})
     })
     .then(()=> {
@@ -713,7 +713,7 @@ module.exports = function(app, db) {
 
   app.delete('/items/', [getItem, getDescendantsOfItem, removeItemByOrderNumber, decrementOrderNumbers, 
     updateDescendantsAfterDelete, selectPreviousItemAfterDelete], (req, res) => {
-    res.send()
+    res.send({})
   })
 
   const liftDescendantIndentLevelsAndRemoveItem = (id, on, parent, il, listRef) => {

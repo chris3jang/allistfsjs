@@ -20,8 +20,13 @@ const WorkFlowy = () => {
 	const prevItems = usePrevious(items)
 	useEffect(() => {
 		if(mounted) {
-			const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
-			itemsRef.current.find(ref => addedItem._id === ref.id).node.focus()
+			if(prevItems.length < items.length) {
+				const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
+				itemsRef.current.find(ref => addedItem._id === ref.id).node.focus()
+			}
+			if(prevItems.length > items.length) {
+				console.log('delete')
+			}
 		}
 	}, [items])
 
@@ -32,6 +37,9 @@ const WorkFlowy = () => {
 				break;
 			case 'createRef':
 				createRef(id, value)
+				break;
+			case 'deleteItem':
+				deleteItem(id)
 				break;
 			case 'editItemTitle': 
 				editItemTitle(id, value);
@@ -46,7 +54,7 @@ const WorkFlowy = () => {
 	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
 		callFetch('createItem', {orderNumber: id}).then(data => {
-			let newOrderNumber = id + 1
+			let newOrderNumber = data.orderNumber
 			while(items.find(item => item.orderNumber === newOrderNumber) && items.find(item => item.orderNumber === newOrderNumber).hidden) {
 				newOrderNum++
 			}
@@ -76,6 +84,51 @@ const WorkFlowy = () => {
 
 	const createRef = (id, node) => {
 		itemsRef.current.push({id, node})
+	}
+
+	const deleteItem = id => {
+		//change id to orderNumber
+		console.log('dew')
+		callFetch('deleteItem', {orderNumber: id}).then(data => {
+			console.log('here?')
+			const itemsBeforeDelete = items.slice()
+			const itemToDelete = items.find(item => item.orderNumber === id)
+
+			const itemsBeforeDeleteByON = itemsBeforeDelete.sort((a, b) => a.orderNumber - b.orderNumber)
+			const firstPotentialChildInd = itemToDelete.orderNumber + 1
+			//test for deleting last item
+			const potentialChildItems = itemsBeforeDeleteByON.slice(firstPotentialChildInd)
+			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToDelete.indentLevel)
+			console.log('should be array of booleans, [true, true, false...]', areItemsChildItems)
+
+
+			const numChildItems = areItemsChildItems.findIndex(item => false) === -1 ? 0 : areItemsChildItems.findIndex(item => false)
+			const numNonChildRemainingItems = potentialChildItems.length - numChildItems
+			const childItemsToDecrement = itemsBeforeDeleteByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
+			const childItemsAfterDelete = childItemsToDecrement.map(item => { 
+				return {
+					...item, 
+					orderNumber: item.orderNumber - 1, 
+					indentLevel: item.indentLevel - 1
+				} 
+			})
+			console.log('childItemsAfterDelete', childItemsAfterDelete)
+			console.log('@', itemsBeforeDeleteByON.length - 1 - numNonChildRemainingItems, itemsBeforeDeleteByON.length - 1)
+			const nonChildRemainingItems = itemsBeforeDeleteByON.slice(itemsBeforeDeleteByON.length - numNonChildRemainingItems, itemsBeforeDeleteByON.length)
+			console.log('nonChildRemainingItems', nonChildRemainingItems)
+			const remainingItemsAfterDelete = nonChildRemainingItems.map(item => {
+				return {
+					...item,
+					orderNumber: item.orderNumber - 1
+				}
+			})
+			console.log('remainingItemsAfterDelete', remainingItemsAfterDelete)
+			const unchangedItems = itemsBeforeDelete.filter(item => item.orderNumber < itemToDelete.orderNumber)
+			console.log('unchangedItems', unchangedItems)
+			const itemsAfterDelete = [...unchangedItems, ...childItemsAfterDelete, ...remainingItemsAfterDelete]
+
+			setItems(itemsAfterDelete)
+		})
 	}
 
 	const editItemTitle = (id, value) => {

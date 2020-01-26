@@ -11,6 +11,7 @@ const ItemContainer = ({items, handleAction, createRef}) => {
 		<div>
 			{items.sort((a, b) => a.orderNumber - b.orderNumber).map(item => 
 				<Item
+					key={item._id}
 					item={item}
 					itemId={item._id}
 					itemTitle={item.itemTitle}

@@ -12,9 +12,15 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 	}
 
 	const handleKeyPress = e => {
+		console.log('12', e.key, e.target, e.target.value)
 		if(e.key === 'Enter') {
 			e.preventDefault()
 			handleAction('createItem', orderNumber)
+		}
+		if(e.key == 'Backspace' && !e.target.innerText) {
+			console.log('do i get here?')
+			e.preventDefault()
+			handleAction('deleteItem', orderNumber)
 		}
 	}
 
@@ -30,7 +36,7 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 			disabled={false}
 			spellCheck={false}
 			onChange={handleTextChange}
-			onKeyPress={handleKeyPress}
+			onKeyDown={handleKeyPress}
 		/>
 	)
 }
