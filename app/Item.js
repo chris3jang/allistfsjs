@@ -8,11 +8,11 @@ import EditableText from './EditableText.js'
 const Item = ({item, handleAction}) => {
 
 	useEffect(() => {
-		console.log('items', item)
+		console.log('@', item.orderNumber, Array(item.indentLevel))
 	}, [item])
 
 	return (
-		<div className={styles.item}>
+		<div style={{paddingLeft: 20 * item.indentLevel}} className={styles.item}>
 			<Bullet orderNumber={item.orderNumber} decollapsed={item.decollapsed} checked={item.checked} handleAction={handleAction}/>
 			<EditableText id={item._id} orderNumber={item.orderNumber} itemTitle={item.itemTitle} handleAction={handleAction}/>
 		</div>

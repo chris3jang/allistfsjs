@@ -91,9 +91,7 @@ const WorkFlowy = () => {
 
 	const deleteItem = id => {
 		//change id to orderNumber
-		console.log('dew')
 		callFetch('deleteItem', {orderNumber: id}).then(data => {
-			console.log('here?')
 			const itemsBeforeDeleteByON = items.slice().sort((a, b) => a.orderNumber - b.orderNumber)
 			const itemToDelete = items.find(item => item.orderNumber === id)
 
@@ -101,7 +99,6 @@ const WorkFlowy = () => {
 			//test for deleting last item
 			const potentialChildItems = itemsBeforeDeleteByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToDelete.indentLevel)
-			console.log('should be array of booleans, [true, true, false...]', areItemsChildItems)
 
 
 			const numChildItems = areItemsChildItems.findIndex(item => !item) === -1 ? 0 : areItemsChildItems.findIndex(item => !item)
@@ -114,19 +111,14 @@ const WorkFlowy = () => {
 					indentLevel: item.indentLevel - 1
 				} 
 			})
-			console.log('childItemsAfterDelete', childItemsAfterDelete)
-			console.log('@', itemsBeforeDeleteByON.length - 1 - numNonChildRemainingItems, itemsBeforeDeleteByON.length - 1)
 			const nonChildRemainingItems = itemsBeforeDeleteByON.slice(itemsBeforeDeleteByON.length - numNonChildRemainingItems, itemsBeforeDeleteByON.length)
-			console.log('nonChildRemainingItems', nonChildRemainingItems)
 			const remainingItemsAfterDelete = nonChildRemainingItems.map(item => {
 				return {
 					...item,
 					orderNumber: item.orderNumber - 1
 				}
 			})
-			console.log('remainingItemsAfterDelete', remainingItemsAfterDelete)
 			const unchangedItems = itemsBeforeDeleteByON.filter(item => item.orderNumber < itemToDelete.orderNumber)
-			console.log('unchangedItems', unchangedItems)
 			const itemsAfterDelete = [...unchangedItems, ...childItemsAfterDelete, ...remainingItemsAfterDelete]
 
 			setItems(itemsAfterDelete)
