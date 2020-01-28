@@ -48,6 +48,22 @@ const WorkFlowy = () => {
 				toggleCheckbox(id);
 				break;
 			}
+			case 'tabItem': {
+				tabItem(id);
+				break;
+			}
+			case 'untabItem': {
+				untabItem(id);
+				break;
+			}
+			case 'collapseItem': {
+				collapseItem(id);
+				break;
+			}
+			case 'decollapseItem': {
+				decollapseItem(id);
+				break;
+			}
 		}	
 	}
 
@@ -150,6 +166,42 @@ const WorkFlowy = () => {
 			setItems(editedItems)
 		})
 		return
+	}
+
+	const tabItem = id => {
+		callFetch('tabItem', {orderNumber: id}).then(() => {
+			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+			const tabbedItem = items.find(item => item.orderNumber === id)
+			const firstPotentialChildInd = id + 1
+			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
+			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > tabbedItem.indentLevel)
+			const numChildItems = areItemsChildItems.findIndex(item => !item) === -1 ? 0 : areItemsChildItems.findIndex(item => !item)
+			const itemsToIncrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
+			const itemsAfterIncrementing = itemsToIncrement.map(item => {
+				return {
+					...item,
+					indentLevel: item.indentLevel + 1
+				}
+			})
+			const unchangedItems = itemsByON.filter(item => item.orderNumber < id)
+			const remainingItems = itemsByON.filter(item => item.orderNumber > id + numChildItems)
+			const itemsAfterTab = [...unchangedItems, ...itemsAfterIncrementing, ...remainingItems]
+			setItems(itemsAfterTab)
+		})
+	}
+
+	const untabItem = id => {
+		callFetch('untabItem', {orderNumber: id}).then(() => {
+			
+		})
+	}
+
+	const collapseItem = id => {
+
+	}
+
+	const decollapseItem = id => {
+
 	}
 
 	return (

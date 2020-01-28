@@ -33,6 +33,18 @@ const getUrl = (action) => {
 		case 'toggleCheckbox': {
 			return `${API}check`
 		}
+		case 'tabItem': {
+			return `${API}tab`
+		}
+		case 'untabItem': {
+			return `${API}untab`
+		}
+		case 'collapseItem': {
+			return `${API}collapse`
+		}
+		case 'decollapseItem': {
+			return `${API}collapse`
+		}
 	}
 }
 
@@ -48,6 +60,18 @@ const getMethod = (action) => {
 			return 'PUT'
 		}
 		case 'toggleCheckbox': {
+			return 'PUT'
+		}
+		case 'tabItem': {
+			return 'PUT'
+		}
+		case 'untabItem': {
+			return 'PUT'
+		}
+		case 'collapseItem': {
+			return 'PUT'
+		}
+		case 'decollapseItem': {
 			return 'PUT'
 		}
 	}

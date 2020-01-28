@@ -12,16 +12,47 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 	}
 
 	const handleKeyPress = e => {
-		console.log('12', e.key, e.target, e.target.value)
+		console.log('12', e.key, e.target, e.target.value, e.metaKey)
 		if(e.key === 'Enter') {
 			e.preventDefault()
 			handleAction('createItem', orderNumber)
 		}
-		if(e.key == 'Backspace' && !e.target.innerText) {
-			console.log('do i get here?')
+		if(e.key === 'Backspace' && !e.target.innerText) {
 			e.preventDefault()
 			handleAction('deleteItem', orderNumber)
 		}
+		if(e.key === 'Tab') {
+			e.preventDefault()
+			if(e.shiftKey) {
+				handleAction('untabItem', orderNumber)
+			}
+			else {
+				handleAction('tabItem', orderNumber)
+			}
+		}
+		if(e.key === 'ArrowLeft') {
+			handleAction('decollapseItem', orderNumber)
+		}
+		if(e.key === 'ArrowRight') {
+			handleAction('collapseItem', orderNumber)
+		}
+		if(e.key === 'ArrowUp') {
+			if(e.metaKey) {
+
+			}
+			else {
+
+			}
+		}
+		if(e.key === 'ArrowUp') {
+			if(e.metaKey) {
+
+			}
+			else {
+				
+			}
+		}
+
 	}
 
 	const handleRefCreate = (node) => {

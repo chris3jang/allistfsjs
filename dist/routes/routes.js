@@ -621,7 +621,7 @@ module.exports = function(app, db) {
       next()
     })
   }, [getDescendantsOfItem, incrementDescendantIndentLevels], (req, res, next) => {
-    res.send()
+    res.send({})
   })
 
   //requires getItemByListAndOrderNumber
