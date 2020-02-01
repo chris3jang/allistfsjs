@@ -213,6 +213,7 @@ class CurrentList extends React.Component {
 		fetch('/items/collapse/', fetchData)
 			.then(resp => resp.json())
 			.then((data) => {
+				console.log('data')
 				editedList[orderNumber].decollapsed = !this.state.items[orderNumber].decollapsed
 				for(let i = 0; i < data.index.length; i++) {
 					editedList[data.index[i]].hidden = !this.state.items[data.index[i]].hidden

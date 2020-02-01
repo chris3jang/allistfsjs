@@ -30,10 +30,12 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 				handleAction('tabItem', orderNumber)
 			}
 		}
-		if(e.key === 'ArrowLeft') {
+		if(e.key === 'ArrowLeft' && e.metaKey) {
+			e.preventDefault()
 			handleAction('decollapseItem', orderNumber)
 		}
-		if(e.key === 'ArrowRight') {
+		if(e.key === 'ArrowRight' && e.metaKey) {
+			e.preventDefault()
 			handleAction('collapseItem', orderNumber)
 		}
 		if(e.key === 'ArrowUp') {

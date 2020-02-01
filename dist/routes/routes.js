@@ -421,7 +421,6 @@ module.exports = function(app, db) {
 
   const toggleItemCollapse = [toggleItemCollapseProp, getDescendantsOfItem, toggleDescendantsCollapseProp]
 
-
   app.get('/lists/', getUser, (req, res) => {
     listsCol.find({ $query: {user: res.locals.username}, $orderby: { orderNumber : 1 } }).toArray()
     .then(lists => {
@@ -663,11 +662,19 @@ module.exports = function(app, db) {
       }
       else break
     }
-    res.send()
+    res.send({})
   })
 
   app.put('/items/collapse/', [getItem, toggleItemCollapse])
 
+
+  /*
+  app.put('/items/collapse/', [getItem, toggleItemCollapse], (req, res, next) => {
+
+  })
+
+  app.put('/items/decollapse/', [getItem, toggleItemCollapse])
+  */
 
   //requires getQueryDetailsForItem(getList, parseOrderNumberFromFrontEnd)
   const removeItemByOrderNumber = (req, res, next) => {

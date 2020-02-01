@@ -9,7 +9,7 @@ const ItemContainer = ({items, handleAction, createRef}) => {
 
 	return (
 		<div>
-			{items.sort((a, b) => a.orderNumber - b.orderNumber).map(item => 
+			{items.filter(item => !item.hidden).sort((a, b) => a.orderNumber - b.orderNumber).map(item => 
 				<Item
 					key={item._id}
 					item={item}
