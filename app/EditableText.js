@@ -12,7 +12,6 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 	}
 
 	const handleKeyPress = e => {
-		console.log('12', e.key, e.target, e.target.value, e.metaKey)
 		if(e.key === 'Enter') {
 			e.preventDefault()
 			handleAction('createItem', orderNumber)
@@ -39,20 +38,12 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 			handleAction('collapseItem', orderNumber)
 		}
 		if(e.key === 'ArrowUp') {
-			if(e.metaKey) {
-
-			}
-			else {
-
-			}
+			e.preventDefault()
+			handleAction('moveUp', orderNumber)
 		}
-		if(e.key === 'ArrowUp') {
-			if(e.metaKey) {
-
-			}
-			else {
-				
-			}
+		if(e.key === 'ArrowDown') {
+			e.preventDefault()
+			handleAction('moveDown', orderNumber)
 		}
 
 	}

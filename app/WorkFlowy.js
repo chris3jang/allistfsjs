@@ -20,11 +20,11 @@ const WorkFlowy = () => {
 	const prevItems = usePrevious(items)
 	useEffect(() => {
 		if(mounted) {
-			if(prevItems.length < items.length) {
+			if(prevItems.length === items.length - 1) {
 				const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
 				itemsRef.current.find(ref => addedItem._id === ref.id).node.focus()
 			}
-			if(prevItems.length > items.length) {
+			if(prevItems.length === items.length + 1) {
 				console.log('delete')
 			}
 		}
@@ -64,6 +64,14 @@ const WorkFlowy = () => {
 				decollapseItem(id);
 				break;
 			}
+			case 'moveUp': {
+				moveUp(id, value);
+				break;
+			}
+			case 'moveDown': {
+				moveDown(id, value);
+				break;
+			}
 		}	
 	}
 
@@ -73,7 +81,7 @@ const WorkFlowy = () => {
 			const itemsBeforeCreateByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const potentialHiddenItems = itemsBeforeCreateByON.slice(id + 1)//orderNumber + 1
 			const areHiddenChildItems = potentialHiddenItems.map(item => item.hidden)
-			const numHiddenChildItems = areHiddenChildItems.findIndex(item => !item) === -1 ? 0 : areHiddenChildItems.findIndex(item => !item)
+			const numHiddenChildItems = areHiddenChildItems.findIndex(bool => !bool) === -1 ? 0 : areHiddenChildItems.findIndex(bool => !bool)
 			const newOrderNumber = id + numHiddenChildItems + 1
 			//const newOrderNumber = data.orderNumber
 
@@ -102,7 +110,13 @@ const WorkFlowy = () => {
 	}
 
 	const createRef = (id, node) => {
-		itemsRef.current.push({id, node})
+		const refInd = itemsRef.current.findIndex(ref => ref.id === id)
+		if(refInd === -1) {
+			itemsRef.current.push({id, node})
+		}
+		else {
+			itemsRef.current.splice(refInd, 1, {id, node})
+		}
 	}
 
 	const deleteItem = id => {
@@ -117,7 +131,7 @@ const WorkFlowy = () => {
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToDelete.indentLevel)
 
 
-			const numChildItems = areItemsChildItems.findIndex(item => !item) === -1 ? 0 : areItemsChildItems.findIndex(item => !item)
+			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? 0 : areItemsChildItems.findIndex(bool => !bool)
 			const numNonChildRemainingItems = potentialChildItems.length - numChildItems
 			const childItemsToDecrement = itemsBeforeDeleteByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
 			const childItemsAfterDelete = childItemsToDecrement.map(item => { 
@@ -175,7 +189,7 @@ const WorkFlowy = () => {
 			const firstPotentialChildInd = id + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > tabbedItem.indentLevel)
-			const numChildItems = areItemsChildItems.findIndex(item => !item) === -1 ? 0 : areItemsChildItems.findIndex(item => !item)
+			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? 0 : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToIncrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
 			const itemsAfterIncrementing = itemsToIncrement.map(item => {
 				return {
@@ -197,7 +211,7 @@ const WorkFlowy = () => {
 			const firstPotentialChildInd = id + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > untabbedItem.indentLevel)
-			const numChildItems = areItemsChildItems.findIndex(item => !item) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(item => !item)
+			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToDecrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
 			const itemsAfterDecrementing = itemsToDecrement.map(item => {
 				return {
@@ -219,7 +233,7 @@ const WorkFlowy = () => {
 			const firstPotentialChildInd = id + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToCollapse.indentLevel)
-			const numChildItems = areItemsChildItems.findIndex(item => !item) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(item => !item)
+			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
 				const potentialParents = itemsByON.filter(i => (i.orderNumber >= id && i.orderNumber < item.orderNumber && i.indentLevel === item.indentLevel - 1))
@@ -250,7 +264,7 @@ const WorkFlowy = () => {
 			const firstPotentialChildInd = id + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToDecollapse.indentLevel)
-			const numChildItems = areItemsChildItems.findIndex(item => !item) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(item => !item)
+			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToHide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
 			const itemsHid = itemsToHide.map(item => {
 				return {
@@ -266,6 +280,34 @@ const WorkFlowy = () => {
 			const itemsAfterDecollapse = [...unchangedItems, itemAfterDecollapse, ...itemsHid, ...remainingItems]
 			setItems(itemsAfterDecollapse)
 		})
+	}
+
+	const moveUp = id => {
+		const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, id).sort((a, b) => b.orderNumber - a.orderNumber)
+		const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
+		const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
+		if(id - numHiddenItemsAbove - 1 < 0) {
+			return
+		}
+		const itemToFocusOn = items.find(item => item.orderNumber === id - numHiddenItemsAbove - 1)
+		const itemRef = itemsRef.current.find(ref => itemToFocusOn._id === ref.id)
+		itemRef.node.focus()
+	}
+
+	const moveDown = id => {
+		if(id === items.length - 1) {
+			return
+		}
+
+		const itemsBelow = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(id + 1, items.length)
+		const areItemsBelowHidden = itemsBelow.map(item => item.hidden)
+		const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool)
+		if(id + numHiddenItemsBelow + 1 > items.length - 1) {
+			return
+		}
+		const itemToFocusOn = items.find(item => item.orderNumber === id + 1 + numHiddenItemsBelow)
+		const itemRef = itemsRef.current.find(ref => itemToFocusOn._id === ref.id)
+		itemRef.node.focus()
 	}
 
 	return (
