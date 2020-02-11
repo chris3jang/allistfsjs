@@ -43,7 +43,7 @@ const getUrl = (action) => {
 			return `${API}collapse`
 		}
 		case 'decollapseItem': {
-			return `${API}collapse`
+			return `${API}decollapse`
 		}
 	}
 }

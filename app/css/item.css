@@ -2,6 +2,12 @@
 	margin-top: 10px;
 }
 
+.itemCompleted {
+  margin-top: 10px;
+  text-decoration: line-through;
+  opacity: .2;
+}
+
 .dotDiv {
 	display: inline-block;
   	vertical-align: top;
@@ -52,9 +58,9 @@
 .contentEditableDiv {
 	display: inline-block;
 	vertical-align: top;
-    position: relative;
-    left: 6px;
-    bottom: 3px;
-    /* max-width is calculated as the width of the item subtracted by the width of the dot, 6px with plus left/right border of 1px each side */
-    max-width: calc(100% - 12px);
+  position: relative;
+  left: 6px;
+  bottom: 3px;
+  /* max-width is calculated as the width of the item subtracted by the width of the dot, 6px with plus left/right border of 1px each side */
+  max-width: calc(100% - 12px);
 }

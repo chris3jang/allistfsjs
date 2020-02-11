@@ -3,7 +3,7 @@ import styles from './css/editabletext.css'
 
 import ContentEditable from 'react-contenteditable'
 
-const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
+const EditableText = ({id, orderNumber, itemTitle, checked, handleAction}) => {
 
 	const handleTextChange = e => {
 		if(e.target.value) {
@@ -13,8 +13,14 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 
 	const handleKeyPress = e => {
 		if(e.key === 'Enter') {
-			e.preventDefault()
-			handleAction('createItem', orderNumber)
+			if(e.metaKey) {
+				e.preventDefault()
+				handleAction('toggleCheckbox', orderNumber)
+			}
+			else {
+				e.preventDefault()
+				handleAction('createItem', orderNumber)
+			}
 		}
 		if(e.key === 'Backspace' && !e.target.innerText) {
 			e.preventDefault()
@@ -54,7 +60,7 @@ const EditableText = ({id, orderNumber, itemTitle, handleAction}) => {
 
 	return (
 		<ContentEditable
-			className={styles.contentEditableDiv}
+			className={checked ? styles.completed : styles.contentEditableDiv}
 			innerRef={node => handleRefCreate(node, 'div')}
 			html={itemTitle}
 			disabled={false}

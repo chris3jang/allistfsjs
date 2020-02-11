@@ -665,16 +665,64 @@ module.exports = function(app, db) {
     res.send({})
   })
 
-  app.put('/items/collapse/', [getItem, toggleItemCollapse])
+  //app.put('/items/collapse/', [getItem, toggleItemCollapse])
+  //app.put('/items/decollapse/', [getItem, toggleItemCollapse])
 
-
-  /*
-  app.put('/items/collapse/', [getItem, toggleItemCollapse], (req, res, next) => {
-
+  const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
+    console.log('item', item)
+    console.log('potentialParents', potentialParents)
+		const parent = potentialParents.find(i => i._id.toString() === item.parent)
+		if(!parent) {
+			console.log('!')
+			return false
+		}
+		if(parent._id.toString() === itemToggled._id.toString()) {
+			console.log('@')
+			return false
+		}
+		if(parent.decollapsed) {
+			console.log('#')
+			return true
+		}
+		return shouldItemRemainHidden(parent, itemToggled, potentialParents)
+	}
+  
+  app.put('/items/collapse/', [getItem, toggleItemCollapseProp, getDescendantsOfItem], (req, res, next) => {
+    const { item, descendants } = res.locals
+    console.log('descendants', descendants, 'item', item)
+    const itemWithDescendants = [item, ...descendants]
+    const sortedItems = itemWithDescendants.sort((a, b) => a.orderNumber - b.orderNumber)
+    const sortedDescendants = descendants.sort((a, b) => a.orderNumber - b.orderNumber)
+    for(let i = 0; i < sortedDescendants.length; i++) {
+      /*
+      const potentialParents = sortedItems.filter(it => it.orderNumber < sortedDescendants[i].orderNumber && it.indentLevel === sortedDescendants[i].indentLevel - 1)
+      console.log('potentialParents', potentialParents)
+      const parent = potentialParents.reduce((a, b) => Math.max(a.orderNumber, b.orderNumber))
+      
+      if(parent.orderNumber === item.orderNumber || !parent.decollapsed) {
+        console.log('updating descendant to hidden false', descendants[i])
+        itemsCol.update({_id: sortedDescendants[i]._id}, {$set: {hidden: false}})
+      }
+      */
+      if(!shouldItemRemainHidden(sortedDescendants[i], item, itemWithDescendants)) {
+        itemsCol.update({_id: sortedDescendants[i]._id}, {$set: {hidden: false}})
+      }
+    }
+    res.send({})
   })
 
-  app.put('/items/decollapse/', [getItem, toggleItemCollapse])
-  */
+
+  app.put('/items/decollapse/', [getItem, toggleItemCollapseProp, getDescendantsOfItem], (req, res, next) => {
+    const { item, descendants } = res.locals
+    console.log('descendants', descendants, 'item', item)
+    const sortedDescendants = descendants.sort((a, b) => a.orderNumber - b.orderNumber)
+    for(let i = 0; i < sortedDescendants.length; i++) {
+      if(!sortedDescendants[i].hidden) {
+        itemsCol.update({_id: sortedDescendants[i]._id}, {$set: {hidden: true}})
+      }
+    }
+    res.send({})
+  })
 
   //requires getQueryDetailsForItem(getList, parseOrderNumberFromFrontEnd)
   const removeItemByOrderNumber = (req, res, next) => {

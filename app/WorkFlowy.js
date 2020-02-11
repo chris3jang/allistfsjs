@@ -226,6 +226,24 @@ const WorkFlowy = () => {
 		})
 	}
 
+	const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
+		console.log('item', item)
+		const parent = potentialParents.find(i => i._id === item.parent)
+		if(!parent) {
+			console.log('!')
+			return false
+		}
+		if(parent._id === itemToggled._id) {
+			console.log('@')
+			return false
+		}
+		if(parent.decollapsed) {
+			console.log('#')
+			return true
+		}
+		return shouldItemRemainHidden(parent, itemToggled, potentialParents)
+	}
+
 	const collapseItem = id => {
 		callFetch('collapseItem', {orderNumber: id, decollapsed: true}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
@@ -235,9 +253,16 @@ const WorkFlowy = () => {
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToCollapse.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
+
+			const potentialParents = itemsByON.slice(id, id + 1 + numChildItems)
+
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
-				const potentialParents = itemsByON.filter(i => (i.orderNumber >= id && i.orderNumber < item.orderNumber && i.indentLevel === item.indentLevel - 1))
-				const parent = potentialParents.reduce((a, b) => Math.max(a.orderNumber, b.orderNumber))
+				/*const potentialParents = itemsByON.filter(i => (i.orderNumber >= id && i.orderNumber < item.orderNumber && i.indentLevel === item.indentLevel - 1))
+				console.log('potentialParents', potentialParents)
+				const parent = potentialParents.reduce((high, item) => high.orderNumber > item.orderNumber ? high : item)
+				console.log('parent', parent)
+				*/
+				/*
 				if(parent.orderNumber === id || !parent.decollapsed) {
 					return {
 						...item,
@@ -245,20 +270,31 @@ const WorkFlowy = () => {
 					}
 				}
 				else {
-					item
+					return item
+				}
+				*/
+				if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
+					return item
+				}
+				else {
+					return {
+						...item,
+						hidden: false
+					}
 				}
 			})
 			const itemAfterCollapse = {
 				...itemToCollapse, decollapsed: false
 			}
 			const itemsAfterCollapse = [...itemsByON.slice(0, id), itemAfterCollapse, ...unhiddenItems, ...itemsByON.slice(firstPotentialChildInd + numChildItems)]
+			console.log('itemsAfterCollapse', itemsAfterCollapse)
 			setItems(itemsAfterCollapse)
 
 		})
 	}
 
 	const decollapseItem = id => {
-		callFetch('collapseItem', {orderNumber: id, decollapsed: false}).then(() => {
+		callFetch('decollapseItem', {orderNumber: id, decollapsed: false}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const itemToDecollapse = items.find(item => item.orderNumber === id)
 			const firstPotentialChildInd = id + 1
@@ -295,10 +331,6 @@ const WorkFlowy = () => {
 	}
 
 	const moveDown = id => {
-		if(id === items.length - 1) {
-			return
-		}
-
 		const itemsBelow = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(id + 1, items.length)
 		const areItemsBelowHidden = itemsBelow.map(item => item.hidden)
 		const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool)

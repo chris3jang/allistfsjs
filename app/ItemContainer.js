@@ -16,6 +16,7 @@ const ItemContainer = ({items, handleAction, createRef}) => {
 					itemId={item._id}
 					itemTitle={item.itemTitle}
 					orderNumber={item.orderNumber}
+					checked={item.checked}
 					handleAction={handleAction}
 				/>
 			)}

@@ -5,11 +5,11 @@ import styles from './css/item.css';
 import Bullet from './Bullet.js'
 import EditableText from './EditableText.js'
 
-const Item = ({item, handleAction}) => {
+const Item = ({item, checked, handleAction}) => {
 	return (
-		<div style={{paddingLeft: 20 * item.indentLevel}} className={styles.item}>
+		<div style={{paddingLeft: 20 * item.indentLevel}} className={checked ? styles.itemCompleted : styles.item}>
 			<Bullet orderNumber={item.orderNumber} decollapsed={item.decollapsed} checked={item.checked} handleAction={handleAction}/>
-			<EditableText id={item._id} orderNumber={item.orderNumber} itemTitle={item.itemTitle} handleAction={handleAction}/>
+			<EditableText id={item._id} orderNumber={item.orderNumber} itemTitle={item.itemTitle} checked={item.checked} handleAction={handleAction}/>
 		</div>
 	)
 }
