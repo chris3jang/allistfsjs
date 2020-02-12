@@ -3,22 +3,29 @@ import ItemContainer from './ItemContainer'
 import { callFetch } from './api';
 import { usePrevious } from './hooks'
 
-const WorkFlowy = () => {
+const WorkFlowy = (username, shouldChildUpdate, updateComplete) => {
 
 	const [items, setItems] = useState([])
 	const [mounted, setMounted] = useState(false)
 	const itemsRef = useRef([])
 
 	useEffect(() => {
-		callFetch('fetchInitialData')
-			.then((data) => {
-				setItems(data)
-				setMounted(true)
-			})
-	}, [])
+		console.log('yuh2')
+		if(shouldChildUpdate) {
+			console.log('yuh3')
+			callFetch('fetchInitialData')
+				.then((data) => {
+					console.log('yuh4')
+					setItems(data)
+					setMounted(true)
+					updateComplete()
+				})
+		}
+	}, [shouldChildUpdate])
 
 	const prevItems = usePrevious(items)
 	useEffect(() => {
+		console.log('1')
 		if(mounted) {
 			if(prevItems.length === items.length - 1) {
 				const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
@@ -342,6 +349,7 @@ const WorkFlowy = () => {
 		itemRef.node.focus()
 	}
 
+	console.log('123')
 	return (
 		<ItemContainer items={items} handleAction={handleAction}/>
 	)

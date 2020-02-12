@@ -1,5 +1,5 @@
 
-import React from 'react';
+import React, {Fragment} from 'react';
 import ReactDOM from 'react-dom';
 import Home from './home';
 import Loginregister from './Loginregister';
@@ -8,14 +8,22 @@ import './css/fonts.css';
 import jwt_decode from 'jwt-decode';
 
 import WorkFlowy from './WorkFlowy'
+import NavBar from './NavBar'
 
 class App extends React.Component {
 
-	state = {
-		authenticated: false,
-		user: null,
-		newFrontEnd: false
-	};
+	constructor(props) {
+		super(props);
+		this.state = {
+			authenticated: false,
+			user: null,
+			newFrontEnd: false,
+			updateChild: true
+		};
+		//this.handleInputChange = this.handleInputChange.bind(this);
+		this.handleUpdateComplete = this.handleUpdateComplete.bind(this)
+		this.handleLogOut = this.handleLogOut.bind(this)
+	}
 
 	componentDidMount() {
 		this.getAuth();
@@ -176,12 +184,6 @@ class App extends React.Component {
 		})
 	};
 
-	handleLogOut = () => {
-		localStorage.removeItem('access');
-		localStorage.removeItem('refresh');
-		this.setState({authenticated: false});
-	};
-
 	handleLogIn = (un, pw, act) => {
 		this.logIn(un, pw, act);
 	};
@@ -194,12 +196,49 @@ class App extends React.Component {
 		this.test();
 	};
 
+	/**************************************************************************************************** */
+
+	handleTrashCheckedItemsFromNav() {
+		const self = this
+		const fetchData = { 
+		    method: 'DELETE', body: JSON.stringify({orderNumber: 0}),
+		    headers: new Headers({
+		    	'authorization': 'Bearer ' + localStorage.getItem('access'),
+		    	'content-type': 'application/json',
+		    	'X-Requested-With': 'XMLHttpRequest'
+		    })
+		}
+		fetch('/items/trash/', fetchData)
+			.then((data) => {
+				console.log('yuhhh')
+				self.setState({updateChild: true})
+			});
+	}
+
+	handleLogOut = () => {
+		localStorage.removeItem('access');
+		localStorage.removeItem('refresh');
+		this.setState({authenticated: false});
+	};
+
+	handleUpdateComplete = () => {
+		this.setState({updateChild: false})
+	}
 
 	render() {
 		return (
 			<div className={styles.app}>
 				{this.state.authenticated && this.state.newFrontEnd ? (
-					<WorkFlowy></WorkFlowy>
+					<Fragment>
+						<NavBar
+							trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}
+							logout={this.handleLogOut} 
+						/>
+						<WorkFlowy 
+							shouldChildUpdate={this.state.updateChild}
+							updateComplete={this.handleUpdateComplete}
+						/>
+					</Fragment>
 				) : this.state.authenticated ? (
 					<Home 
 						username={this.state.user}

@@ -9,7 +9,6 @@ import styles from './css/home.css'
 class Home extends React.Component {
 
 	state = {
-		username: this.props.username,
 		selectedListIndex: null,
 		editMenu: false,
 		listsFocus: false,
