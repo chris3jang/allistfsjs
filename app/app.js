@@ -234,8 +234,7 @@ class App extends React.Component {
 							trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}
 							logout={this.handleLogOut} 
 						/>
-						<WorkFlowy 
-						/>
+						<WorkFlowy />
 					</Fragment>
 				) : this.state.authenticated ? (
 					<Home 

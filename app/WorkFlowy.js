@@ -3,7 +3,7 @@ import ItemContainer from './ItemContainer'
 import { callFetch } from './api';
 import { usePrevious } from './hooks'
 
-const WorkFlowy = ({username, shouldChildUpdate, updateComplete}) => {
+const WorkFlowy = () => {
 
 	const [items, setItems] = useState([])
 	const [mounted, setMounted] = useState(false)
