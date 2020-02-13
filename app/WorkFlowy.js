@@ -48,9 +48,20 @@ const WorkFlowy = ({username, shouldChildUpdate, updateComplete}) => {
 				console.log("items", items)
 				const deletedItem = prevItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
 				console.log('deletedItem', deletedItem)
+				/*
 				const previousItem = items.find(item => item.orderNumber === deletedItem.orderNumber - 1)
 				console.log('previousItem', previousItem)
 				itemsRef.current.find(ref => previousItem._id === ref.id).node.focus()
+				*/
+
+				const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, deletedItem.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
+				const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
+				const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
+				if(deletedItem.orderNumber - numHiddenItemsAbove - 1 >= 0) {
+					const itemToFocusOn = items.find(item => item.orderNumber === deletedItem.orderNumber - numHiddenItemsAbove - 1)
+					const itemRef = itemsRef.current.find(ref => itemToFocusOn._id === ref.id)
+					itemRef.node.focus()
+				}
 			}
 		}
 	}, [items])
