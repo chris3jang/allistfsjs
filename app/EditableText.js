@@ -12,12 +12,15 @@ const EditableText = ({id, orderNumber, itemTitle, checked, handleAction}) => {
 	}
 
 	const handleKeyPress = e => {
+		console.log('1')
 		if(e.key === 'Enter') {
+			console.log('2')
 			if(e.metaKey) {
 				e.preventDefault()
 				handleAction('toggleCheckbox', orderNumber)
 			}
 			else {
+				console.log('3')
 				e.preventDefault()
 				handleAction('createItem', orderNumber)
 			}

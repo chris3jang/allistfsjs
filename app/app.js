@@ -221,7 +221,7 @@ class App extends React.Component {
 		this.setState({authenticated: false});
 	};
 
-	handleUpdateComplete = () => {
+	handleUpdateComplete() {
 		this.setState({updateChild: false})
 	}
 
@@ -235,8 +235,6 @@ class App extends React.Component {
 							logout={this.handleLogOut} 
 						/>
 						<WorkFlowy 
-							shouldChildUpdate={this.state.updateChild}
-							updateComplete={this.handleUpdateComplete}
 						/>
 					</Fragment>
 				) : this.state.authenticated ? (

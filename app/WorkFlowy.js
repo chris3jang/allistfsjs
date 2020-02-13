@@ -3,12 +3,23 @@ import ItemContainer from './ItemContainer'
 import { callFetch } from './api';
 import { usePrevious } from './hooks'
 
-const WorkFlowy = (username, shouldChildUpdate, updateComplete) => {
+const WorkFlowy = ({username, shouldChildUpdate, updateComplete}) => {
 
 	const [items, setItems] = useState([])
 	const [mounted, setMounted] = useState(false)
 	const itemsRef = useRef([])
 
+
+	useEffect(() => {
+		callFetch('fetchInitialData')
+			.then((data) => {
+				console.log('yuh4')
+				setItems(data)
+				setMounted(true)
+			})
+	}, [])
+
+	/*
 	useEffect(() => {
 		console.log('yuh2')
 		if(shouldChildUpdate) {
@@ -22,6 +33,7 @@ const WorkFlowy = (username, shouldChildUpdate, updateComplete) => {
 				})
 		}
 	}, [shouldChildUpdate])
+	*/
 
 	const prevItems = usePrevious(items)
 	useEffect(() => {
@@ -32,14 +44,22 @@ const WorkFlowy = (username, shouldChildUpdate, updateComplete) => {
 				itemsRef.current.find(ref => addedItem._id === ref.id).node.focus()
 			}
 			if(prevItems.length === items.length + 1) {
-				console.log('delete')
+				console.log('prevItems', prevItems)
+				console.log("items", items)
+				const deletedItem = prevItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
+				console.log('deletedItem', deletedItem)
+				const previousItem = items.find(item => item.orderNumber === deletedItem.orderNumber - 1)
+				console.log('previousItem', previousItem)
+				itemsRef.current.find(ref => previousItem._id === ref.id).node.focus()
 			}
 		}
 	}, [items])
 
 	const handleAction = (action, id, value) => {
+		console.log('4')
 		switch (action) {
 			case 'createItem': 
+				console.log('5')
 				createItem(id)
 				break;
 			case 'createRef':
@@ -84,7 +104,9 @@ const WorkFlowy = (username, shouldChildUpdate, updateComplete) => {
 
 	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
+		console.log('6')
 		callFetch('createItem', {orderNumber: id}).then(data => {
+			console.log('7')
 			const itemsBeforeCreateByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const potentialHiddenItems = itemsBeforeCreateByON.slice(id + 1)//orderNumber + 1
 			const areHiddenChildItems = potentialHiddenItems.map(item => item.hidden)
@@ -112,6 +134,7 @@ const WorkFlowy = (username, shouldChildUpdate, updateComplete) => {
 					orderNumber: newOrderNumber
 				}
 			]
+			console.log('8')
 			setItems(itemsAfterCreate)
 		})
 	}
