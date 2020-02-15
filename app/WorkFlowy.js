@@ -3,7 +3,21 @@ import ItemContainer from './ItemContainer'
 import { callFetch } from './api';
 import { usePrevious } from './hooks'
 
+import { createUseStyles } from 'react-jss'
+
+const useStyles = createUseStyles({
+	'@font-face': {
+		fontFamily: 'Arimo',
+		src: 'url("./fonts/Arimo/Arimo-Regular.ttf") format("truetype")'
+	},
+	arimo: {
+		fontFamily: 'Arimo'
+	}
+})
+
 const WorkFlowy = () => {
+
+	const classes = useStyles()
 
 	const [items, setItems] = useState([])
 	const [mounted, setMounted] = useState(false)
@@ -385,7 +399,7 @@ const WorkFlowy = () => {
 
 	console.log('123')
 	return (
-		<ItemContainer items={items} handleAction={handleAction}/>
+		<ItemContainer className={classes.arimo} items={items} handleAction={handleAction}/>
 	)
 }
 
