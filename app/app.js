@@ -1,5 +1,4 @@
-
-import React, {Fragment} from 'react';
+import React, {Fragment, useState, useRef, useEffect} from 'react';
 import ReactDOM from 'react-dom';
 import Home from './home';
 import Loginregister from './Loginregister';
@@ -10,60 +9,58 @@ import jwt_decode from 'jwt-decode';
 import WorkFlowy from './WorkFlowy'
 import NavBar from './NavBar'
 
-class App extends React.Component {
+import { usePrevious } from './hooks'
 
-	constructor(props) {
-		super(props);
-		this.state = {
-			authenticated: false,
-			user: null,
-			newFrontEnd: false,
-			updateChild: true
-		};
-		//this.handleInputChange = this.handleInputChange.bind(this);
-		this.handleUpdateComplete = this.handleUpdateComplete.bind(this)
-		this.handleLogOut = this.handleLogOut.bind(this)
-	}
+const App = () => {
 
-	componentDidMount() {
-		this.getAuth();
-		this.maintainEventListener('add', ['mousemove', 'keydown', 'keypress', 'click', 'scroll']);
-		this.lastActivity = Date.now();
-		this.timer = setInterval(this.checkIdleTime, 60 * 1000);
-	}
+	const [auth, setAuth] = useState(false)
+	const [username, setUsername] = useState(null)
+	const [newFrontEnd, setNewFrontEnd] = useState(false)
+	const lastActivityRef = useRef()
+	const timerRef = useRef()
+
+	useEffect(() => {
+		getAuth();
+		maintainEventListener('add', ['mousemove', 'keydown', 'keypress', 'click', 'scroll']);
+		lastActivityRef.current = Date.now();
+		timerRef.current = setInterval(checkIdleTime(), 60 * 1000);
+		return () => {
+			maintainEventListener('remove', ['mousemove', 'keydown', 'keypress', 'click', 'scroll']);
+			clearInterval(timerRef.current);
+		}
+		}, [])
+
+	const prevAuth = usePrevious(auth)
+	useEffect(() => {
+		if(prevAuth !== auth) {
+			getAuth()
+		}
+	}, [auth])
+
+	const updateLastActivity = () => {
+		lastActivityRef.current = Date.now();
+	};
 	
-	componentDidUpdate(prevProps, prevState, snapshot) {
-		if(prevState.authenticated == this.state.authenticated) this.getAuth();
-	}
-
-	componentWillUnmount() {
-		this.maintainEventListener('remove', ['mousemove', 'keydown', 'keypress', 'click', 'scroll']);
-		clearInterval(this.timer);
-	}
-
-	maintainEventListener = (action, types) => {
+	const maintainEventListener = (action, types) => {
 		if(action === 'add') {
 			types.forEach(type => {
-				window.addEventListener(type, this.updateLastActivity);
+				window.addEventListener(type, updateLastActivity());
 			})
 		}
 		if(action === 'remove') {
 			types.forEach(type => {
-				window.removeEventListener(type, this.updateLastActivity);
+				window.removeEventListener(type, updateLastActivity());
 			})
 		}
 	};
 
-	getAuth = () => {
-		const myHeaders = new Headers();
-		myHeaders.append('authorization', 'Bearer ' + localStorage.getItem('access'));
+	const getAuth = () => {
+		const headers = new Headers({'authorization': `Bearer${localStorage.getItem('access')}`});
 		if(localStorage.getItem('access')) {
-			fetch('/users/', {
-				headers: myHeaders
-			})
+			fetch('/users/', { headers })
 			.then(resp => {
-				if(resp.statusText == "OK") {
-					this.setState({ authenticated: true});
+				if(resp.statusText === "OK") {
+					setAuth(true)
 				}
 				//if(resp.statusText == "Unauthorized") console.log("Unauthorized");
 			})
@@ -71,26 +68,7 @@ class App extends React.Component {
 		}
 	};
 
-	updateLastActivity = () => {
-		this.lastActivity = Date.now();
-	};
-
-	checkIdleTime = () => {
-		const dateNowTime = new Date().getTime();
-		const lastActiveTime = new Date(this.lastActivity).getTime();
-		const remTime = Math.floor((dateNowTime - lastActiveTime)/ 1000);
-		if(localStorage.getItem('access')){
-			const accessToken = localStorage.getItem('access')
-			if(jwt_decode(accessToken).exp < Date.now()/1000 + 2 * 60) {
-				this.refreshAccessToken()
-			}
-		}	
-		if(remTime > 60 * 5) {
-			this.handleLogOut;
-		}
-	};
-	
-	refreshAccessToken = () => {
+	const refreshAccessToken = () => {
 		const data = {
 			refreshToken: localStorage.getItem('refresh')
 		};
@@ -111,11 +89,34 @@ class App extends React.Component {
 		})
 	};
 
-	logIn = (un, pw, act) => {
-		this.setState({user: un});
+	const handleLogOut = () => {
+		localStorage.removeItem('access');
+		localStorage.removeItem('refresh');
+		setAuth(false)
+	}
+
+	const checkIdleTime = () => {
+		const dateNowTime = new Date().getTime();
+		const lastActiveTime = new Date(lastActivityRef.current).getTime();
+		const remTime = Math.floor((dateNowTime - lastActiveTime)/ 1000);
+		if(localStorage.getItem('access')){
+			const accessToken = localStorage.getItem('access')
+			if(jwt_decode(accessToken).exp < Date.now()/1000 + 2 * 60) {
+				refreshAccessToken()
+			}
+		}	
+		if(remTime > 60 * 5) {
+			localStorage.removeItem('access');
+			localStorage.removeItem('refresh');
+			setAuth(false)
+		}
+	};
+
+	const logIn = (username, password, act) => {
+		setUsername(username)
 		const data = {
-			username: un,
-			password: pw
+			username,
+			password
 		};
 		fetch('/logintoken/', {
 			method: 'POST',
@@ -132,16 +133,16 @@ class App extends React.Component {
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
 			if(act) {
-				this.setState({ authenticated: true, newFrontEnd: true });
+				setNewFrontEnd(true)
 			}
-			else this.setState({ authenticated: true});
+			setAuth(true)
 		})
 	};
 
-	register = (un, pw) => {
+	const register = (username, password) => {
 		const data = {
-			username: un,
-			password: pw
+			username,
+			password,
 		};
 		fetch('/registertoken/', {
 			method: 'POST',
@@ -157,11 +158,11 @@ class App extends React.Component {
 		.then(data => {
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
-			this.setState({ authenticated: true});
+			setAuth(true)
 		})
 	};
 
-	test = () => {
+	const test = () => {
 		const data = {
 			username: 'TESTePU3ieiI7X',
 			password: 'TESTPWtHUCg3yd'
@@ -180,25 +181,11 @@ class App extends React.Component {
 		.then(data => {
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
-			this.setState({ authenticated: true});
+			setAuth(true)
 		})
 	};
 
-	handleLogIn = (un, pw, act) => {
-		this.logIn(un, pw, act);
-	};
-
-	handleRegister = (un, pw) => {
-		this.register(un, pw);
-	};
-
-	handleTest = () => {
-		this.test();
-	};
-
-	/**************************************************************************************************** */
-
-	handleTrashCheckedItemsFromNav() {
+	const handleTrashCheckedItemsFromNav = () => {
 		const self = this
 		const fetchData = { 
 		    method: 'DELETE', body: JSON.stringify({orderNumber: 0}),
@@ -211,48 +198,37 @@ class App extends React.Component {
 		fetch('/items/trash/', fetchData)
 			.then((data) => {
 				console.log('yuhhh')
-				self.setState({updateChild: true})
+				//self.setState({updateChild: true})
 			});
 	}
 
-	handleLogOut = () => {
-		localStorage.removeItem('access');
-		localStorage.removeItem('refresh');
-		this.setState({authenticated: false});
-	};
+	return (
+		<div className={styles.app}>
+			{auth && newFrontEnd ? (
+				<Fragment>
+					<NavBar
+						trashCheckedItemsFromNav={handleTrashCheckedItemsFromNav}
+						logout={handleLogOut} 
+					/>
+					<WorkFlowy />
+				</Fragment>
+			) : auth ? (
+				<Home 
+					username={username}
+					logout={handleLogOut}>
+				</Home>
+			) : (
+				<Loginregister
+					login={logIn}
+					register={register}
+					test={test}>
+				</Loginregister>
+			)}
+		</div>
+	)
 
-	handleUpdateComplete() {
-		this.setState({updateChild: false})
-	}
 
-	render() {
-		return (
-			<div className={styles.app}>
-				{this.state.authenticated && this.state.newFrontEnd ? (
-					<Fragment>
-						<NavBar
-							trashCheckedItemsFromNav={this.handleTrashCheckedItemsFromNav.bind(this)}
-							logout={this.handleLogOut} 
-						/>
-						<WorkFlowy />
-					</Fragment>
-				) : this.state.authenticated ? (
-					<Home 
-						username={this.state.user}
-						logout={this.handleLogOut.bind(this)}>
-					</Home>
-				) : (
-					<Loginregister
-						login={this.handleLogIn.bind(this)}
-						register={this.handleRegister.bind(this)}
-						test={this.handleTest.bind(this)}>
-					</Loginregister>
-				)}
-			</div>
-		)
-	}
+
 }
 
-export default App;
-
-
+export default App
