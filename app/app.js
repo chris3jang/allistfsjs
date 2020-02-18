@@ -1,7 +1,6 @@
 import React, {Fragment, useState, useRef, useEffect} from 'react';
-import ReactDOM from 'react-dom';
 import Home from './home';
-import Loginregister from './Loginregister';
+import Entry from './Entry';
 import styles from './css/app.css';
 import './css/fonts.css';
 import jwt_decode from 'jwt-decode';
@@ -218,11 +217,11 @@ const App = () => {
 					logout={handleLogOut}>
 				</Home>
 			) : (
-				<Loginregister
+				<Entry
 					login={logIn}
 					register={register}
 					test={test}>
-				</Loginregister>
+				</Entry>
 			)}
 		</div>
 	)

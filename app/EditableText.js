@@ -1,6 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import styles from './css/editabletext.css'
-
 import ContentEditable from 'react-contenteditable'
 import {createUseStyles} from 'react-jss'
 
@@ -11,11 +9,12 @@ const useStyles = createUseStyles({
 	},
 	text: {
 		fontFamily: 'Arimo',
+		fontSize: '18px',
 		display: 'inline-block',
 		verticalAlign: 'top',
 		position: 'relative',
 		left: '6px',
-		bottom: '3px',
+		bottom: '4px',
 		paddingRight: '1px',
 		maxWidth: 'calc(100% - 12px)'
 	},
@@ -35,15 +34,12 @@ const EditableText = ({id, orderNumber, itemTitle, checked, handleAction}) => {
 	}
 
 	const handleKeyPress = e => {
-		console.log('1')
 		if(e.key === 'Enter') {
-			console.log('2')
 			if(e.metaKey) {
 				e.preventDefault()
 				handleAction('toggleCheckbox', orderNumber)
 			}
 			else {
-				console.log('3')
 				e.preventDefault()
 				handleAction('createItem', orderNumber)
 			}

@@ -27,7 +27,6 @@ const WorkFlowy = () => {
 	useEffect(() => {
 		callFetch('fetchInitialData')
 			.then((data) => {
-				console.log('yuh4')
 				setItems(data)
 				setMounted(true)
 			})
