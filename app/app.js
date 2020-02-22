@@ -8,7 +8,27 @@ import jwt_decode from 'jwt-decode';
 import WorkFlowy from './WorkFlowy'
 import NavBar from './NavBar'
 
+import jss from 'jss';
+import preset from 'jss-preset-default';
+import { SheetsRegistry, JssProvider } from 'react-jss';
+
 import { usePrevious } from './hooks'
+
+const setupJss = () => {
+	jss.setup(preset());
+  
+	const sheetsRegistry = new SheetsRegistry();
+  
+	const globalStyleSheet = jss.createStyleSheet(
+	  {'@global': { body: { margin: 0 }}}
+	).attach();
+  
+	sheetsRegistry.add(globalStyleSheet);
+  
+	return sheetsRegistry;
+}
+  
+const sheets = setupJss();
 
 const App = () => {
 
@@ -202,28 +222,30 @@ const App = () => {
 	}
 
 	return (
-		<div className={styles.app}>
-			{auth && newFrontEnd ? (
-				<Fragment>
-					<NavBar
-						trashCheckedItemsFromNav={handleTrashCheckedItemsFromNav}
-						logout={handleLogOut} 
-					/>
-					<WorkFlowy />
-				</Fragment>
-			) : auth ? (
-				<Home 
-					username={username}
-					logout={handleLogOut}>
-				</Home>
-			) : (
-				<Entry
-					login={logIn}
-					register={register}
-					test={test}>
-				</Entry>
-			)}
-		</div>
+		<JssProvider registry={sheets}>
+			<div className={styles.app}>
+				{auth && newFrontEnd ? (
+					<Fragment>
+						<NavBar
+							trashCheckedItemsFromNav={handleTrashCheckedItemsFromNav}
+							logout={handleLogOut} 
+						/>
+						<WorkFlowy />
+					</Fragment>
+				) : auth ? (
+					<Home 
+						username={username}
+						logout={handleLogOut}>
+					</Home>
+				) : (
+					<Entry
+						login={logIn}
+						register={register}
+						test={test}>
+					</Entry>
+				)}
+			</div>
+		</JssProvider>
 	)
 
 
