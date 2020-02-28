@@ -216,7 +216,7 @@ const App = () => {
 		}
 		fetch('/items/trash/', fetchData)
 			.then((data) => {
-				console.log('yuhhh')
+				console.log('trashed')
 				//self.setState({updateChild: true})
 			});
 	}
