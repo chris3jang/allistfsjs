@@ -6,7 +6,7 @@ import {createUseStyles} from 'react-jss'
 
 const useStyles = createUseStyles({
 	indentation: {
-		paddingLeft: item => item.indentLevel * 20
+		paddingLeft: val => val * 20
 	},
 	unfinished: {
 		marginTop: '10px'
@@ -18,8 +18,8 @@ const useStyles = createUseStyles({
 	}
 })
 
-const Item = ({item, checked, handleAction}) => {
-	const classes = useStyles(item);
+const Item = ({item, checked, handleAction, indentLevel}) => {
+	const classes = useStyles(indentLevel);
 	return (
 		<div className={`${classes.indentation} ${checked ? classes.complete : classes.unfinished}`}>
 			<Bullet orderNumber={item.orderNumber} decollapsed={item.decollapsed} checked={item.checked} handleAction={handleAction}/>

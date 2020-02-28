@@ -7,6 +7,8 @@ const ItemContainer = ({items, handleAction}) => {
 		console.log('items', items)
 	}, [items])
 
+	const listIndentRootLevel = items.reduce((prev, curr) => prev.indentLevel < curr.indentLevel ? prev : curr, 0).indentLevel
+
 	return (
 		<div style={{margin: '0% 20%'}}>
 			{items.filter(item => !item.hidden).sort((a, b) => a.orderNumber - b.orderNumber).map(item => 
@@ -17,6 +19,7 @@ const ItemContainer = ({items, handleAction}) => {
 					itemTitle={item.itemTitle}
 					orderNumber={item.orderNumber}
 					checked={item.checked}
+					indentLevel={item.indentLevel - listIndentRootLevel}
 					handleAction={handleAction}
 				/>
 			)}
