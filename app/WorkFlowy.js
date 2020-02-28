@@ -122,7 +122,19 @@ const WorkFlowy = () => {
 				break;
 			}
 			case 'enterChild': {
-				setList(id)
+				const currItem = items.find(item => item._id === id)
+				console.log('currItem', currItem)
+				const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
+				console.log('nextItem', nextItem)
+				const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
+				console.log('isNextItemChild', isNextItemChild)
+				if(isNextItemChild) {
+					if(!currItem.decollapsed) {
+						setList(id)
+						const itemRef = itemsRef.current.find(ref => nextItem._id === ref.id)
+						itemRef.node.focus()
+					}
+				}
 				break;
 			}
 			case 'returnToParent': {

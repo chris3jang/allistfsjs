@@ -76,11 +76,12 @@ const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction})
 		}
 		if(e.key === 'ArrowDown') {
 			e.preventDefault()
-			handleAction('moveDown', orderNumber)
-		}
-		if(e.key === 'ArrowDown' && e.metaKey) {
-			e.preventDefault()
-			handleAction('enterChild', id)
+			if(e.metaKey) {
+				handleAction('enterChild', id)
+			}
+			else {
+				handleAction('moveDown', orderNumber)
+			}
 		}
 	}
 
