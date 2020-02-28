@@ -20,6 +20,7 @@ const WorkFlowy = () => {
 	const classes = useStyles()
 
 	const [items, setItems] = useState([])
+	const [list, setList] = useState(null)
 	const [mounted, setMounted] = useState(false)
 	const itemsRef = useRef([])
 
@@ -50,7 +51,6 @@ const WorkFlowy = () => {
 
 	const prevItems = usePrevious(items)
 	useEffect(() => {
-		console.log('1')
 		if(mounted) {
 			if(prevItems.length === items.length - 1) {
 				const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
@@ -80,10 +80,8 @@ const WorkFlowy = () => {
 	}, [items])
 
 	const handleAction = (action, id, value) => {
-		console.log('4')
 		switch (action) {
 			case 'createItem': 
-				console.log('5')
 				createItem(id)
 				break;
 			case 'createRef':
@@ -128,9 +126,7 @@ const WorkFlowy = () => {
 
 	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
-		console.log('6')
 		callFetch('createItem', {orderNumber: id}).then(data => {
-			console.log('7')
 			const itemsBeforeCreateByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const potentialHiddenItems = itemsBeforeCreateByON.slice(id + 1)//orderNumber + 1
 			const areHiddenChildItems = potentialHiddenItems.map(item => item.hidden)
@@ -158,7 +154,6 @@ const WorkFlowy = () => {
 					orderNumber: newOrderNumber
 				}
 			]
-			console.log('8')
 			setItems(itemsAfterCreate)
 		})
 	}
@@ -284,15 +279,12 @@ const WorkFlowy = () => {
 		console.log('item', item)
 		const parent = potentialParents.find(i => i._id === item.parent)
 		if(!parent) {
-			console.log('!')
 			return false
 		}
 		if(parent._id === itemToggled._id) {
-			console.log('@')
 			return false
 		}
 		if(parent.decollapsed) {
-			console.log('#')
 			return true
 		}
 		return shouldItemRemainHidden(parent, itemToggled, potentialParents)
@@ -396,9 +388,22 @@ const WorkFlowy = () => {
 		itemRef.node.focus()
 	}
 
-	console.log('123')
+	const getItemsToRender = () => {
+		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+		const itemAsList = items.find(item => list === item._id)
+		const firstPotentialChildInd = list === null ? 0 : itemAsList.orderNumber + 1
+		const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
+		const areItemsChildItems = list === null ? [items.length].map(bool => true) : potentialChildItems.map(item => item.indentLevel > itemAsList.indentLevel)
+		const numChildItems = list === null ? items.length : areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
+		const childItems = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
+		return childItems
+	}
+
+	console.log(getItemsToRender())
+
+
 	return (
-		<ItemContainer className={classes.arimo} items={items} handleAction={handleAction}/>
+		<ItemContainer className={classes.arimo} items={getItemsToRender()} handleAction={handleAction}/>
 	)
 }
 
