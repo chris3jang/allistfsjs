@@ -126,7 +126,9 @@ const WorkFlowy = () => {
 				break;
 			}
 			case 'returnToParent': {
-				//setList(id)
+				const parentItem = items.find(item => item._id === id)
+				const parent = parentItem ? parentItem.parent : null
+				setList(parent)
 				break;
 			}
 		}	
@@ -411,7 +413,7 @@ const WorkFlowy = () => {
 
 
 	return (
-		<ItemContainer className={classes.arimo} items={getItemsToRender()} handleAction={handleAction}/>
+		<ItemContainer className={classes.arimo} items={getItemsToRender()} list={list} handleAction={handleAction}/>
 	)
 }
 

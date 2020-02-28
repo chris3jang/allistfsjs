@@ -23,7 +23,7 @@ const useStyles = createUseStyles({
 	}
 })
 
-const EditableText = ({id, orderNumber, itemTitle, checked, handleAction}) => {
+const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction}) => {
 
 	const classes = useStyles();
 
@@ -67,7 +67,12 @@ const EditableText = ({id, orderNumber, itemTitle, checked, handleAction}) => {
 		}
 		if(e.key === 'ArrowUp') {
 			e.preventDefault()
-			handleAction('moveUp', orderNumber)
+			if(e.metaKey) {
+				handleAction('returnToParent', list)
+			}
+			else {
+				handleAction('moveUp', orderNumber)
+			}
 		}
 		if(e.key === 'ArrowDown') {
 			e.preventDefault()
@@ -77,11 +82,6 @@ const EditableText = ({id, orderNumber, itemTitle, checked, handleAction}) => {
 			e.preventDefault()
 			handleAction('enterChild', id)
 		}
-		if(e.key === 'ArrowUp' && e.metaKey) {
-			e.preventDefault()
-			handleAction('returnToParent', id)
-		}
-
 	}
 
 	const handleRefCreate = (node) => {

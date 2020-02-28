@@ -18,12 +18,12 @@ const useStyles = createUseStyles({
 	}
 })
 
-const Item = ({item, checked, handleAction, indentLevel}) => {
+const Item = ({item, checked, indentLevel, list, handleAction}) => {
 	const classes = useStyles(indentLevel);
 	return (
 		<div className={`${classes.indentation} ${checked ? classes.complete : classes.unfinished}`}>
 			<Bullet orderNumber={item.orderNumber} decollapsed={item.decollapsed} checked={item.checked} handleAction={handleAction}/>
-			<EditableText id={item._id} orderNumber={item.orderNumber} itemTitle={item.itemTitle} checked={item.checked} handleAction={handleAction}/>
+			<EditableText id={item._id} orderNumber={item.orderNumber} itemTitle={item.itemTitle} checked={item.checked} list={list} handleAction={handleAction}/>
 		</div>
 	)
 }
