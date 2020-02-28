@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import Item from './Item'
 
-const ItemContainer = ({items, handleAction, createRef}) => {
+const ItemContainer = ({items, handleAction}) => {
 
 	useEffect(() => {
 		console.log('items', items)
