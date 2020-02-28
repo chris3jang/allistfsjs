@@ -118,8 +118,10 @@ const Entry = ({login, register, test}) => {
     }
     
     const handleRegister = (e) => {
-		e.preventDefault()
-		register(e.target[0].value, e.target[1].value)
+        e.preventDefault()
+        const email = e.target.parentElement.parentNode[0].value
+        const password = e.target.parentElement.parentNode[1].value
+		register(email, password)
     }
 
     return (
