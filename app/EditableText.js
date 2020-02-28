@@ -73,6 +73,14 @@ const EditableText = ({id, orderNumber, itemTitle, checked, handleAction}) => {
 			e.preventDefault()
 			handleAction('moveDown', orderNumber)
 		}
+		if(e.key === 'ArrowDown' && e.metaKey) {
+			e.preventDefault()
+			handleAction('enterChild', id)
+		}
+		if(e.key === 'ArrowUp' && e.metaKey) {
+			e.preventDefault()
+			handleAction('returnToParent', id)
+		}
 
 	}
 

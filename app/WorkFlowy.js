@@ -121,6 +121,14 @@ const WorkFlowy = () => {
 				moveDown(id, value);
 				break;
 			}
+			case 'enterChild': {
+				setList(id)
+				break;
+			}
+			case 'returnToParent': {
+				//setList(id)
+				break;
+			}
 		}	
 	}
 
