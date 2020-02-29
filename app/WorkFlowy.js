@@ -1,5 +1,6 @@
-import React, {useState, useEffect, useRef} from 'react';
+import React, {useState, useEffect, useRef, Fragment} from 'react';
 import ItemContainer from './ItemContainer'
+import BreadCrumbs from './BreadCrumbs'
 import { callFetch } from './api';
 import { usePrevious } from './hooks'
 
@@ -541,11 +542,23 @@ const WorkFlowy = () => {
 		return childItems
 	}
 
+	const calcBreadCrumbsProps = listId => {
+		const list = items.find(item => listId === item._id)
+		if(listId === null) {
+			return []
+		}
+		return [...calcBreadCrumbsProps(list.parent), {title: list.itemTitle, id: listId}]
+	}
+
 	console.log(getItemsToRender())
 
 
+
 	return (
-		<ItemContainer className={classes.arimo} items={getItemsToRender()} list={list} handleAction={handleAction}/>
+		<Fragment>
+			<BreadCrumbs links={calcBreadCrumbsProps(list)}></BreadCrumbs>
+			<ItemContainer className={classes.arimo} items={getItemsToRender()} list={list} handleAction={handleAction}/>
+		</Fragment>
 	)
 }
 
