@@ -68,7 +68,7 @@ const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction})
 		if(e.key === 'ArrowUp') {
 			e.preventDefault()
 			if(e.metaKey) {
-				handleAction('returnToParent', list)
+				handleAction('returnToParent', null, list)
 			}
 			else {
 				handleAction('moveUp', orderNumber)
@@ -77,7 +77,7 @@ const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction})
 		if(e.key === 'ArrowDown') {
 			e.preventDefault()
 			if(e.metaKey) {
-				handleAction('enterChild', id)
+				handleAction('enterChild', id, list)
 			}
 			else {
 				handleAction('moveDown', orderNumber)

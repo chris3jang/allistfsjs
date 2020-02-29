@@ -21,6 +21,7 @@ const WorkFlowy = () => {
 
 	const [items, setItems] = useState([])
 	const [list, setList] = useState(null)
+	const [itemToFocus, setFocus] = useState()
 	const [mounted, setMounted] = useState(false)
 	const itemsRef = useRef([])
 
@@ -52,6 +53,7 @@ const WorkFlowy = () => {
 	const prevItems = usePrevious(items)
 	useEffect(() => {
 		if(mounted) {
+			console.log('items', items)
 			if(prevItems.length === items.length - 1) {
 				const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
 				itemsRef.current.find(ref => addedItem._id === ref.id).node.focus()
@@ -78,6 +80,18 @@ const WorkFlowy = () => {
 			}
 		}
 	}, [items])
+
+	useEffect(() => {
+		if(itemToFocus) {
+			console.log('itemToFocus', itemToFocus)
+			for(let i = 0; i < itemsRef.current.length; i++) {
+				console.log('i', itemsRef.current[i])
+			}
+			const itemRef = itemsRef.current.find(ref => ref.id === itemToFocus)
+			console.log('itemRef', itemRef)
+			itemRef.node.focus()
+		}
+	}, [itemToFocus])
 
 	const handleAction = (action, id, value) => {
 		switch (action) {
@@ -122,25 +136,11 @@ const WorkFlowy = () => {
 				break;
 			}
 			case 'enterChild': {
-				const currItem = items.find(item => item._id === id)
-				console.log('currItem', currItem)
-				const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
-				console.log('nextItem', nextItem)
-				const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
-				console.log('isNextItemChild', isNextItemChild)
-				if(isNextItemChild) {
-					if(!currItem.decollapsed) {
-						setList(id)
-						const itemRef = itemsRef.current.find(ref => nextItem._id === ref.id)
-						itemRef.node.focus()
-					}
-				}
+				enterChild(id, value)
 				break;
 			}
 			case 'returnToParent': {
-				const parentItem = items.find(item => item._id === id)
-				const parent = parentItem ? parentItem.parent : null
-				setList(parent)
+				returnToParent(value)
 				break;
 			}
 		}	
@@ -312,6 +312,33 @@ const WorkFlowy = () => {
 		return shouldItemRemainHidden(parent, itemToggled, potentialParents)
 	}
 
+	//actual id, not ordernumber, this one does not need to be fixed
+	//should this reusable function set children of an item to hidden, or return the children as hidden???
+	//right now it returns the children as hidden
+	const getUnhiddenChildItems = id => {
+		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+		const itemToCollapse = items.find(item => item._id === id)
+		const itemOrderNumber = itemToCollapse.orderNumber
+		const firstPotentialChildInd = itemOrderNumber + 1
+		const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
+		const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToCollapse.indentLevel)
+		const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
+		const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
+		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + numChildItems)
+		const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
+			if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
+				return item
+			}
+			else {
+				return {
+					...item,
+					hidden: false
+				}
+			}
+		})
+		return unhiddenItems
+	}
+
 	const collapseItem = id => {
 		callFetch('collapseItem', {orderNumber: id, decollapsed: true}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
@@ -321,26 +348,8 @@ const WorkFlowy = () => {
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToCollapse.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
-
-			const potentialParents = itemsByON.slice(id, id + 1 + numChildItems)
-
+			const potentialParents = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
-				/*const potentialParents = itemsByON.filter(i => (i.orderNumber >= id && i.orderNumber < item.orderNumber && i.indentLevel === item.indentLevel - 1))
-				console.log('potentialParents', potentialParents)
-				const parent = potentialParents.reduce((high, item) => high.orderNumber > item.orderNumber ? high : item)
-				console.log('parent', parent)
-				*/
-				/*
-				if(parent.orderNumber === id || !parent.decollapsed) {
-					return {
-						...item,
-						hidden: false
-					}
-				}
-				else {
-					return item
-				}
-				*/
 				if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
 					return item
 				}
@@ -408,6 +417,117 @@ const WorkFlowy = () => {
 		const itemToFocusOn = items.find(item => item.orderNumber === id + 1 + numHiddenItemsBelow)
 		const itemRef = itemsRef.current.find(ref => itemToFocusOn._id === ref.id)
 		itemRef.node.focus()
+	}
+
+	//id is not order number, do not fix this one
+	const getDescendantItems = id => {
+		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+		const parentItem = items.find(item => item._id === id)
+		const parentItemOrderNumber = parentItem ? parentItem.orderNumber : null
+		const firstPotentialDesInd = parentItem ? parentItemOrderNumber + 1 : 0
+		const potentialDesItems = itemsByON.slice(firstPotentialDesInd)
+		const areItemsDesItems = potentialDesItems.map(item => item.indentLevel > (parentItem ? parentItem.indentLevel : 0))
+		const numDesItems = areItemsDesItems.findIndex(bool => !bool) === -1 ? areItemsDesItems.length : areItemsDesItems.findIndex(bool => !bool)
+		const descendantItems = itemsByON.slice(parentItemOrderNumber + 1, firstPotentialDesInd + numDesItems)
+		return descendantItems
+	}
+
+	const inOrder = items => {
+		return items.sort((a, b) => a.orderNumber - b.orderNumber)
+	}
+
+	//id is not orderNumber, don't fix this one
+	const enterChild = (id, list) => {
+		const sortedItems = inOrder(items)
+		const itemsInList = inOrder(getDescendantItems(list))
+		if(list !== null) {
+			const prevItemsInList = itemsInList.map(item => {
+				const parent = items.find(it => it._id === item.parent)
+				if(parent.decollapsed) {
+					return {
+						...item,
+						hidden: true
+					}
+				}
+				else {
+					return item
+				}
+			})
+			const currList = items.find(item => item._id === list)
+			const leftItems = sortedItems.slice(0, currList.orderNumber + 1)
+			const rightItems = sortedItems.slice(currList.orderNumber + itemsInList.length + 1, items.length)
+			const reversedItems = [
+				...leftItems,
+				...prevItemsInList,
+				...rightItems
+			]
+			console.log('reversedItems', reversedItems)
+			setItems(reversedItems)
+		}
+
+
+
+		const currItem = items.find(item => item._id === id)
+		console.log('currItem', currItem)
+		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
+		console.log('nextItem', nextItem)
+		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
+		console.log('isNextItemChild', isNextItemChild)
+		if(isNextItemChild) {
+			setList(id)
+			if(currItem.decollapsed) {
+				const sortedItems = items.sort((a, b) => a.orderNumber - b.orderNumber)
+				const itemsAfterUnhide = [
+					...sortedItems.slice(0, currItem.orderNumber + 1),
+					...getUnhiddenChildItems(id),
+					...sortedItems.slice(currItem.orderNumber + 1 + getUnhiddenChildItems(id).length, items.length)
+				]
+				console.log('here?', [...sortedItems.slice(0, currItem.orderNumber + 1)], [...getUnhiddenChildItems(id)], [...sortedItems.slice(currItem.orderNumber + 1, currItem.orderNumber + 1 + getUnhiddenChildItems(id).length)])
+				console.log('itemsAfterUnhide', itemsAfterUnhide)
+				setItems(itemsAfterUnhide)
+			}
+			setFocus(nextItem._id)
+		}
+	}
+
+	const returnToParent = list => {
+		const sortedItems = inOrder(items)
+		console.log('list', list)
+		const itemsInList = inOrder(getDescendantItems(list))
+		console.log('itemsInList', itemsInList)
+		if(list !== null) {
+			const prevItemsInList = itemsInList.map(item => {
+				const parent = items.find(it => it._id === item.parent)
+				if(parent.decollapsed) {
+					return {
+						...item,
+						hidden: true
+					}
+				}
+				else {
+					return item
+				}
+			})
+			const currList = items.find(item => item._id === list)
+			const leftItems = sortedItems.slice(0, currList.orderNumber + 1)
+			const rightItems = sortedItems.slice(currList.orderNumber + itemsInList.length + 1, items.length)
+			const reversedItems = [
+				...leftItems,
+				...prevItemsInList,
+				...rightItems
+			]
+			console.log('l', leftItems, 'p', prevItemsInList, 'r', rightItems)
+			console.log('reversedItems', reversedItems)
+			setItems(reversedItems)
+		}
+
+
+
+		const parentItem = items.find(item => item._id === list)
+		const parent = parentItem ? parentItem.parent : null
+		console.log('@', parentItem, parent)
+		setList(parent)
+		setFocus(list)
 	}
 
 	const getItemsToRender = () => {
