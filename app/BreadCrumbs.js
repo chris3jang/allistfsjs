@@ -4,23 +4,40 @@ import {createUseStyles} from 'react-jss'
 
 const useStyles = createUseStyles({
     header: {
-        margin: '0% 20%'
+        margin: '2rem 20%'
+    },
+    '@font-face': {
+		fontFamily: 'Arimo',
+		src: 'url("./fonts/Arimo/Arimo-Regular.ttf") format("truetype")'
     },
 	link: {
-        backgroundColor: 'grey'
+        fontFamily: 'Arimo',
+        color: 'grey',
+        textDecoration: 'underline',
+        '&:hover': {
+            cursor: 'pointer'
+        },
+    },
+    divider: {
+        display: 'inline-block',
+        margin: '0 1rem'
     }
 })
 
-const BreadCrumbs = ({links}) => {
+const BreadCrumbs = ({links, breadcrumbsClick}) => {
 
     const classes = useStyles();
 
-    const renderLinks = links => {
-        return links.reduce((linkedTitles, currentTitle) => {
-            return `${linkedTitles} > ${currentTitle.title}`
-        }, 'Home')
+    const handleClick = id => {
+        breadcrumbsClick(id)
     }
-    console.log(renderLinks(links))
+
+    const returnLink = (id, title) => <a className={classes.link} onClick={() => handleClick(id)}>{title}</a>
+
+    const renderLinks = links => 
+        links.reduce((linkedTitles, currentTitle) => 
+            [...linkedTitles, <p className={classes.divider}>  >  </p>, returnLink(currentTitle.id, currentTitle.title)], 
+        [returnLink(null, 'Home')])
 
 	return (
 		<div className={classes.header}>{renderLinks(links)}</div>
