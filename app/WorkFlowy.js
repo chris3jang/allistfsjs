@@ -437,8 +437,7 @@ const WorkFlowy = () => {
 		return items.sort((a, b) => a.orderNumber - b.orderNumber)
 	}
 
-	//id is not orderNumber, don't fix this one
-	const enterChild = (id, list) => {
+	const resetStateToHomeView = () => {
 		const sortedItems = inOrder(items)
 		const itemsInList = inOrder(getDescendantItems(list))
 		if(list !== null) {
@@ -465,8 +464,11 @@ const WorkFlowy = () => {
 			console.log('reversedItems', reversedItems)
 			setItems(reversedItems)
 		}
+	}
 
-
+	//id is not orderNumber, don't fix this one
+	const enterChild = (id, list) => {
+		resetStateToHomeView()
 
 		const currItem = items.find(item => item._id === id)
 		console.log('currItem', currItem)
@@ -492,37 +494,7 @@ const WorkFlowy = () => {
 	}
 
 	const returnToParent = list => {
-		const sortedItems = inOrder(items)
-		console.log('list', list)
-		const itemsInList = inOrder(getDescendantItems(list))
-		console.log('itemsInList', itemsInList)
-		if(list !== null) {
-			const prevItemsInList = itemsInList.map(item => {
-				const parent = items.find(it => it._id === item.parent)
-				if(parent.decollapsed) {
-					return {
-						...item,
-						hidden: true
-					}
-				}
-				else {
-					return item
-				}
-			})
-			const currList = items.find(item => item._id === list)
-			const leftItems = sortedItems.slice(0, currList.orderNumber + 1)
-			const rightItems = sortedItems.slice(currList.orderNumber + itemsInList.length + 1, items.length)
-			const reversedItems = [
-				...leftItems,
-				...prevItemsInList,
-				...rightItems
-			]
-			console.log('l', leftItems, 'p', prevItemsInList, 'r', rightItems)
-			console.log('reversedItems', reversedItems)
-			setItems(reversedItems)
-		}
-
-
+		resetStateToHomeView()
 
 		const parentItem = items.find(item => item._id === list)
 		const parent = parentItem ? parentItem.parent : null
