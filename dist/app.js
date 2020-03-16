@@ -13,8 +13,6 @@ const LocalStrategy = require('passport-local').Strategy
 const express = require('express')
 const router = express.Router()
 
-const bcrypt = require('bcrypt')
-
 app.use(passport.initialize());
 
 let uri

@@ -5,15 +5,15 @@
   "main": "./dist/app.js",
   "scripts": {
     "start": "node ./dist/app.js",
-    "dev": "nodemon ./dist/app.js",
-    "server": "nodemon ./dist/app.js",
+    "dev": "node ./dist/app.js",
+    "server": "node ./dist/app.js",
     "test": "jest"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
     "babel": "^6.23.0",
-    "bcrypt": "^3.0.0",
+    "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
     "css-loader": "^0.28.11",
     "express": "^4.16.3",
@@ -51,13 +51,13 @@
     "enzyme-adapter-react-16": "^1.7.1",
     "identity-obj-proxy": "^3.0.0",
     "jest": "^23.6.0",
-    "nodemon": "^1.17.5",
     "react-hot-loader": "^4.3.2",
     "uglifyjs-webpack-plugin": "^1.2.5",
     "webpack": "^4.12.0",
     "webpack-cli": "^3.0.6",
     "webpack-dev-middleware": "^3.1.3",
-    "webpack-hot-middleware": "^2.22.2"
+    "webpack-hot-middleware": "^2.22.2",
+    "webpack-node-externals": "^1.7.2"
   },
   "jest": {
     "setupTestFrameworkScriptFile": "<rootDir>/jestSetup.js",
