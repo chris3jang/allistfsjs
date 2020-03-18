@@ -442,8 +442,15 @@ const WorkFlowy = () => {
 		const itemsInList = inOrder(getDescendantItems(list))
 		if(list !== null) {
 			const prevItemsInList = itemsInList.map(item => {
+				console.log('yeet', item.itemTitle)
 				const parent = items.find(it => it._id === item.parent)
-				if(parent.decollapsed) {
+				console.log(parent)
+				const start = items.find(it => it._id === list).orderNumber
+				const end = item.orderNumber
+				const potentialParents = inOrder(items.slice(start, end))
+				console.log("pot*()", potentialParents)
+				if(shouldItemRemainHidden(item, list, potentialParents)) {
+				//if(parent.decollapsed) {
 					return {
 						...item,
 						hidden: true
@@ -456,6 +463,7 @@ const WorkFlowy = () => {
 			const currList = items.find(item => item._id === list)
 			const leftItems = sortedItems.slice(0, currList.orderNumber + 1)
 			const rightItems = sortedItems.slice(currList.orderNumber + itemsInList.length + 1, items.length)
+			console.log('789', leftItems, prevItemsInList, rightItems)
 			const reversedItems = [
 				...leftItems,
 				...prevItemsInList,
@@ -495,8 +503,9 @@ const WorkFlowy = () => {
 
 	const returnToParent = list => {
 		resetStateToHomeView()
-
+		console.log('list', list)
 		const parentItem = items.find(item => item._id === list)
+		console.log('parentItem', parentItem)
 		const parent = parentItem ? parentItem.parent : null
 		console.log('@', parentItem, parent)
 		setList(parent)
