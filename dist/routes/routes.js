@@ -18,189 +18,12 @@ module.exports = function(app, db) {
   const listsCol = db.collection('lists')
   const itemsCol = db.collection('items')
   const usersCol = db.collection('localusers')
-  
-
-  const isLoggedIn = (req, res, next) => {
-    if(req.isAuthenticated()) {
-      return next()
-    }
-    res.redirect('/')
-  }
-
-  app.get('/users/', authenticate, isLoggedIn, (req, res) => {
-    res.send()
-  })
-
-  const dbSerialize = {
-    user: {
-      updateOrCreate: (user, cb) => {
-        cb(null, user)
-      },
-      authenticate: (un, pw, cb) => {
-        usersCol.findOne({username: un})
-        .then(result => {
-          if(null == result) {} 
-          else {
-            hash = result.password
-            if(bcrypt.compareSync(pw, hash)) {
-              cb(null, result)
-              return
-            }
-            else {
-              cb(null, false)
-            }
-          }
-        })
-      },
-      register: (un, pw, cb) => {
-        usersCol.findOne({username: un})
-        .then(result => {
-          if(null != result) {
-            return console.log("USERNAME ALREADY EXISTS: ", result.username)
-            cb(null, false)
-          }
-          else {
-            const hash = bcrypt.hashSync(pw, 8)
-            const newUser = {
-              username: un,
-              password: hash,
-              selectedListIndex: 0
-            }
-            listsCol.insert({listTitle: "New List", orderNumber: 0, selected: true, selectedItemIndex: 0, user: un})
-            .then(listInserted => {
-              return listsCol.findOne({user: un})
-            })
-            .then(newList => {
-              return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()}) 
-            })
-            .then(itemInserted => {
-              return usersCol.insert(newUser)
-            })
-            .then(inserted => {
-              cb(null, inserted.ops[0])
-            })
-          }
-        })
-      }
-    },
-
-    client: {
-      updateOrCreate: (data, cb) => {
-        db.collection('localclients').insert({user: data.user})
-        .then(inserted => {
-          cb(null, {id: inserted.ops[0]._id})
-        })
-      },
-      storeToken: (data, cb) => {
-        db.collection('localclients').findOneAndUpdate({_id: data.id}, {$set: {refreshToken: data.refreshToken}})
-        .then(client => {
-          cb()
-        })
-      },
-      findUserOfToken: (data, cb) => {
-        if(!data.refreshToken) return cb(new Error('invalid token'))
-        db.collection('localclients').findOne({refreshToken: data.refreshToken})
-        .then(client => {
-          return cb(null, {
-            id: client.user,
-            clientId: client._id
-          })
-        })
-      }
-    }
-
-  }
-
-  passport.use('localtokenauth', new LocalStrategy(
-    (username, password, done)=> {
-      dbSerialize.user.authenticate(username, password, done)
-  }))
-
-  passport.use('localtokenreg', new LocalStrategy(
-    (username, password, done)=> {
-      dbSerialize.user.register(username, password, done)
-  }))
 
 
-  const serialize = (req, res, next) => {
-    dbSerialize.user.updateOrCreate(req.user, (err, user) => {
-      if(err) return next(err)
-      req.user = user._id
-      next()
-  })}
 
-  serializeClient = (req, res, next) => {  
-    dbSerialize.client.updateOrCreate({
-      user: req.user
-    }, (err, client) => {
-      if (err) {
-        return next(err);
-      }
-      req.user.clientId = client.id;
-      next()
-    });
-  }
+  //TEST USER
 
-  const generateAccessToken = (req, res, next) => {
-    req.token = req.token || {}
-    req.token.accessToken = jwt.sign({
-      id: req.user,
-      clientId: req.user.clientId
-    }, 'theycutthefleeb', {
-      expiresIn: 60*10
-    })
-    next()
-  }
-
-  generateRefreshToken = (req, res, next) => {
-    req.token.refreshToken = req.user.clientId.toString() + '.' + crypto.randomBytes(
-      40).toString('hex');
-    dbSerialize.client.storeToken({
-      id: req.user.clientId,
-      refreshToken: req.token.refreshToken
-    }, next);
-  }
-
-  const respond = (req, res, next) => {
-    res.status(200).json({
-      user: req.user,
-      token: req.token
-    })
-  }
-
-  const validateRefreshToken = (req, res, next) => {
-    dbSerialize.client.findUserOfToken(req.body, (err, user) => {
-      if(err) return next(err)
-      req.user = user
-      next()
-    })
-  }
-
-  const respondToken = (req, res) => {
-    res.status(201).json({
-      token: req.token
-    })
-  }
-
-  const nukeTestUser = (req, res, next) => {
-    listsCol.findOne({ $and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 0}]})
-    .then(list => {
-      return itemsCol.deleteMany({list: list._id.toString()});
-    })
-    .then((deleted) => {
-      return listsCol.findOne({ $and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 1}]})
-    })
-    .then(list => {
-      return itemsCol.deleteMany({list: list._id.toString()});
-    })
-    .then(() => {
-      return listsCol.deleteMany({user: 'TESTePU3ieiI7X'});
-    })
-    .then(() => {
-      next();
-    })
-  }
-
+  // ***********************************************************************************************$
   const populateTestUser = (req, res, next) => {
     listsCol.insert({listTitle: 'Useage', orderNumber: 0, selected: true, selectedItemIndex: 0, user: 'TESTePU3ieiI7X'})
     .then(inserted => {
@@ -279,6 +102,212 @@ module.exports = function(app, db) {
     })
   }
 
+  const nukeTestUser = (req, res, next) => {
+    listsCol.findOne({ $and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 0}]})
+    .then(list => {
+      return itemsCol.deleteMany({list: list._id.toString()});
+    })
+    .then((deleted) => {
+      return listsCol.findOne({ $and: [{user: 'TESTePU3ieiI7X'}, {orderNumber: 1}]})
+    })
+    .then(list => {
+      return itemsCol.deleteMany({list: list._id.toString()});
+    })
+    .then(() => {
+      return listsCol.deleteMany({user: 'TESTePU3ieiI7X'});
+    })
+    .then(() => {
+      next();
+    })
+  }
+  // ***********************************************************************************************$
+
+
+  // USER AUTH
+
+  // ***********************************************************************************************$
+
+  const isLoggedIn = (req, res, next) => {
+    console.log('isLoggedIn')
+    if(req.isAuthenticated()) {
+      return next()
+    }
+    res.redirect('/')
+  }
+
+  app.get('/users/', authenticate, isLoggedIn, (req, res) => {
+    res.send()
+  })
+
+  const dbSerialize = {
+    user: {
+      updateOrCreate: (user, cb) => {
+        console.log('dbSerialize updateOrCreate')
+        cb(null, user)
+      },
+      authenticate: (un, pw, cb) => {
+        console.log('authenticate')
+        usersCol.findOne({username: un})
+        .then(result => {
+          if(null == result) {} 
+          else {
+            hash = result.password
+            if(bcrypt.compareSync(pw, hash)) {
+              cb(null, result)
+              return
+            }
+            else {
+              cb(null, false)
+            }
+          }
+        })
+      },
+      register: (un, pw, cb) => {
+        console.log('register')
+        usersCol.findOne({username: un})
+        .then(result => {
+          if(null != result) {
+            return console.log("USERNAME ALREADY EXISTS: ", result.username)
+            cb(null, false)
+          }
+          else {
+            const hash = bcrypt.hashSync(pw, 8)
+            const newUser = {
+              username: un,
+              password: hash
+            }
+            /*
+            listsCol.insert({listTitle: "New List", orderNumber: 0, selected: true, selectedItemIndex: 0, user: un})
+            .then(listInserted => {
+              return listsCol.findOne({user: un})
+            })
+            .then(newList => {
+              return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()}) 
+            })
+            */
+           itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, userName: un}) 
+            .then(inserted => {
+              console.log('$$$', inserted)
+              return usersCol.insert(newUser)
+            })
+            .then(inserted => {
+              cb(null, inserted.ops[0])
+            })
+          }
+        })
+      }
+    },
+
+    client: {
+      updateOrCreate: (data, cb) => {
+        console.log('client updateOrCreate')
+        db.collection('localclients').insert({user: data.user})
+        .then(inserted => {
+          cb(null, {id: inserted.ops[0]._id})
+        })
+      },
+      storeToken: (data, cb) => {
+        console.log('storeToken')
+        db.collection('localclients').findOneAndUpdate({_id: data.id}, {$set: {refreshToken: data.refreshToken}})
+        .then(client => {
+          cb()
+        })
+      },
+      findUserOfToken: (data, cb) => {
+        console.log('findUserOfToken')
+        if(!data.refreshToken) return cb(new Error('invalid token'))
+        db.collection('localclients').findOne({refreshToken: data.refreshToken})
+        .then(client => {
+          return cb(null, {
+            id: client.user,
+            clientId: client._id
+          })
+        })
+      }
+    }
+
+  }
+
+  passport.use('localtokenauth', new LocalStrategy(
+    (username, password, done)=> {
+      console.log('passport localtokenauth')
+      dbSerialize.user.authenticate(username, password, done)
+  }))
+
+  passport.use('localtokenreg', new LocalStrategy(
+    (username, password, done)=> {
+      console.log('passport localtokenreg')
+      dbSerialize.user.register(username, password, done)
+  }))
+
+
+  const serialize = (req, res, next) => {
+    console.log('serialize')
+    dbSerialize.user.updateOrCreate(req.user, (err, user) => {
+      if(err) return next(err)
+      req.user = user._id
+      next()
+  })}
+
+  serializeClient = (req, res, next) => {  
+    console.log('serializeClient')
+    dbSerialize.client.updateOrCreate({
+      user: req.user
+    }, (err, client) => {
+      if (err) {
+        return next(err);
+      }
+      req.user.clientId = client.id;
+      next()
+    });
+  }
+
+  const generateAccessToken = (req, res, next) => {
+    console.log('generateAccessToken')
+    req.token = req.token || {}
+    req.token.accessToken = jwt.sign({
+      id: req.user,
+      clientId: req.user.clientId
+    }, 'theycutthefleeb', {
+      expiresIn: 60*10
+    })
+    next()
+  }
+
+  generateRefreshToken = (req, res, next) => {
+    console.log('generateRefreshToken')
+    req.token.refreshToken = req.user.clientId.toString() + '.' + crypto.randomBytes(
+      40).toString('hex');
+    dbSerialize.client.storeToken({
+      id: req.user.clientId,
+      refreshToken: req.token.refreshToken
+    }, next);
+  }
+
+  const respond = (req, res, next) => {
+    console.log('respond')
+    res.status(200).json({
+      user: req.user,
+      token: req.token
+    })
+  }
+
+  const validateRefreshToken = (req, res, next) => {
+    console.log()
+    dbSerialize.client.findUserOfToken(req.body, (err, user) => {
+      if(err) return next(err)
+      req.user = user
+      next()
+    })
+  }
+
+  const respondToken = (req, res) => {
+    console.log()
+    res.status(201).json({
+      token: req.token
+    })
+  }
+
   app.post('/refreshAccessToken/', validateRefreshToken, generateAccessToken, respondToken)
 
   app.post('/registertoken/', passport.authenticate(
@@ -300,24 +329,22 @@ module.exports = function(app, db) {
 
   app.use(authenticate)
 
+  // ***********************************************************************************************$
 
+
+
+  //HELPERS
+
+  // ***********************************************************************************************$
   const getUser = (req, res, next) => {
     let userID
     if(typeof req.user.id === "string") userID = req.user.id
     if(typeof req.user.id === "object") userID = req.user.id.id
     usersCol.findOne({_id: new ObjectID(userID)})
       .then(user => {
-        res.locals.username = user.username
+        res.locals.userName = user.username
         next()
       })
-  }
-
-  //requires getUser
-  const getList = (req, res, next) => {
-    listsCol.findOne({$and: [{user: res.locals.username}, {selected: true}]}).then(list => {
-      res.locals.listRef = list._id.toString()
-      next()
-    })
   }
 
   const parseOrderNumberFromFrontEnd = (req, res, next) => {
@@ -336,15 +363,15 @@ module.exports = function(app, db) {
   }
 
 
-  //requires getList, parseOrderNumberFromFrontEnd
+  //requires getUser, parseOrderNumberFromFrontEnd
   const getQueryDetailsForItem = (req, res, next) => {
-    res.locals.details = {$and: [{list: res.locals.listRef}, {orderNumber: res.locals.orderNumber}]}
+    const { userName, orderNumber } = res.locals
+    res.locals.details = {$and: [{ userName }, { orderNumber }]}
     next()
   }
 
-  //requires getQueryDetailsForItem(getList, parseOrderNumberFromFrontEnd)
-  const getItemByListAndOrderNumber = (req, res, next) => {
-    //itemsCol.findOne({$and: [{list: res.locals.listRef}, {orderNumber: res.locals.orderNumber}]}).then(item => {
+  //requires getQueryDetailsForItem(getUser, parseOrderNumberFromFrontEnd)
+  const getItemByUserAndOrderNumber = (req, res, next) => {
     itemsCol.findOne(res.locals.details).then(item => {
       res.locals.item = item
       next()
@@ -352,19 +379,21 @@ module.exports = function(app, db) {
   }
 
   const getItemAtNewOrderNumber = (req, res, next) => {
-    itemsCol.findOne({$and: [{list: res.locals.listRef}, {orderNumber: res.locals.newOrderNumber}]}).then(item => {
+    const { userName, newOrderNumber } = res.locals
+    itemsCol.findOne({$and: [{ userName }, {orderNumber: newOrderNumber}]}).then(item => {
       res.locals.newOrderNumberItem = item
       next()
     })
   }
 
-  //requires getList, parseOrderNumberFromFrontEnd, getItemByListAndOrderNumber, called in item delete, item tab, item collapse
+  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndOrderNumber, called in item delete, item tab, item collapse
   const getDescendantsOfItem = (req, res, next) => {
+    const { orderNumber, userName, item } = res.locals
     res.locals.descendants = []
-    itemsCol.find( {$and: [{orderNumber: {$gt: res.locals.orderNumber}}, {list: res.locals.listRef}]} ).sort({orderNumber: 1}).toArray()
+    itemsCol.find( {$and: [{orderNumber: {$gt: orderNumber}}, { userName }]} ).sort({orderNumber: 1}).toArray()
     .then((possible) => {
       for(let i = 0; i < possible.length; i++) {
-        if(possible[i].indentLevel > res.locals.item.indentLevel) { 
+        if(possible[i].indentLevel > item.indentLevel) { 
           res.locals.descendants.push(possible[i]) 
         }
         else break
@@ -375,7 +404,8 @@ module.exports = function(app, db) {
 
   const getDescendantsOfItemAtNewOrderNumber = (req, res, next) => {
     res.locals.newItemDescendants = []
-    itemsCol.find( {$and: [{orderNumber: {$gt: res.locals.newOrderNumber}}, {list: res.locals.listRef}]} ).sort({orderNumber: 1}).toArray()
+    const { userName } = res.locals
+    itemsCol.find( {$and: [{orderNumber: {$gt: res.locals.newOrderNumber}}, { userName }]}).sort({orderNumber: 1}).toArray()
     .then((possible) => {
       for(let i = 0; i < possible.length; i++) {
         if(possible[i].indentLevel > res.locals.newOrderNumberItem.indentLevel) { 
@@ -388,8 +418,8 @@ module.exports = function(app, db) {
   }
 
   const getUserParseOrderNumber = [getUser, parseOrderNumberFromFrontEnd]
-  const getItemDetails = [getUser, getList, parseOrderNumberFromFrontEnd, getQueryDetailsForItem]
-  const getItem = [getItemDetails, getItemByListAndOrderNumber]
+  const getItemDetails = [getUser, parseOrderNumberFromFrontEnd, getQueryDetailsForItem]
+  const getItem = [getItemDetails, getItemByUserAndOrderNumber]
   const getItemAtNewOrderNumberAndDescendants = [parseNewOrderNumberFromFrontEnd, getItemAtNewOrderNumber, getDescendantsOfItemAtNewOrderNumber]
 
   const toggleItemCollapseProp = (req, res, next) => {
@@ -397,126 +427,37 @@ module.exports = function(app, db) {
     itemsCol.update(res.locals.details, {$set: {decollapsed: !dclpsd}})
       .then((item) => {next()})
   }
+  // ***********************************************************************************************$
 
-  const toggleDescendantsCollapseProp = (req, res, next) => {
-    const { descendants } = res.locals
-    const dclpsd = JSON.parse(req.body.decollapsed)
-    let dclpsdToRemain = [], stayHidden, descendantOrderNumbers = []
-    for(let i = 0; i < descendants.length; i++) {
-      stayHidden = false;
-      if(descendants[i].decollapsed) dclpsdToRemain.push(descendants[i]._id.toString())
-      for(let j = 0; j < dclpsdToRemain.length; j++) {
-        if(descendants[i].parent === dclpsdToRemain[j]) {
-          stayHidden = true
-          break
-        }
-      }
-      if(!stayHidden) {
-        descendantOrderNumbers.push(descendants[i].orderNumber)
-        itemsCol.update({_id: descendants[i]._id}, {$set: {hidden: !dclpsd}})
-      }
-    }
-    res.send({index: descendantOrderNumbers})
-  }
 
-  const toggleItemCollapse = [toggleItemCollapseProp, getDescendantsOfItem, toggleDescendantsCollapseProp]
 
-  app.get('/lists/', getUser, (req, res) => {
-    listsCol.find({ $query: {user: res.locals.username}, $orderby: { orderNumber : 1 } }).toArray()
-    .then(lists => {
-      res.send(lists)
-    })
-  })
-  
 
-  app.get('/lists/selected', getUser, (req, res) => {
-    listsCol.findOne({$and: [{user: res.locals.username}, {selected: true}]})
-    .then(list => {
-      res.send({ index: list.orderNumber  })
-    })
-  })
 
-  app.post('/lists/', [getUserParseOrderNumber], (req, res, next) => {
-    const { username, orderNumber } = res.locals
-    listsCol.updateMany({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, { $inc: {orderNumber: 1}})
-    .then(updated => {
-      return listsCol.insert({listTitle: '', orderNumber: orderNumber+1, selected: false, selectedItemIndex: 0, user: username})
-    })
-    .then(inserted => {
-      return listsCol.findOne({$and: [{user: username}, {orderNumber: orderNumber+1}]})
-    })
-    .then(newList => {
-      return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()})
-    })
-    .then(result => {
-      res.send(result)
-    })
-  })
+  //ROUTES
 
-  app.put('/lists/', [getUserParseOrderNumber, getTitleFromFrontEnd], (req, res, next) => {
-    listsCol.update({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]}, {$set: {listTitle: res.locals.title}})
-    .then(result => {
-      res.send(result)
-    });
-  });
-
-  app.put('/lists/selected', [getUserParseOrderNumber], (req, res, next) => {
-    const prevSelectedList = {$and: [{user: res.locals.username}, { selected: true }]}
-    const nextSelectedList = {$and: [{user: res.locals.username}, { orderNumber: res.locals.orderNumber}]}
-    listsCol.update(prevSelectedList, { $set: {selected: false}})
-    .then(updatedPrev => {
-      return listsCol.update(nextSelectedList, { $set: {selected: true}})
-    })
-    .then(updatedNext => {
-      res.send(updatedNext)
-    })
-  })
-
-  app.delete('/lists/', [getUserParseOrderNumber], (req, res, next) => {
-    const { orderNumber, username } = res.locals
-    listsCol.findOne({orderNumber: orderNumber})
-    .then(list => {
-      return itemsCol.deleteMany({$and: [{user: username}, {list: list._id.toString()}]})
-    })
-    .then(() => {
-      return listsCol.remove({$and: [{user: username}, {orderNumber: orderNumber}]})
-    })
-    .then(() => {
-      return listsCol.update({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, {$inc: {orderNumber : -1}})
-    })
-    .then(result => {
-      res.send(result)
-    })
-  })
-
-  app.get('/items/', getUser, getList, (req, res) => {
-    const { username, listRef } = res.locals
-    itemsCol.find({ $query: {list: listRef}, $orderby: { orderNumber : 1 } }).toArray((err, items) => {
+  // ***********************************************************************************************$
+  app.get('/items/', getUser, (req, res) => {
+    const { userName } = res.locals
+    itemsCol.find({ $query: { userName }, $orderby: { orderNumber : 1 } }).toArray((err, items) => {
+      console.log('@@@', items)
       if (err) res.send({'error':'An error has occurred'});
       else res.send(items); 
     });
   });
 
-  app.get('/items/selected/', getUser, (req, res) => {
-    const { username } = res.locals
-    listsCol.findOne({$and: [{user: username}, {selected: true}]})
-      .then(list => {
-        res.send({index: list.selectedItemIndex})
-      })
-  })
-
-  //requires getList, parseOrderNumberFromFrontEnd
-  const getNextItemByListAndOrderNumber = (req, res, next) => {
-    const { listRef, orderNumber } = res.locals
-    itemsCol.findOne({$and: [{list: listRef}, {orderNumber: orderNumber + 1}]}).then(item => {
+  //requires getUser, parseOrderNumberFromFrontEnd
+  const getNextItem = (req, res, next) => {
+    const { userName, orderNumber } = res.locals
+    itemsCol.findOne({$and: [{ userName }, {orderNumber: orderNumber + 1}]}).then(item => {
       res.locals.nextItem = item
       next()
     })
   }
 
-  //requires getList, parseOrderNumberFromFrontEnd
+  //requires getUser, parseOrderNumberFromFrontEnd
   const incrementOrderNumbers = (req, res, next) => {
-    itemsCol.updateMany({$and: [{list: res.locals.listRef}, {orderNumber: {$gt: res.locals.orderNumber}}]}, { $inc: {orderNumber: 1}})
+    const { userName, orderNumber } = res.locals
+    itemsCol.updateMany({$and: [{ userName }, {orderNumber: {$gt: orderNumber}}]}, { $inc: {orderNumber: 1}})
     .then(result => {
       next()
     })
@@ -530,16 +471,11 @@ module.exports = function(app, db) {
     })
   }
 
-  //requires getList, parseOrderNumberFromFrontEnd
-  const selectNewItem = (req, res, next) => {
-    listsCol.update({_id: new ObjectID(res.locals.listRef)}, {$set: {selectedItemIndex: res.locals.orderNumber + 1}}).then(() => {
-      next()
-    })
-  }
 
-  app.post('/items/', [getItem, getNextItemByListAndOrderNumber, getDescendantsOfItem], (req, res, next) => {
-    const { nextItem, item, orderNumber, listRef, descendants } = res.locals
+  app.post('/items/', [getItem, getNextItem, getDescendantsOfItem], (req, res, next) => {
+    const { nextItem, item, orderNumber, userName, descendants } = res.locals
     let parentRef, indentLevel
+    console.log('*()')
     if(nextItem != null && nextItem.parent == item._id.toString() && !nextItem.hidden) {
       parentRef = item._id.toString()
       indentLevel = item.indentLevel + 1
@@ -549,19 +485,19 @@ module.exports = function(app, db) {
       indentLevel = item.indentLevel
     }
     if(nextItem != null && nextItem.hidden) {
-      res.locals.orderNumber = descendants[descendants.length-1].orderNumber
+      orderNumber = descendants[descendants.length-1].orderNumber
     }
     res.locals.newItemProps = { itemTitle: '', 
       orderNumber: res.locals.orderNumber + 1, 
       parent: parentRef, 
       indentLevel: indentLevel, 
-      list: listRef, 
+      userName, 
       checked: false,
       hidden: false,
       decollapsed: false
     }
     next()
-  }, [incrementOrderNumbers, insertAfterOrderNumbersAdjustment, selectNewItem], (req, res, next) => {
+  }, [incrementOrderNumbers, insertAfterOrderNumbersAdjustment], (req, res, next) => {
     res.send(res.locals.createdItem.ops[0])
   })
 
@@ -581,24 +517,11 @@ module.exports = function(app, db) {
     })
   })
 
-  //requires getUser, parseOrderNumberFromFrontEnd, called in 1 route
-  const selectItem = (req, res, next) => {
-    const { username, orderNumber } = res.locals
-    listsCol.update({$and: [{user: username}, {selected: true}]}, {$set: {selectedItemIndex: orderNumber}})
-    .then((result) => {
-      next()
-    })
-  }
 
-  app.put('/items/selected/', [getUserParseOrderNumber, selectItem], (req, res) => {
-    res.send("something")
-  });
-
-
-  //requires getList, parseOrderNumberFromFrontEnd, getItemByListAndOrderNumber
+  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndOrderNumber
   const getNearestSiblingAbove = (req, res, next) => {
-    const { item, orderNumber, listRef } = res.locals
-    itemsCol.find({$and: [{parent: item.parent}, {orderNumber: {$lt: orderNumber}}, {list: listRef}]}).sort({orderNumber: -1}).limit(1).next()
+    const { item, orderNumber, userName } = res.locals
+    itemsCol.find({$and: [{parent: item.parent}, {orderNumber: {$lt: orderNumber}}, { userName }]}).sort({orderNumber: -1}).limit(1).next()
     .then(sibling => {
       res.locals.nearestSiblingAbove = sibling
       next()
@@ -623,7 +546,7 @@ module.exports = function(app, db) {
     res.send({})
   })
 
-  //requires getItemByListAndOrderNumber
+  //requires getItemByUserAndOrderNumber
   const getParentItem = (req, res, next) => {
     itemsCol.findOne({_id: new ObjectID(res.locals.item.parent)}).then((item) => {
       res.locals.parentItem = item
@@ -631,10 +554,10 @@ module.exports = function(app, db) {
     })
   }
 
-  //requires getList, parseOrderNumberFromFrontEnd, getItemByListAndOrderNumber
+  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndOrderNumber
   const getChildrenItems = (req, res, next) => {
-    const { listRef, orderNumber, item } = res.locals
-    itemsCol.find({ $and: [ {indentLevel: {$gt: item.indentLevel}}, {orderNumber: {$gt: orderNumber}}, {list: listRef} ]}).sort({orderNumber: 1}).toArray()
+    const { userName, orderNumber, item } = res.locals
+    itemsCol.find({ $and: [ {indentLevel: {$gt: item.indentLevel}}, {orderNumber: {$gt: orderNumber}}, { userName } ]}).sort({orderNumber: 1}).toArray()
     .then(children => {
       res.locals.childrenItems = children
       next()
@@ -642,8 +565,8 @@ module.exports = function(app, db) {
   }
 
   app.put('/items/untab', [getItem], (req, res, next) => {
-    const { item, orderNumber, listRef } = res.locals
-    const siblingsToChildrenProps = {$and: [ {parent: {$eq: item.parent}}, {orderNumber: {$gt: orderNumber}}, {list: listRef} ]}
+    const { item, orderNumber, userName } = res.locals
+    const siblingsToChildrenProps = {$and: [ {parent: {$eq: item.parent}}, {orderNumber: {$gt: orderNumber}}, { userName } ]}
     itemsCol.updateMany(siblingsToChildrenProps, {$set: {parent: item._id}})
     next()
   }, [getQueryDetailsForItem, getParentItem], (req, res, next) => {
@@ -655,18 +578,15 @@ module.exports = function(app, db) {
     }
     next()
   }, [getChildrenItems], (req, res, next) => {
-    const { childrenItems, orderNumber, listRef } = res.locals
+    const { childrenItems, orderNumber, userName } = res.locals
     for(let i = 0; i < childrenItems.length; i++) {
       if(childrenItems[i].orderNumber == orderNumber + 1 + i) {
-        itemsCol.update({$and: [{orderNumber: orderNumber + 1 + i}, {list: listRef}]}, { $inc:{indentLevel: -1} })
+        itemsCol.update({$and: [{orderNumber: orderNumber + 1 + i}, { userName }]}, { $inc:{indentLevel: -1} })
       }
       else break
     }
     res.send({})
   })
-
-  //app.put('/items/collapse/', [getItem, toggleItemCollapse])
-  //app.put('/items/decollapse/', [getItem, toggleItemCollapse])
 
   const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
     console.log('item', item)
@@ -724,7 +644,7 @@ module.exports = function(app, db) {
     res.send({})
   })
 
-  //requires getQueryDetailsForItem(getList, parseOrderNumberFromFrontEnd)
+  //requires getQueryDetailsForItem(getUser, parseOrderNumberFromFrontEnd)
   const removeItemByOrderNumber = (req, res, next) => {
     itemsCol.remove(res.locals.details)
     .then(removed => {
@@ -732,49 +652,35 @@ module.exports = function(app, db) {
     })
   }
 
-  //requires getList, parseOrderNumberFromFrontEnd
+  //requires getUser, parseOrderNumberFromFrontEnd
   const decrementOrderNumbers = (req, res, next) => {
-    itemsCol.updateMany({$and: [{list: res.locals.listRef}, {orderNumber: {$gt: res.locals.orderNumber}}]}, { $inc: {orderNumber: -1}})
+    const { userName, orderNumber } = res.locals
+    itemsCol.updateMany({$and: [{ userName }, {orderNumber: {$gt: orderNumber}}]}, { $inc: {orderNumber: -1}})
     .then(result => {
       next()
     })
   }
 
-  //requires getItemByListAndOrderNumber, getDescendantsOfItem, getList
+  //requires getItemByUserAndOrderNumber, getDescendantsOfItem, getUser
   const updateDescendantsAfterDelete = (req, res, next) => {
-    const { descendants, item, listRef } = res.locals
+    const { descendants, item, userName } = res.locals
     if(descendants.length !== 0) {
       descendants.forEach(descendant => {
         itemsCol.update({_id: descendant._id}, {$inc: {indentLevel: -1}})
       })
-      itemsCol.updateMany({ $and: [{parent: item._id.toString()}, {list: listRef}]}, {$set: {parent: item.parent}})
+      itemsCol.updateMany({ $and: [{parent: item._id.toString()}, { userName }]}, {$set: {parent: item.parent}})
     }
     next()
   }
 
-  //requires parseOrderNumberFromFrontEnd, called in 1 route
-  const selectPreviousItemAfterDelete = (req, res, next) => {
-    if(res.locals.orderNumber == 0) res.locals.nextSelectedIndex = 0
-    else res.locals.nextSelectedIndex = res.locals.orderNumber - 1
-    //MAKE SURE ALL ITEMS BEGIN WIth HIDDEN SET TO FALSE, BUG IF ITEM AT ON 0 HAS NO HIDDEN VALUE
-    itemsCol.find({$and: [{hidden: false}, {list: res.locals.listRef}, {orderNumber: {$lt: res.locals.orderNumber}}]}).sort({orderNumber: -1}).limit(1).next()
-    .then(item => {
-      return listsCol.update({_id: new ObjectID(res.locals.listRef)}, {$set: {selectedItemIndex: item.orderNumber}})
-    })
-    .then(()=> {
-      next()
-    })
-  }
-
   app.delete('/items/', [getItem, getDescendantsOfItem, removeItemByOrderNumber, decrementOrderNumbers, 
-    updateDescendantsAfterDelete, selectPreviousItemAfterDelete], (req, res) => {
+    updateDescendantsAfterDelete], (req, res) => {
     res.send({})
   })
 
-  const liftDescendantIndentLevelsAndRemoveItem = (id, on, parent, il, listRef) => {
-
+  const liftDescendantIndentLevelsAndRemoveItem = (id, on, parent, il, userName) => {
     let descendants = []
-    itemsCol.find( {$and: [{orderNumber: {$gt: on}}, {list: listRef}]} ).sort({orderNumber: 1}).toArray()
+    itemsCol.find( {$and: [{orderNumber: {$gt: on}}, { userName }]} ).sort({orderNumber: 1}).toArray()
     .then((possibleDescendants) => {
       for(let i = 0; i < possibleDescendants.length; i++) {
         if(possibleDescendants[i].indentLevel > il) { 
@@ -787,30 +693,32 @@ module.exports = function(app, db) {
       descendants.forEach((descendant) => {
         itemsCol.update({_id: descendant._id}, {$inc: {indentLevel: -1}})
       })
-      itemsCol.updateMany({ $and: [{parent: id.toString()}, {list: listRef}]}, {$set: {parent: parent}})
+      itemsCol.updateMany({ $and: [{parent: id.toString()}, { userName }]}, {$set: {parent: parent}})
       return
     })
   }
 
-  app.delete('/items/trash/', getUser, getList, (req, res) => {
+  app.delete('/items/trash/', getUser, (req, res) => {
     let incValue//, selectedItemIndex
-    itemsCol.find({$and: [{checked: true}, {list: res.locals.listRef}]}).sort({orderNumber: 1}).toArray()
+    const { userName } = res.locals
+    itemsCol.find({$and: [{checked: true}, { userName }]}).sort({orderNumber: 1}).toArray()
     .then(checkedItems => {
       incValue = checkedItems[0].orderNumber
       for(let i = 0; i < checkedItems.length; i++) {
-        liftDescendantIndentLevelsAndRemoveItem(checkedItems[i]._id, checkedItems[i].orderNumber, checkedItems[i].parent, checkedItems[i].indentLevel, res.locals.listRef)
+        liftDescendantIndentLevelsAndRemoveItem(checkedItems[i]._id, checkedItems[i].orderNumber, checkedItems[i].parent, checkedItems[i].indentLevel, res.locals.userName)
         itemsCol.remove({_id: checkedItems[i]._id})
       }
       return
     })
     .then(() => {
-      return itemsCol.find({$and: [{orderNumber: {$gt: incValue}}, {list: res.locals.listRef}]}).sort({orderNumber: 1}).toArray()
+      const { userName } = res.locals
+      return itemsCol.find({$and: [{orderNumber: {$gt: incValue}}, { userName }]}).sort({orderNumber: 1}).toArray()
     })
     .then(itemsToShiftDown => {
       for(let i = 0; i < itemsToShiftDown.length; i++) {
         itemsCol.update({_id: itemsToShiftDown[i]._id}, {$set: {orderNumber: i + incValue}})
       }
-      return listsCol.update({$and: [{user: req.user.id}, {selected: true}]}, {$set: {selectedItemIndex: 0}})
+      return
     })
     .then((result) => {
       res.send(result)
@@ -818,11 +726,11 @@ module.exports = function(app, db) {
   })
 
   app.put('/items/reorder', [getItem, getDescendantsOfItem, getItemAtNewOrderNumberAndDescendants], (req, res, next) => {
-    const { orderNumber, item, descendants, listRef, newOrderNumber, newOrderNumberItem, newItemDescendants } = res.locals
+    const { orderNumber, item, descendants, userName, newOrderNumber, newOrderNumberItem, newItemDescendants } = res.locals
     const lowerRange = (orderNumber < req.body.newOrderNumber ? (orderNumber + descendants.length + 1) : req.body.newOrderNumber)
     const upperRange = (orderNumber < req.body.newOrderNumber ? (req.body.newOrderNumber + newItemDescendants.length) : (orderNumber - 1))
     const inc = (descendants.length+1) * (orderNumber < req.body.newOrderNumber ? -1 : 1)
-    itemsCol.updateMany({$and: [{list: listRef}, {orderNumber: {$gte: lowerRange}}, {orderNumber: {$lte: upperRange}}]}, { $inc: {orderNumber: inc}})
+    itemsCol.updateMany({$and: [{ userName }, {orderNumber: {$gte: lowerRange}}, {orderNumber: {$lte: upperRange}}]}, { $inc: {orderNumber: inc}})
     .then(() => {
       res.locals.descendantInc = (orderNumber < req.body.newOrderNumber ? req.body.newOrderNumber - orderNumber - descendants.length + newItemDescendants.length : req.body.newOrderNumber - orderNumber)
       res.locals.indLevInc = newOrderNumberItem.indentLevel - item.indentLevel;
@@ -841,3 +749,159 @@ module.exports = function(app, db) {
   })
 
 }
+
+
+
+
+
+
+/* 
+
+new frontend not required
+
+selecting
+app.get('/items/selected/', getUser, (req, res) => {
+  const { username } = res.locals
+  listsCol.findOne({$and: [{user: username}, {selected: true}]})
+    .then(list => {
+      res.send({index: list.selectedItemIndex})
+    })
+})
+//requires getUser, parseOrderNumberFromFrontEnd, called in 1 route
+const selectItem = (req, res, next) => {
+  const { username, orderNumber } = res.locals
+  listsCol.update({$and: [{user: username}, {selected: true}]}, {$set: {selectedItemIndex: orderNumber}})
+  .then((result) => {
+    next()
+  })
+}
+
+app.put('/items/selected/', [getUserParseOrderNumber, selectItem], (req, res) => {
+  res.send("something")
+});
+
+//requires parseOrderNumberFromFrontEnd, called in 1 route
+const selectPreviousItemAfterDelete = (req, res, next) => {
+  if(res.locals.orderNumber == 0) res.locals.nextSelectedIndex = 0
+  else res.locals.nextSelectedIndex = res.locals.orderNumber - 1
+  //MAKE SURE ALL ITEMS BEGIN WIth HIDDEN SET TO FALSE, BUG IF ITEM AT ON 0 HAS NO HIDDEN VALUE
+  itemsCol.find({$and: [{hidden: false}, {list: res.locals.listRef}, {orderNumber: {$lt: res.locals.orderNumber}}]}).sort({orderNumber: -1}).limit(1).next()
+  .then(item => {
+    return listsCol.update({_id: new ObjectID(res.locals.listRef)}, {$set: {selectedItemIndex: item.orderNumber}})
+  })
+  .then(()=> {
+    next()
+  })
+}
+
+list CRUD
+
+const getList = (req, res, next) => {
+  listsCol.findOne({$and: [{user: res.locals.username}, {selected: true}]}).then(list => {
+    res.locals.listRef = list._id.toString()
+    next()
+  })
+}
+
+app.get('/lists/', getUser, (req, res) => {
+    listsCol.find({ $query: {user: res.locals.username}, $orderby: { orderNumber : 1 } }).toArray()
+    .then(lists => {
+      res.send(lists)
+    })
+  })
+
+//requires getList, parseOrderNumberFromFrontEnd
+const selectNewItem = (req, res, next) => {
+  listsCol.update({_id: new ObjectID(res.locals.listRef)}, {$set: {selectedItemIndex: res.locals.orderNumber + 1}}).then(() => {
+    next()
+  })
+}
+
+app.get('/lists/selected', getUser, (req, res) => {
+  listsCol.findOne({$and: [{user: res.locals.username}, {selected: true}]})
+  .then(list => {
+    res.send({ index: list.orderNumber  })
+  })
+})
+
+app.post('/lists/', [getUserParseOrderNumber], (req, res, next) => {
+  const { username, orderNumber } = res.locals
+  listsCol.updateMany({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, { $inc: {orderNumber: 1}})
+  .then(updated => {
+    return listsCol.insert({listTitle: '', orderNumber: orderNumber+1, selected: false, selectedItemIndex: 0, user: username})
+  })
+  .then(inserted => {
+    return listsCol.findOne({$and: [{user: username}, {orderNumber: orderNumber+1}]})
+  })
+  .then(newList => {
+    return itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, list: newList._id.toString()})
+  })
+  .then(result => {
+    res.send(result)
+  })
+})
+
+app.put('/lists/', [getUserParseOrderNumber, getTitleFromFrontEnd], (req, res, next) => {
+  listsCol.update({$and: [{user: res.locals.username}, {orderNumber: res.locals.orderNumber}]}, {$set: {listTitle: res.locals.title}})
+  .then(result => {
+    res.send(result)
+  });
+});
+
+app.put('/lists/selected', [getUserParseOrderNumber], (req, res, next) => {
+  const prevSelectedList = {$and: [{user: res.locals.username}, { selected: true }]}
+  const nextSelectedList = {$and: [{user: res.locals.username}, { orderNumber: res.locals.orderNumber}]}
+  listsCol.update(prevSelectedList, { $set: {selected: false}})
+  .then(updatedPrev => {
+    return listsCol.update(nextSelectedList, { $set: {selected: true}})
+  })
+  .then(updatedNext => {
+    res.send(updatedNext)
+  })
+})
+
+app.delete('/lists/', [getUserParseOrderNumber], (req, res, next) => {
+  const { orderNumber, username } = res.locals
+  listsCol.findOne({orderNumber: orderNumber})
+  .then(list => {
+    return itemsCol.deleteMany({$and: [{user: username}, {list: list._id.toString()}]})
+  })
+  .then(() => {
+    return listsCol.remove({$and: [{user: username}, {orderNumber: orderNumber}]})
+  })
+  .then(() => {
+    return listsCol.update({$and: [{user: username}, {orderNumber: {$gt: orderNumber}}]}, {$inc: {orderNumber : -1}})
+  })
+  .then(result => {
+    res.send(result)
+  })
+})
+
+toggle decollapse debugged
+
+const toggleDescendantsCollapseProp = (req, res, next) => {
+  const { descendants } = res.locals
+  const dclpsd = JSON.parse(req.body.decollapsed)
+  let dclpsdToRemain = [], stayHidden, descendantOrderNumbers = []
+  for(let i = 0; i < descendants.length; i++) {
+    stayHidden = false;
+    if(descendants[i].decollapsed) dclpsdToRemain.push(descendants[i]._id.toString())
+    for(let j = 0; j < dclpsdToRemain.length; j++) {
+      if(descendants[i].parent === dclpsdToRemain[j]) {
+        stayHidden = true
+        break
+      }
+    }
+    if(!stayHidden) {
+      descendantOrderNumbers.push(descendants[i].orderNumber)
+      itemsCol.update({_id: descendants[i]._id}, {$set: {hidden: !dclpsd}})
+    }
+  }
+  res.send({index: descendantOrderNumbers})
+}
+
+const toggleItemCollapse = [toggleItemCollapseProp, getDescendantsOfItem, toggleDescendantsCollapseProp]
+
+
+
+*/
