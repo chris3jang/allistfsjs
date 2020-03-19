@@ -473,8 +473,8 @@ module.exports = function(app, db) {
 
 
   app.post('/items/', [getItem, getNextItem, getDescendantsOfItem], (req, res, next) => {
-    const { nextItem, item, orderNumber, userName, descendants } = res.locals
-    let parentRef, indentLevel
+    const { nextItem, item, userName, descendants } = res.locals
+    let parentRef, indentLevel, orderNumber
     console.log('*()')
     if(nextItem != null && nextItem.parent == item._id.toString() && !nextItem.hidden) {
       parentRef = item._id.toString()
