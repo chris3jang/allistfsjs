@@ -149,12 +149,13 @@ const WorkFlowy = () => {
 
 	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
-		callFetch('createItem', {orderNumber: id}).then(data => {
+		const itemCreatingNewItem = items.find(item => item._id === id)
+		callFetch('createItem', {orderNumber: itemCreatingNewItem.orderNumber}).then(data => {
 			const itemsBeforeCreateByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-			const potentialHiddenItems = itemsBeforeCreateByON.slice(id + 1)//orderNumber + 1
+			const potentialHiddenItems = itemsBeforeCreateByON.slice(itemCreatingNewItem.orderNumber + 1)//orderNumber + 1
 			const areHiddenChildItems = potentialHiddenItems.map(item => item.hidden)
 			const numHiddenChildItems = areHiddenChildItems.findIndex(bool => !bool) === -1 ? 0 : areHiddenChildItems.findIndex(bool => !bool)
-			const newOrderNumber = id + numHiddenChildItems + 1
+			const newOrderNumber = itemCreatingNewItem.orderNumber + numHiddenChildItems + 1
 			//const newOrderNumber = data.orderNumber
 
 			const incrementedItems = items.map(item => {
@@ -192,10 +193,10 @@ const WorkFlowy = () => {
 	}
 
 	const deleteItem = id => {
-		//change id to orderNumber
-		callFetch('deleteItem', {orderNumber: id}).then(data => {
+		const deletedItem = items.find(item => item._id === id)
+		callFetch('deleteItem', {orderNumber: deletedItem.orderNumber}).then(data => {
 			const itemsBeforeDeleteByON = items.slice().sort((a, b) => a.orderNumber - b.orderNumber)
-			const itemToDelete = items.find(item => item.orderNumber === id)
+			const itemToDelete = items.find(item => item.orderNumber === deletedItem.orderNumber)
 
 			const firstPotentialChildInd = itemToDelete.orderNumber + 1
 			//test for deleting last item
@@ -228,9 +229,9 @@ const WorkFlowy = () => {
 	}
 
 	const editItemTitle = (id, value) => {
-		callFetch('editItemTitle', {title: value, orderNumber: id}).then(() => {
-			const editedItem = items.find(item => item.orderNumber === id)
-			const editedItemInd = items.findIndex(item => item.orderNumber === id)
+		const editedItem = items.find(item => item._id === id)
+		callFetch('editItemTitle', {title: value, orderNumber: editedItem.orderNumber}).then(() => {
+			const editedItemInd = items.findIndex(item => item._id === id)
 			editedItem.itemTitle = value
 			const editedItems = items
 			editedItems[editedItemInd] = editedItem
@@ -241,10 +242,10 @@ const WorkFlowy = () => {
 
 
 	const toggleCheckbox = id => {
-		let toggledItem = Object.assign({}, items.find(item => item.orderNumber === id))
+		let toggledItem = Object.assign({}, items.find(item => item._id === id))
 		const checked = toggledItem.checked ? false : true
-		callFetch('toggleCheckbox', { orderNumber: id, checked: checked }).then(() => {
-			const toggledItemInd = items.findIndex(item => item.orderNumber === id)
+		callFetch('toggleCheckbox', { orderNumber: toggledItem.orderNumber, checked: checked }).then(() => {
+			const toggledItemInd = items.findIndex(item => item.orderNumber === toggledItem.orderNumber)
 			let editedItems = items.slice()
 			toggledItem.checked = checked
 			editedItems[toggledItemInd] = toggledItem
@@ -255,44 +256,44 @@ const WorkFlowy = () => {
 	}
 
 	const tabItem = id => {
-		callFetch('tabItem', {orderNumber: id}).then(() => {
+		const tabbedItem = items.find(item => item._id === id)
+		callFetch('tabItem', {orderNumber: tabbedItem.orderNumber}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-			const tabbedItem = items.find(item => item.orderNumber === id)
-			const firstPotentialChildInd = id + 1
+			const firstPotentialChildInd = tabbedItem.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > tabbedItem.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? 0 : areItemsChildItems.findIndex(bool => !bool)
-			const itemsToIncrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
+			const itemsToIncrement = itemsByON.slice(tabbedItem.orderNumber, firstPotentialChildInd + numChildItems)
 			const itemsAfterIncrementing = itemsToIncrement.map(item => {
 				return {
 					...item,
 					indentLevel: item.indentLevel + 1
 				}
 			})
-			const unchangedItems = itemsByON.filter(item => item.orderNumber < id)
-			const remainingItems = itemsByON.filter(item => item.orderNumber > id + numChildItems)
+			const unchangedItems = itemsByON.filter(item => item.orderNumber < tabbedItem.orderNumber)
+			const remainingItems = itemsByON.filter(item => item.orderNumber > tabbedItem.orderNumber + numChildItems)
 			const itemsAfterTab = [...unchangedItems, ...itemsAfterIncrementing, ...remainingItems]
 			setItems(itemsAfterTab)
 		})
 	}
 
 	const untabItem = id => {
-		callFetch('untabItem', {orderNumber: id}).then(() => {
+		const untabbedItem = items.find(item => item._id === id)
+		callFetch('untabItem', {orderNumber: untabbedItem.orderNumber}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-			const untabbedItem = items.find(item => item.orderNumber === id)
-			const firstPotentialChildInd = id + 1
+			const firstPotentialChildInd = untabbedItem.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > untabbedItem.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
-			const itemsToDecrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
+			const itemsToDecrement = itemsByON.slice(untabbedItem.orderNumber, firstPotentialChildInd + numChildItems)
 			const itemsAfterDecrementing = itemsToDecrement.map(item => {
 				return {
 					...item,
 					indentLevel: item.indentLevel - 1
 				}
 			})
-			const unchangedItems = itemsByON.filter(item => item.orderNumber < id)
-			const remainingItems = itemsByON.filter(item => item.orderNumber > id + numChildItems)
+			const unchangedItems = itemsByON.filter(item => item.orderNumber < untabbedItem.orderNumber)
+			const remainingItems = itemsByON.filter(item => item.orderNumber > untabbedItem.orderNumber + numChildItems)
 			const itemsAfterUntab = [...unchangedItems, ...itemsAfterDecrementing, ...remainingItems]
 			setItems(itemsAfterUntab)
 		})
@@ -341,15 +342,15 @@ const WorkFlowy = () => {
 	}
 
 	const collapseItem = id => {
-		callFetch('collapseItem', {orderNumber: id, decollapsed: true}).then(() => {
+		const itemToCollapse = items.find(item => item._id === id)
+		callFetch('collapseItem', {orderNumber: itemToCollapse.orderNumber, decollapsed: true}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-			const itemToCollapse = items.find(item => item.orderNumber === id)
-			const firstPotentialChildInd = id + 1
+			const firstPotentialChildInd = itemToCollapse.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToCollapse.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
-			const potentialParents = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
+			const potentialParents = itemsByON.slice(itemToCollapse.orderNumber, firstPotentialChildInd + numChildItems)
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
 				if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
 					return item
@@ -364,7 +365,7 @@ const WorkFlowy = () => {
 			const itemAfterCollapse = {
 				...itemToCollapse, decollapsed: false
 			}
-			const itemsAfterCollapse = [...itemsByON.slice(0, id), itemAfterCollapse, ...unhiddenItems, ...itemsByON.slice(firstPotentialChildInd + numChildItems)]
+			const itemsAfterCollapse = [...itemsByON.slice(0, itemToCollapse.orderNumber), itemAfterCollapse, ...unhiddenItems, ...itemsByON.slice(firstPotentialChildInd + numChildItems)]
 			console.log('itemsAfterCollapse', itemsAfterCollapse)
 			setItems(itemsAfterCollapse)
 
@@ -372,10 +373,10 @@ const WorkFlowy = () => {
 	}
 
 	const decollapseItem = id => {
-		callFetch('decollapseItem', {orderNumber: id, decollapsed: false}).then(() => {
+		const itemToDecollapse = items.find(item => item._id === id)
+		callFetch('decollapseItem', {orderNumber: itemToDecollapse.orderNumber, decollapsed: false}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-			const itemToDecollapse = items.find(item => item.orderNumber === id)
-			const firstPotentialChildInd = id + 1
+			const firstPotentialChildInd = itemToDecollapse.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToDecollapse.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
@@ -386,8 +387,8 @@ const WorkFlowy = () => {
 					hidden: true
 				}
 			})
-			const unchangedItems = itemsByON.filter(item => item.orderNumber < id)
-			const remainingItems = itemsByON.filter(item => item.orderNumber > id + numChildItems)
+			const unchangedItems = itemsByON.filter(item => item.orderNumber < itemToDecollapse.orderNumber)
+			const remainingItems = itemsByON.filter(item => item.orderNumber > itemToDecollapse.orderNumber + numChildItems)
 			const itemAfterDecollapse = {
 				...itemToDecollapse, decollapsed: true
 			}
@@ -397,25 +398,28 @@ const WorkFlowy = () => {
 	}
 
 	const moveUp = id => {
-		const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, id).sort((a, b) => b.orderNumber - a.orderNumber)
+		const itemToMoveFrom = items.find(item => item._id === id)
+
+		const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, itemToMoveFrom.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
 		const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
 		const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
-		if(id - numHiddenItemsAbove - 1 < 0) {
+		if(itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1 < 0) {
 			return
 		}
-		const itemToFocusOn = items.find(item => item.orderNumber === id - numHiddenItemsAbove - 1)
+		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1)
 		const itemRef = itemsRef.current.find(ref => itemToFocusOn._id === ref.id)
 		itemRef.node.focus()
 	}
 
 	const moveDown = id => {
-		const itemsBelow = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(id + 1, items.length)
+		const itemToMoveFrom = items.find(item => item._id === id)
+		const itemsBelow = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(itemToMoveFrom.orderNumber + 1, items.length)
 		const areItemsBelowHidden = itemsBelow.map(item => item.hidden)
 		const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool)
-		if(id + numHiddenItemsBelow + 1 > items.length - 1) {
+		if(itemToMoveFrom.orderNumber + numHiddenItemsBelow + 1 > items.length - 1) {
 			return
 		}
-		const itemToFocusOn = items.find(item => item.orderNumber === id + 1 + numHiddenItemsBelow)
+		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow)
 		const itemRef = itemsRef.current.find(ref => itemToFocusOn._id === ref.id)
 		itemRef.node.focus()
 	}

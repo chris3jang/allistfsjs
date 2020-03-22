@@ -29,7 +29,7 @@ const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction})
 
 	const handleTextChange = e => {
 		if(e.target.value) {
-			handleAction('editItemTitle', orderNumber, e.target.value)
+			handleAction('editItemTitle', id, e.target.value)
 		}
 	}
 
@@ -37,33 +37,33 @@ const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction})
 		if(e.key === 'Enter') {
 			if(e.metaKey) {
 				e.preventDefault()
-				handleAction('toggleCheckbox', orderNumber)
+				handleAction('toggleCheckbox', id)
 			}
 			else {
 				e.preventDefault()
-				handleAction('createItem', orderNumber)
+				handleAction('createItem', id)
 			}
 		}
 		if(e.key === 'Backspace' && !e.target.innerText) {
 			e.preventDefault()
-			handleAction('deleteItem', orderNumber)
+			handleAction('deleteItem', id)
 		}
 		if(e.key === 'Tab') {
 			e.preventDefault()
 			if(e.shiftKey) {
-				handleAction('untabItem', orderNumber)
+				handleAction('untabItem', id)
 			}
 			else {
-				handleAction('tabItem', orderNumber)
+				handleAction('tabItem', id)
 			}
 		}
 		if(e.key === 'ArrowLeft' && e.metaKey) {
 			e.preventDefault()
-			handleAction('decollapseItem', orderNumber)
+			handleAction('decollapseItem', id)
 		}
 		if(e.key === 'ArrowRight' && e.metaKey) {
 			e.preventDefault()
-			handleAction('collapseItem', orderNumber)
+			handleAction('collapseItem', id)
 		}
 		if(e.key === 'ArrowUp') {
 			e.preventDefault()
@@ -71,7 +71,7 @@ const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction})
 				handleAction('returnToParent', null, list)
 			}
 			else {
-				handleAction('moveUp', orderNumber)
+				handleAction('moveUp', id)
 			}
 		}
 		if(e.key === 'ArrowDown') {
@@ -80,7 +80,7 @@ const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction})
 				handleAction('enterChild', id, list)
 			}
 			else {
-				handleAction('moveDown', orderNumber)
+				handleAction('moveDown', id)
 			}
 		}
 	}
