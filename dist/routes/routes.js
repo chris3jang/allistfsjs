@@ -352,6 +352,18 @@ module.exports = function(app, db) {
     next()
   }
 
+  const parseId = (req, res, next) => {
+    res.locals.id = req.body.id
+    console.log('check for this ', req.body.id, typeof req.body.id)
+    next()
+  }
+
+  const getOrderNumber = (req, res, next) => {
+    const { item } = res.locals
+    res.locals.orderNumber = item.orderNumber
+    next()
+  }
+
   const parseNewOrderNumberFromFrontEnd = (req, res, next) => {
     res.locals.newOrderNumber = parseInt(req.body.newOrderNumber)
     next()
@@ -365,14 +377,15 @@ module.exports = function(app, db) {
 
   //requires getUser, parseOrderNumberFromFrontEnd
   const getQueryDetailsForItem = (req, res, next) => {
-    const { userName, orderNumber } = res.locals
-    res.locals.details = {$and: [{ userName }, { orderNumber }]}
+    const { userName, id } = res.locals
+    res.locals.details = {$and: [{ userName }, { _id: ObjectID(id) }]}
     next()
   }
 
   //requires getQueryDetailsForItem(getUser, parseOrderNumberFromFrontEnd)
   const getItemByUserAndOrderNumber = (req, res, next) => {
     itemsCol.findOne(res.locals.details).then(item => {
+      console.log('res.locals.details', res.locals.details)
       res.locals.item = item
       next()
     })
@@ -418,8 +431,8 @@ module.exports = function(app, db) {
   }
 
   const getUserParseOrderNumber = [getUser, parseOrderNumberFromFrontEnd]
-  const getItemDetails = [getUser, parseOrderNumberFromFrontEnd, getQueryDetailsForItem]
-  const getItem = [getItemDetails, getItemByUserAndOrderNumber]
+  const getItemDetails = [getUser, parseId, getQueryDetailsForItem]
+  const getItem = [getItemDetails, getItemByUserAndOrderNumber, getOrderNumber]
   const getItemAtNewOrderNumberAndDescendants = [parseNewOrderNumberFromFrontEnd, getItemAtNewOrderNumber, getDescendantsOfItemAtNewOrderNumber]
 
   const toggleItemCollapseProp = (req, res, next) => {
@@ -439,7 +452,6 @@ module.exports = function(app, db) {
   app.get('/items/', getUser, (req, res) => {
     const { userName } = res.locals
     itemsCol.find({ $query: { userName }, $orderby: { orderNumber : 1 } }).toArray((err, items) => {
-      console.log('@@@', items)
       if (err) res.send({'error':'An error has occurred'});
       else res.send(items); 
     });
@@ -471,11 +483,11 @@ module.exports = function(app, db) {
     })
   }
 
-
+  //@@@
   app.post('/items/', [getItem, getNextItem, getDescendantsOfItem], (req, res, next) => {
     const { nextItem, item, userName, descendants } = res.locals
     let parentRef, indentLevel, orderNumber
-    console.log('*()')
+    console.log('*()', item)
     if(nextItem != null && nextItem.parent == item._id.toString() && !nextItem.hidden) {
       parentRef = item._id.toString()
       indentLevel = item.indentLevel + 1
@@ -487,6 +499,7 @@ module.exports = function(app, db) {
     if(nextItem != null && nextItem.hidden) {
       orderNumber = descendants[descendants.length-1].orderNumber
     }
+    console.log('123', res.locals.orderNumber)
     res.locals.newItemProps = { itemTitle: '', 
       orderNumber: res.locals.orderNumber + 1, 
       parent: parentRef, 

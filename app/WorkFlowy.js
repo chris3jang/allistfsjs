@@ -149,8 +149,8 @@ const WorkFlowy = () => {
 
 	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
-		const itemCreatingNewItem = items.find(item => item._id === id)
-		callFetch('createItem', {orderNumber: itemCreatingNewItem.orderNumber}).then(data => {
+		callFetch('createItem', { id}).then(data => {
+			const itemCreatingNewItem = items.find(item => item._id === id)
 			const itemsBeforeCreateByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const potentialHiddenItems = itemsBeforeCreateByON.slice(itemCreatingNewItem.orderNumber + 1)//orderNumber + 1
 			const areHiddenChildItems = potentialHiddenItems.map(item => item.hidden)
@@ -193,8 +193,8 @@ const WorkFlowy = () => {
 	}
 
 	const deleteItem = id => {
-		const deletedItem = items.find(item => item._id === id)
-		callFetch('deleteItem', {orderNumber: deletedItem.orderNumber}).then(data => {
+		callFetch('deleteItem', { id }).then(data => {
+			const deletedItem = items.find(item => item._id === id)
 			const itemsBeforeDeleteByON = items.slice().sort((a, b) => a.orderNumber - b.orderNumber)
 			const itemToDelete = items.find(item => item.orderNumber === deletedItem.orderNumber)
 
@@ -229,8 +229,8 @@ const WorkFlowy = () => {
 	}
 
 	const editItemTitle = (id, value) => {
-		const editedItem = items.find(item => item._id === id)
-		callFetch('editItemTitle', {title: value, orderNumber: editedItem.orderNumber}).then(() => {
+		callFetch('editItemTitle', {title: value, id}).then(() => {
+			const editedItem = items.find(item => item._id === id)
 			const editedItemInd = items.findIndex(item => item._id === id)
 			editedItem.itemTitle = value
 			const editedItems = items
@@ -244,7 +244,7 @@ const WorkFlowy = () => {
 	const toggleCheckbox = id => {
 		let toggledItem = Object.assign({}, items.find(item => item._id === id))
 		const checked = toggledItem.checked ? false : true
-		callFetch('toggleCheckbox', { orderNumber: toggledItem.orderNumber, checked: checked }).then(() => {
+		callFetch('toggleCheckbox', { id, checked }).then(() => {
 			const toggledItemInd = items.findIndex(item => item.orderNumber === toggledItem.orderNumber)
 			let editedItems = items.slice()
 			toggledItem.checked = checked
@@ -256,8 +256,8 @@ const WorkFlowy = () => {
 	}
 
 	const tabItem = id => {
-		const tabbedItem = items.find(item => item._id === id)
-		callFetch('tabItem', {orderNumber: tabbedItem.orderNumber}).then(() => {
+		callFetch('tabItem', { id }).then(() => {
+			const tabbedItem = items.find(item => item._id === id)
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const firstPotentialChildInd = tabbedItem.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
@@ -278,8 +278,8 @@ const WorkFlowy = () => {
 	}
 
 	const untabItem = id => {
-		const untabbedItem = items.find(item => item._id === id)
-		callFetch('untabItem', {orderNumber: untabbedItem.orderNumber}).then(() => {
+		callFetch('untabItem', { id }).then(() => {
+			const untabbedItem = items.find(item => item._id === id)
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const firstPotentialChildInd = untabbedItem.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
@@ -342,8 +342,8 @@ const WorkFlowy = () => {
 	}
 
 	const collapseItem = id => {
-		const itemToCollapse = items.find(item => item._id === id)
-		callFetch('collapseItem', {orderNumber: itemToCollapse.orderNumber, decollapsed: true}).then(() => {
+		callFetch('collapseItem', { id, decollapsed: true}).then(() => {
+			const itemToCollapse = items.find(item => item._id === id)
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const firstPotentialChildInd = itemToCollapse.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
@@ -373,8 +373,8 @@ const WorkFlowy = () => {
 	}
 
 	const decollapseItem = id => {
-		const itemToDecollapse = items.find(item => item._id === id)
-		callFetch('decollapseItem', {orderNumber: itemToDecollapse.orderNumber, decollapsed: false}).then(() => {
+		callFetch('decollapseItem', { id, decollapsed: false}).then(() => {
+			const itemToDecollapse = items.find(item => item._id === id)
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const firstPotentialChildInd = itemToDecollapse.orderNumber + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
