@@ -187,7 +187,6 @@ module.exports = function(app, db) {
             */
            itemsCol.insert({itemTitle: '', orderNumber: 0, parent: null, indentLevel: 0, userName: un}) 
             .then(inserted => {
-              console.log('$$$', inserted)
               return usersCol.insert(newUser)
             })
             .then(inserted => {
@@ -293,7 +292,7 @@ module.exports = function(app, db) {
   }
 
   const validateRefreshToken = (req, res, next) => {
-    console.log()
+    console.log('validateRefreshToken')
     dbSerialize.client.findUserOfToken(req.body, (err, user) => {
       if(err) return next(err)
       req.user = user
@@ -302,7 +301,7 @@ module.exports = function(app, db) {
   }
 
   const respondToken = (req, res) => {
-    console.log()
+    console.log('respondToken')
     res.status(201).json({
       token: req.token
     })
@@ -439,7 +438,6 @@ module.exports = function(app, db) {
   app.get('/items/', getUser, (req, res) => {
     const { userName } = res.locals
     itemsCol.find({ $query: { userName }, $orderby: { orderNumber : 1 } }).toArray((err, items) => {
-      console.log('@@@', items)
       if (err) res.send({'error':'An error has occurred'});
       else res.send(items); 
     });
@@ -474,8 +472,7 @@ module.exports = function(app, db) {
 
   app.post('/items/', [getItem, getNextItem, getDescendantsOfItem], (req, res, next) => {
     const { nextItem, item, userName, descendants } = res.locals
-    let parentRef, indentLevel, orderNumber
-    console.log('*()')
+    let parentRef, indentLevel
     if(nextItem != null && nextItem.parent == item._id.toString() && !nextItem.hidden) {
       parentRef = item._id.toString()
       indentLevel = item.indentLevel + 1
@@ -485,7 +482,7 @@ module.exports = function(app, db) {
       indentLevel = item.indentLevel
     }
     if(nextItem != null && nextItem.hidden) {
-      orderNumber = descendants[descendants.length-1].orderNumber
+      res.locals.orderNumber = descendants[descendants.length-1].orderNumber
     }
     res.locals.newItemProps = { itemTitle: '', 
       orderNumber: res.locals.orderNumber + 1, 
@@ -589,19 +586,14 @@ module.exports = function(app, db) {
   })
 
   const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
-    console.log('item', item)
-    console.log('potentialParents', potentialParents)
 		const parent = potentialParents.find(i => i._id.toString() === item.parent)
 		if(!parent) {
-			console.log('!')
 			return false
 		}
 		if(parent._id.toString() === itemToggled._id.toString()) {
-			console.log('@')
 			return false
 		}
 		if(parent.decollapsed) {
-			console.log('#')
 			return true
 		}
 		return shouldItemRemainHidden(parent, itemToggled, potentialParents)
@@ -609,7 +601,6 @@ module.exports = function(app, db) {
   
   app.put('/items/collapse/', [getItem, toggleItemCollapseProp, getDescendantsOfItem], (req, res, next) => {
     const { item, descendants } = res.locals
-    console.log('descendants', descendants, 'item', item)
     const itemWithDescendants = [item, ...descendants]
     const sortedItems = itemWithDescendants.sort((a, b) => a.orderNumber - b.orderNumber)
     const sortedDescendants = descendants.sort((a, b) => a.orderNumber - b.orderNumber)
@@ -634,7 +625,6 @@ module.exports = function(app, db) {
 
   app.put('/items/decollapse/', [getItem, toggleItemCollapseProp, getDescendantsOfItem], (req, res, next) => {
     const { item, descendants } = res.locals
-    console.log('descendants', descendants, 'item', item)
     const sortedDescendants = descendants.sort((a, b) => a.orderNumber - b.orderNumber)
     for(let i = 0; i < sortedDescendants.length; i++) {
       if(!sortedDescendants[i].hidden) {
