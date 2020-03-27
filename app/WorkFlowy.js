@@ -150,11 +150,22 @@ const WorkFlowy = () => {
 	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
 		callFetch('createItem', {orderNumber: id}).then(data => {
+			const itemCreatedOn = items.find(item => item.orderNumber === id)
+			console.log('itemCreatedOn', itemCreatedOn)
+			const descendantItems = getDescendantItems(itemCreatedOn._id)
+			console.log('descendantItems', descendantItems)
+			/*
 			const itemsBeforeCreateByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+			console.log('itemsBeforeCreateByON', itemsBeforeCreateByON)
 			const potentialHiddenItems = itemsBeforeCreateByON.slice(id + 1)//orderNumber + 1
+			console.log('potentialHiddenItems', potentialHiddenItems)
 			const areHiddenChildItems = potentialHiddenItems.map(item => item.hidden)
+			console.log('areHiddenChildItems', areHiddenChildItems)
 			const numHiddenChildItems = areHiddenChildItems.findIndex(bool => !bool) === -1 ? 0 : areHiddenChildItems.findIndex(bool => !bool)
-			const newOrderNumber = id + numHiddenChildItems + 1
+			console.log('numHiddenChildItems', numHiddenChildItems)
+			*/
+			const newOrderNumber = id + descendantItems.length + 1
+			console.log('newOrderNumber', newOrderNumber)
 			//const newOrderNumber = data.orderNumber
 
 			const incrementedItems = items.map(item => {
@@ -228,6 +239,7 @@ const WorkFlowy = () => {
 	}
 
 	const editItemTitle = (id, value) => {
+		console.log('editTitle oN', id)
 		callFetch('editItemTitle', {title: value, orderNumber: id}).then(() => {
 			const editedItem = items.find(item => item.orderNumber === id)
 			const editedItemInd = items.findIndex(item => item.orderNumber === id)
@@ -299,7 +311,7 @@ const WorkFlowy = () => {
 	}
 
 	const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
-		console.log('item', item)
+		console.log('sIRH', item)
 		const parent = potentialParents.find(i => i._id === item.parent)
 		if(!parent) {
 			return false
@@ -351,6 +363,7 @@ const WorkFlowy = () => {
 			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
 			const potentialParents = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
+				console.log(shouldItemRemainHidden(item, itemToCollapse, potentialParents))
 				if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
 					return item
 				}
