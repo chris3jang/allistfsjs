@@ -151,9 +151,7 @@ const WorkFlowy = () => {
 	const createItem = id => {
 		callFetch('createItem', {orderNumber: id}).then(data => {
 			const itemCreatedOn = items.find(item => item.orderNumber === id)
-			console.log('itemCreatedOn', itemCreatedOn)
 			const descendantItems = getDescendantItems(itemCreatedOn._id)
-			console.log('descendantItems', descendantItems)
 			/*
 			const itemsBeforeCreateByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			console.log('itemsBeforeCreateByON', itemsBeforeCreateByON)
@@ -164,10 +162,23 @@ const WorkFlowy = () => {
 			const numHiddenChildItems = areHiddenChildItems.findIndex(bool => !bool) === -1 ? 0 : areHiddenChildItems.findIndex(bool => !bool)
 			console.log('numHiddenChildItems', numHiddenChildItems)
 			*/
-			const newOrderNumber = id + descendantItems.length + 1
-			console.log('newOrderNumber', newOrderNumber)
-			//const newOrderNumber = data.orderNumber
 
+			//calc new item parent
+			const getNewItemParent = () => {
+				const nextItem = items.find(item => item.orderNumber === itemCreatedOn.orderNumber + 1)
+				console.log('***', nextItem)
+				if(!nextItem) {
+					return itemCreatedOn.parent
+				}
+				if(nextItem !== null && nextItem.parent === item._id && !nextItem.hidden){
+					return itemCreatedOn._id
+				}
+				else {
+					return itemCreatedOn.parent
+				}
+			}
+
+			const newOrderNumber = id + descendantItems.length + 1
 			const incrementedItems = items.map(item => {
 				if(item.orderNumber >= newOrderNumber) {
 					return {
@@ -185,7 +196,8 @@ const WorkFlowy = () => {
 					indentLevel: data.indentLevel, 
 					decollapsed: false, 
 					hidden: false, 
-					orderNumber: newOrderNumber
+					orderNumber: newOrderNumber,
+					parent: getNewItemParent()
 				}
 			]
 			setItems(itemsAfterCreate)
