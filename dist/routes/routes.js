@@ -597,11 +597,11 @@ module.exports = function(app, db) {
       console.log('lowestNextSibling', lowestNextSibling)
       res.locals.lowestNextSibling = lowestNextSibling
       console.log('why?', typeof res.locals.highestPrevSibling)
-      if(typeof res.locals.highestPrevSibling === 'undefined') {
+      if(typeof res.locals.highestPrevSibling === 'undefined' || res.locals.highestPrevSibling === null) {
         console.log('1')
         res.locals.add = 0
       }
-      else if(typeof lowestNextSibling === 'undefined') {
+      else if(typeof lowestNextSibling === 'undefined' || lowestNextSibling === null) {
         console.log('2')
         res.locals.add = res.locals.itemTotal + 1 - res.locals.highestPrevSibling.orderNumber
       }
@@ -617,21 +617,32 @@ module.exports = function(app, db) {
       return itemsCol.updateMany({$and: [{ userName }, {orderNumber: {$gte: res.locals.highRange + 1}}, {orderNumber: {$lte: (res.locals.lowestNextSibling ? res.locals.lowestNextSibling.orderNumber - 1 : res.locals.itemTotal - 1)}}]}, {$inc: {orderNumber: ((res.locals.descendants.length + 1) * -1)}})
     })
     .then(() => {
+      return itemsCol.find({userName}).toArray()
+    })
+    .then((updated) => {
+      console.log('first update', updated)
       const { descendants } = res.locals
+      console.log('descendants', descendants)
       for(let i = 0; i < descendants.length; i++) {
         itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.add, indentLevel: -1}})
       }
-      return
+      return itemsCol.find({userName}).toArray()
     })
-    .then(() => {
+    .then((updatedtwo) => {
+      console.log('second update', updatedtwo)
       let parentToSet = null
       const { parentItem, details } = res.locals
       if(parentItem != null) {
         parentToSet = parentItem.parent
       }
-      return itemsCol.update(details, { $set: {parent: parentToSet, orderNumber: item.orderNumber + res.locals.add, indentLevel: item.indentLevel - 1} } )
+      console.log('item', item)
+      return itemsCol.update({_id: item._id}, { $set: {parent: parentToSet, orderNumber: item.orderNumber + res.locals.add, indentLevel: item.indentLevel - 1} } )
     })
     .then(() => {
+      return itemsCol.find({userName}).toArray()
+    })
+    .then((updatedthree) => {
+      console.log('third update', updatedthree)
       res.send({})
     })
   })
