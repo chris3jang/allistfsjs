@@ -348,6 +348,7 @@ module.exports = function(app, db) {
 
   const parseOrderNumberFromFrontEnd = (req, res, next) => {
     res.locals.orderNumber = parseInt(req.body.orderNumber)
+    console.log('oN?', res.locals.orderNumber)
     next()
   }
 
@@ -366,6 +367,7 @@ module.exports = function(app, db) {
   const getQueryDetailsForItem = (req, res, next) => {
     const { userName, orderNumber } = res.locals
     res.locals.details = {$and: [{ userName }, { orderNumber }]}
+    console.log('details', res.locals.details)
     next()
   }
 
@@ -500,6 +502,9 @@ module.exports = function(app, db) {
 
   app.put('/items/', [getItemDetails, getTitleFromFrontEnd], (req, res, next) => {
     const { details, title } = res.locals
+    itemsCol.findOne(details).then(toEdit => {
+      console.log(toEdit)
+    })
     itemsCol.update(details, { $set: {itemTitle: title} }).then(result => {
       res.send(result)
     })
@@ -518,6 +523,8 @@ module.exports = function(app, db) {
   //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndOrderNumber
   const getNearestSiblingAbove = (req, res, next) => {
     const { item, orderNumber, userName } = res.locals
+    console.log('parent: item.parent', item.parent)
+    console.log('orderNumber: {$lt: orderNumber}', orderNumber)
     itemsCol.find({$and: [{parent: item.parent}, {orderNumber: {$lt: orderNumber}}, { userName }]}).sort({orderNumber: -1}).limit(1).next()
     .then(sibling => {
       res.locals.nearestSiblingAbove = sibling
@@ -561,12 +568,74 @@ module.exports = function(app, db) {
     })
   }
 
-  app.put('/items/untab', [getItem], (req, res, next) => {
+  
+  const getItemTotal = (req, res, next) => {
+    const { userName } = res.locals
+    itemsCol.find({$and: [{userName}]}).toArray()
+    .then(items => {
+      res.locals.itemTotal = items.length
+      next()
+    })
+
+  }
+
+  app.put('/items/untab', [getItem], /*(req, res, next) => {
     const { item, orderNumber, userName } = res.locals
     const siblingsToChildrenProps = {$and: [ {parent: {$eq: item.parent}}, {orderNumber: {$gt: orderNumber}}, { userName } ]}
     itemsCol.updateMany(siblingsToChildrenProps, {$set: {parent: item._id}})
     next()
-  }, [getQueryDetailsForItem, getParentItem], (req, res, next) => {
+  }, */[getParentItem, getDescendantsOfItem, getItemTotal], (req, res, next) => {
+
+    const { userName, item, orderNumber } = res.locals
+    itemsCol.find({$and: [ {userName}, { parent: item.parent }, {orderNumber: {$gt: orderNumber}}]}).sort({orderNumber: -1}).limit(1).next()
+    .then(highestPrevSibling => {
+      console.log('highestPrevSibling', highestPrevSibling)
+      res.locals.highestPrevSibling = highestPrevSibling
+      return itemsCol.find({$and: [ { userName }, {orderNumber: {$gt: orderNumber}}, {indentLevel: item.indentLevel - 1}]}).sort({orderNumber: 1}).limit(1).next()
+    })
+    .then(lowestNextSibling => {
+      console.log('lowestNextSibling', lowestNextSibling)
+      res.locals.lowestNextSibling = lowestNextSibling
+      console.log('why?', typeof res.locals.highestPrevSibling)
+      if(typeof res.locals.highestPrevSibling === 'undefined') {
+        console.log('1')
+        res.locals.add = 0
+      }
+      else if(typeof lowestNextSibling === 'undefined') {
+        console.log('2')
+        res.locals.add = res.locals.itemTotal + 1 - res.locals.highestPrevSibling.orderNumber
+      }
+      else {
+        console.log('3')
+        res.locals.add = lowestNextSibling.orderNumber - res.locals.highestPrevSibling.orderNumber 
+      }
+      console.log('res.locals.add', res.locals.add)
+      const lowRange = Math.min(...res.locals.descendants.map(des => des.orderNumber))
+      res.locals.highRange = Math.max(...res.locals.descendants.map(des => des.orderNumber))
+      console.log('lowRange', lowRange)
+      console.log('res.locals.highRange', res.locals.highRange)
+      return itemsCol.updateMany({$and: [{ userName }, {orderNumber: {$gte: res.locals.highRange + 1}}, {orderNumber: {$lte: (res.locals.lowestNextSibling ? res.locals.lowestNextSibling.orderNumber - 1 : res.locals.itemTotal - 1)}}]}, {$inc: {orderNumber: ((res.locals.descendants.length + 1) * -1)}})
+    })
+    .then(() => {
+      const { descendants } = res.locals
+      for(let i = 0; i < descendants.length; i++) {
+        itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.add, indentLevel: -1}})
+      }
+      return
+    })
+    .then(() => {
+      let parentToSet = null
+      const { parentItem, details } = res.locals
+      if(parentItem != null) {
+        parentToSet = parentItem.parent
+      }
+      return itemsCol.update(details, { $set: {parent: parentToSet, orderNumber: item.orderNumber + res.locals.add, indentLevel: item.indentLevel - 1} } )
+    })
+    .then(() => {
+      res.send({})
+    })
+  })
+    /*
     let parentToSet = null
     const { parentItem, details } = res.locals
     if(parentItem != null) {
@@ -584,6 +653,7 @@ module.exports = function(app, db) {
     }
     res.send({})
   })
+  */
 
   const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
 		const parent = potentialParents.find(i => i._id.toString() === item.parent)
@@ -612,7 +682,7 @@ module.exports = function(app, db) {
       
       if(parent.orderNumber === item.orderNumber || !parent.decollapsed) {
         console.log('updating descendant to hidden false', descendants[i])
-        itemsCol.update({_id: sortedDescendants[i]._id}, {$set: {hidden: false}})
+        itemsCol.update({_id: sortedDescenudants[i]._id}, {$set: {hidden: false}})
       }
       */
       if(!shouldItemRemainHidden(sortedDescendants[i], item, itemWithDescendants)) {
