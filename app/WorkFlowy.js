@@ -54,16 +54,12 @@ const WorkFlowy = () => {
 	const prevItems = usePrevious(items)
 	useEffect(() => {
 		if(mounted) {
-			console.log('items', items)
 			if(prevItems.length === items.length - 1) {
 				const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
 				itemsRef.current.find(ref => addedItem._id === ref.id).node.focus()
 			}
 			if(prevItems.length === items.length + 1) {
-				console.log('prevItems', prevItems)
-				console.log("items", items)
 				const deletedItem = prevItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
-				console.log('deletedItem', deletedItem)
 				/*
 				const previousItem = items.find(item => item.orderNumber === deletedItem.orderNumber - 1)
 				console.log('previousItem', previousItem)
@@ -84,12 +80,7 @@ const WorkFlowy = () => {
 
 	useEffect(() => {
 		if(itemToFocus) {
-			console.log('itemToFocus', itemToFocus)
-			for(let i = 0; i < itemsRef.current.length; i++) {
-				console.log('i', itemsRef.current[i])
-			}
 			const itemRef = itemsRef.current.find(ref => ref.id === itemToFocus)
-			console.log('itemRef', itemRef)
 			itemRef.node.focus()
 		}
 	}, [itemToFocus])
@@ -166,11 +157,10 @@ const WorkFlowy = () => {
 			//calc new item parent
 			const getNewItemParent = () => {
 				const nextItem = items.find(item => item.orderNumber === itemCreatedOn.orderNumber + 1)
-				console.log('***', nextItem)
 				if(!nextItem) {
 					return itemCreatedOn.parent
 				}
-				if(nextItem !== null && nextItem.parent === item._id && !nextItem.hidden){
+				if(nextItem !== null && nextItem.parent === itemCreatedOn._id && !nextItem.hidden){
 					return itemCreatedOn._id
 				}
 				else {
@@ -200,6 +190,7 @@ const WorkFlowy = () => {
 					parent: getNewItemParent()
 				}
 			]
+			console.log('itemsAfterCreate', itemsAfterCreate)
 			setItems(itemsAfterCreate)
 		})
 	}
@@ -251,7 +242,6 @@ const WorkFlowy = () => {
 	}
 
 	const editItemTitle = (id, value) => {
-		console.log('editTitle oN', id)
 		callFetch('editItemTitle', {title: value, orderNumber: id}).then(() => {
 			const editedItem = items.find(item => item.orderNumber === id)
 			const editedItemInd = items.findIndex(item => item.orderNumber === id)
@@ -281,21 +271,36 @@ const WorkFlowy = () => {
 	const tabItem = id => {
 		callFetch('tabItem', {orderNumber: id}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+			const itemToTab = items.find(item => item.orderNumber === id)
+			const descendantItems = getDescendantItems(itemToTab._id)
+			/*
 			const tabbedItem = items.find(item => item.orderNumber === id)
 			const firstPotentialChildInd = id + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > tabbedItem.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? 0 : areItemsChildItems.findIndex(bool => !bool)
-			const itemsToIncrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
-			const itemsAfterIncrementing = itemsToIncrement.map(item => {
+			*/
+			//const itemsToIncrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
+
+			const possibleParents = itemsByON.filter(item => item.parent === itemToTab.parent && item.orderNumber < itemToTab.orderNumber)
+			console.log('possibleParents', possibleParents)
+			const parent = itemsByON.find(item => item.orderNumber === Math.max(...possibleParents.map(par => par.orderNumber)))
+
+			console.log('parent', parent)
+			const itemTabbed = {
+				...itemToTab,
+				parent: parent ? parent._id : null,
+				indentLevel: itemToTab.indentLevel + 1
+			}
+			const descendantsAfterIncrementing = descendantItems.map(item => {
 				return {
 					...item,
 					indentLevel: item.indentLevel + 1
 				}
 			})
 			const unchangedItems = itemsByON.filter(item => item.orderNumber < id)
-			const remainingItems = itemsByON.filter(item => item.orderNumber > id + numChildItems)
-			const itemsAfterTab = [...unchangedItems, ...itemsAfterIncrementing, ...remainingItems]
+			const remainingItems = itemsByON.filter(item => item.orderNumber > id + descendantItems.length)
+			const itemsAfterTab = [...unchangedItems, itemTabbed, ...descendantsAfterIncrementing, ...remainingItems]
 			setItems(itemsAfterTab)
 		})
 	}
@@ -303,12 +308,77 @@ const WorkFlowy = () => {
 	const untabItem = id => {
 		callFetch('untabItem', {orderNumber: id}).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-			const untabbedItem = items.find(item => item.orderNumber === id)
+			const itemToUntab = items.find(item => item.orderNumber === id)
+			const descendantItems = getDescendantItems(itemToUntab._id)
+
+			const highestPrevSibling = items.find(item => item.orderNumber === Math.max(...items.filter(item => item.parent === itemToUntab.parent).map(item => item.orderNumber)))
+			console.log('highestPrevSibling', highestPrevSibling)
+			let add = 0
+			const highestPrevSiblingDescendant = inOrder(getDescendantItems(highestPrevSibling._id)).slice(-1).pop()
+			console.log('highestPrevSiblingDescendant', highestPrevSiblingDescendant)
+			if(highestPrevSiblingDescendant) {
+				add = highestPrevSiblingDescendant.orderNumber - (itemToUntab.orderNumber + descendantItems.length)
+			}
+			else add = highestPrevSibling.orderNumber - (itemToUntab.orderNumber + descendantItems.length)
+			console.log('add', add)
+
+			const prevParent = items.find(item => itemToUntab.parent === item._id)
+
+			const itemUntabbed = {
+				...itemToUntab,
+				orderNumber: itemToUntab.orderNumber + add,
+				indentLevel: itemToUntab.indentLevel - 1,
+				parent: prevParent ? prevParent.parent : null
+			}
+
+			const newDescendantItems = descendantItems.map(item => {
+				return {
+					...item,
+					orderNumber: item.orderNumber + add,
+					indentLevel: item.indentLevel - 1
+				}
+			})
+
+			const siblingsToSkip = itemsByON.slice(itemToUntab.orderNumber + descendantItems.length + 1, itemToUntab.orderNumber + descendantItems.length + 1 + add)
+
+			const siblingsToSkipAdjusted = siblingsToSkip.map(item => {
+				return {
+					...item,
+					orderNumber: item.orderNumber - descendantItems.length - 1
+				}
+			})
+
+			const leftItems = itemsByON.slice(0, itemToUntab.orderNumber)
+			const rightItems = itemsByON.slice(itemToUntab.orderNumber + descendantItems.length + siblingsToSkip.length + 1)
+			console.log('leftItems', leftItems)
+			console.log('siblingsToSkipAdjusted', siblingsToSkipAdjusted)
+			console.log('itemUntabbed', itemUntabbed)
+			console.log('newDescendantItems', newDescendantItems)
+			console.log('rightItems', rightItems)
+			const itemsAfterUntab = [
+				...leftItems,
+				...siblingsToSkipAdjusted,
+				itemUntabbed,
+				...newDescendantItems,
+				...rightItems
+			]
+
+
+
+			/*
+			const itemUntabbed = {
+				...itemToUntab,
+				parent:  'parent',
+				indentLevel: itemToUntab.indentLevel - 1
+			}
+
 			const firstPotentialChildInd = id + 1
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
-			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > untabbedItem.indentLevel)
+			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToUntab.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
 			const itemsToDecrement = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
+			console.log('itemsToDecrement', itemsToDecrement)
+
 			const itemsAfterDecrementing = itemsToDecrement.map(item => {
 				return {
 					...item,
@@ -318,12 +388,13 @@ const WorkFlowy = () => {
 			const unchangedItems = itemsByON.filter(item => item.orderNumber < id)
 			const remainingItems = itemsByON.filter(item => item.orderNumber > id + numChildItems)
 			const itemsAfterUntab = [...unchangedItems, ...itemsAfterDecrementing, ...remainingItems]
+			*/
+			console.log('itemsAfterUntab', itemsAfterUntab)
 			setItems(itemsAfterUntab)
 		})
 	}
 
 	const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
-		console.log('sIRH', item)
 		const parent = potentialParents.find(i => i._id === item.parent)
 		if(!parent) {
 			return false
@@ -375,7 +446,6 @@ const WorkFlowy = () => {
 			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
 			const potentialParents = itemsByON.slice(id, firstPotentialChildInd + numChildItems)
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
-				console.log(shouldItemRemainHidden(item, itemToCollapse, potentialParents))
 				if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
 					return item
 				}
@@ -390,7 +460,6 @@ const WorkFlowy = () => {
 				...itemToCollapse, decollapsed: false
 			}
 			const itemsAfterCollapse = [...itemsByON.slice(0, id), itemAfterCollapse, ...unhiddenItems, ...itemsByON.slice(firstPotentialChildInd + numChildItems)]
-			console.log('itemsAfterCollapse', itemsAfterCollapse)
 			setItems(itemsAfterCollapse)
 
 		})
@@ -467,13 +536,10 @@ const WorkFlowy = () => {
 		const itemsInList = inOrder(getDescendantItems(list))
 		if(list !== null) {
 			const prevItemsInList = itemsInList.map(item => {
-				console.log('yeet', item.itemTitle)
 				const parent = items.find(it => it._id === item.parent)
-				console.log(parent)
 				const start = items.find(it => it._id === list).orderNumber
 				const end = item.orderNumber
 				const potentialParents = inOrder(items.slice(start, end))
-				console.log("pot*()", potentialParents)
 				if(shouldItemRemainHidden(item, list, potentialParents)) {
 				//if(parent.decollapsed) {
 					return {
@@ -488,13 +554,11 @@ const WorkFlowy = () => {
 			const currList = items.find(item => item._id === list)
 			const leftItems = sortedItems.slice(0, currList.orderNumber + 1)
 			const rightItems = sortedItems.slice(currList.orderNumber + itemsInList.length + 1, items.length)
-			console.log('789', leftItems, prevItemsInList, rightItems)
 			const reversedItems = [
 				...leftItems,
 				...prevItemsInList,
 				...rightItems
 			]
-			console.log('reversedItems', reversedItems)
 			setItems(reversedItems)
 		}
 	}
@@ -504,11 +568,8 @@ const WorkFlowy = () => {
 		resetStateToHomeView()
 
 		const currItem = items.find(item => item._id === id)
-		console.log('currItem', currItem)
 		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
-		console.log('nextItem', nextItem)
 		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
-		console.log('isNextItemChild', isNextItemChild)
 		if(isNextItemChild) {
 			setList(id)
 			if(currItem.decollapsed) {
@@ -518,8 +579,6 @@ const WorkFlowy = () => {
 					...getUnhiddenChildItems(id),
 					...sortedItems.slice(currItem.orderNumber + 1 + getUnhiddenChildItems(id).length, items.length)
 				]
-				console.log('here?', [...sortedItems.slice(0, currItem.orderNumber + 1)], [...getUnhiddenChildItems(id)], [...sortedItems.slice(currItem.orderNumber + 1, currItem.orderNumber + 1 + getUnhiddenChildItems(id).length)])
-				console.log('itemsAfterUnhide', itemsAfterUnhide)
 				setItems(itemsAfterUnhide)
 			}
 			setFocus(nextItem._id)
@@ -528,11 +587,8 @@ const WorkFlowy = () => {
 
 	const returnToParent = list => {
 		resetStateToHomeView()
-		console.log('list', list)
 		const parentItem = items.find(item => item._id === list)
-		console.log('parentItem', parentItem)
 		const parent = parentItem ? parentItem.parent : null
-		console.log('@', parentItem, parent)
 		setList(parent)
 		setFocus(list)
 	}
@@ -556,13 +612,9 @@ const WorkFlowy = () => {
 		return [...calcBreadCrumbsProps(list.parent), {id: listId, title: list.itemTitle}]
 	}
 
-	console.log(getItemsToRender())
-
 	const breadcrumbsClick = id => {
 		const sortedItems = inOrder(items)
-		console.log('list', list)
 		const itemsInList = inOrder(getDescendantItems(list))
-		console.log('itemsInList', itemsInList)
 		if(list !== null) {
 			const prevItemsInList = itemsInList.map(item => {
 				const parent = items.find(it => it._id === item.parent)
@@ -584,12 +636,13 @@ const WorkFlowy = () => {
 				...prevItemsInList,
 				...rightItems
 			]
-			console.log('l', leftItems, 'p', prevItemsInList, 'r', rightItems)
-			console.log('reversedItems', reversedItems)
 			setItems(reversedItems)
 		}
 		setList(id)
 	}
+
+	console.log('WORKFLOWY ALL ITEMS STATE (SORTED): ', inOrder(items))
+	console.log('WORKFLOWY ITEMS FED TO CHILD AS PROPS (SORTED): ', inOrder(getItemsToRender()))
 
 	return (
 		<Fragment>
