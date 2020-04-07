@@ -383,7 +383,7 @@ module.exports = function(app, db) {
   }
 
   //requires getQueryDetailsForItem(getUser, parseOrderNumberFromFrontEnd)
-  const getItemByUserAndOrderNumber = (req, res, next) => {
+  const getItemByUserAndId = (req, res, next) => {
     itemsCol.findOne(res.locals.details).then(item => {
       console.log('res.locals.details', res.locals.details)
       res.locals.item = item
@@ -399,7 +399,7 @@ module.exports = function(app, db) {
     })
   }
 
-  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndOrderNumber, called in item delete, item tab, item collapse
+  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndId, called in item delete, item tab, item collapse
   const getDescendantsOfItem = (req, res, next) => {
     const { orderNumber, userName, item } = res.locals
     res.locals.descendants = []
@@ -450,7 +450,7 @@ module.exports = function(app, db) {
 
   const getUserParseOrderNumber = [getUser, parseOrderNumberFromFrontEnd]
   const getItemDetails = [getUser, parseId, getQueryDetailsForItem]
-  const getItem = [getItemDetails, getItemByUserAndOrderNumber, getOrderNumber]
+  const getItem = [getItemDetails, getItemByUserAndId, getOrderNumber]
   const getItemAtNewOrderNumberAndDescendants = [parseNewOrderNumberFromFrontEnd, getItemAtNewOrderNumber, getDescendantsOfItemAtNewOrderNumber]
 
   const toggleItemCollapseProp = (req, res, next) => {
@@ -552,7 +552,7 @@ module.exports = function(app, db) {
   })
 
 
-  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndOrderNumber
+  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndId
   const getNearestSiblingAbove = (req, res, next) => {
     const { item, orderNumber, userName } = res.locals
     console.log('parent: item.parent', item.parent)
@@ -582,7 +582,7 @@ module.exports = function(app, db) {
     res.send({})
   })
 
-  //requires getItemByUserAndOrderNumber
+  //requires getItemByUserAndId
   const getParentItem = (req, res, next) => {
     itemsCol.findOne({_id: new ObjectID(res.locals.item.parent)}).then((item) => {
       res.locals.parentItem = item
@@ -590,7 +590,7 @@ module.exports = function(app, db) {
     })
   }
 
-  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndOrderNumber
+  //requires getUser, parseOrderNumberFromFrontEnd, getItemByUserAndId
   const getChildrenItems = (req, res, next) => {
     const { userName, orderNumber, item } = res.locals
     itemsCol.find({ $and: [ {indentLevel: {$gt: item.indentLevel}}, {orderNumber: {$gt: orderNumber}}, { userName } ]}).sort({orderNumber: 1}).toArray()
@@ -783,7 +783,7 @@ module.exports = function(app, db) {
     })
   }
 
-  //requires getItemByUserAndOrderNumber, getDescendantsOfItem, getUser
+  //requires getItemByUserAndId, getDescendantsOfItem, getUser
   const updateDescendantsAfterDelete = (req, res, next) => {
     const { descendants, item, userName } = res.locals
     if(descendants.length !== 0) {
@@ -849,14 +849,20 @@ module.exports = function(app, db) {
 
   app.put('/items/reorder', [getItem, getDescendantsOfItem, getItemAtNewOrderNumberAndDescendants], (req, res, next) => {
     const { orderNumber, item, descendants, userName, newOrderNumber, newOrderNumberItem, newItemDescendants } = res.locals
-    const lowerRange = (orderNumber < req.body.newOrderNumber ? (orderNumber + descendants.length + 1) : req.body.newOrderNumber)
-    const upperRange = (orderNumber < req.body.newOrderNumber ? (req.body.newOrderNumber + newItemDescendants.length) : (orderNumber - 1))
-    const inc = (descendants.length+1) * (orderNumber < req.body.newOrderNumber ? -1 : 1)
+    const lowerRange = (orderNumber < newOrderNumber ? (orderNumber + descendants.length + 1) : newOrderNumber)
+    const upperRange = (orderNumber < newOrderNumber ? (newOrderNumber + newItemDescendants.length) : (orderNumber - 1))
+    const inc = (descendants.length+1) * (orderNumber < newOrderNumber ? -1 : 1)
+    console.log('lowerRange', lowerRange)
+			console.log('upperRange', upperRange)
+			console.log('inc', inc)
     itemsCol.updateMany({$and: [{ userName }, {orderNumber: {$gte: lowerRange}}, {orderNumber: {$lte: upperRange}}]}, { $inc: {orderNumber: inc}})
     .then(() => {
-      res.locals.descendantInc = (orderNumber < req.body.newOrderNumber ? req.body.newOrderNumber - orderNumber - descendants.length + newItemDescendants.length : req.body.newOrderNumber - orderNumber)
+      res.locals.descendantInc = (orderNumber < newOrderNumber ? newOrderNumber - orderNumber - descendants.length + newItemDescendants.length : newOrderNumber - orderNumber)
       res.locals.indLevInc = newOrderNumberItem.indentLevel - item.indentLevel;
       res.locals.newParent = newOrderNumberItem.parent;
+      console.log('res.locals.descendantInc', res.locals.descendantInc)
+      console.log('res.locals.indLevInc', res.locals.indLevInc)
+      console.log('res.locals.newParent', res.locals.newParent)
       for(let i = 0; i < descendants.length; i++) {
         itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.descendantInc, indentLevel: res.locals.indLevInc}})
       }
@@ -866,7 +872,7 @@ module.exports = function(app, db) {
       return itemsCol.findOneAndUpdate({_id: item._id}, {$inc: {orderNumber: res.locals.descendantInc, indentLevel: res.locals.indLevInc}, $set: {parent: res.locals.newParent}})
     })
     .then(() => {
-      res.send()
+      res.send({})
     })
   })
 

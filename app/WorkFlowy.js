@@ -139,9 +139,67 @@ const WorkFlowy = () => {
 	}
 
 	const reorder = (draggedPK, draggedON, droppedPK, droppedON) => {
-		console.log('reorder in workflowy pre fetch', draggedPK, draggedON, droppedPK, droppedON)
-		callFetch('reorder', { orderNumber: draggedON, newOrderNumber: droppedON }).then(data => {
+		callFetch('reorder', { id: draggedPK, newOrderNumber: droppedON }).then(data => {
 			console.log('reorder in workflowy post fetch')
+			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+			const draggedItem = items.find(item => item._id === draggedPK)
+			const descendantItems = getDescendantItems(draggedItem._id)
+			const droppedItem = items.find(item => item.orderNumber === droppedON)
+			const droppedItemDescendants = getDescendantItems(droppedItem._id)
+			const lowerRange = (draggedItem.orderNumber < droppedON ? (draggedItem.orderNumber + descendantItems.length + 1) : droppedON)
+    		const upperRange = (draggedItem.orderNumber < droppedON ? (droppedON + droppedItemDescendants.length) : (draggedItem.orderNumber - 1))
+			const inc = (descendantItems.length+1) * (draggedItem.orderNumber < droppedON ? -1 : 1)
+			console.log('lowerRange', lowerRange)
+			console.log('upperRange', upperRange)
+			console.log('inc', inc)
+			const itemsToShift = inOrder(items).slice(lowerRange, upperRange + 1)
+			console.log('itemsToShift', itemsToShift)
+			const descendantInc = (draggedItem.orderNumber < droppedON ? droppedON - draggedItem.orderNumber - descendantItems.length + droppedItemDescendants.length : droppedON - draggedItem.orderNumber)
+			const indLevInc = droppedItem.indentLevel - draggedItem.indentLevel
+			const newParent = droppedItem.parent
+			console.log('descendantInc', descendantInc)
+			console.log('indLevInc', indLevInc)
+			console.log('newParent', newParent)
+			const descendantsToReorder = inOrder(items).slice(draggedItem.orderNumber + 1, draggedItem.orderNumber + descendantItems.length + 1)
+			console.log('descendantsToReorder', descendantsToReorder)
+			console.log('other ranges', draggedItem.orderNumber, draggedItem.orderNumber + descendantItems.length + 1)
+			const rangeOrderNumbers = [lowerRange, upperRange + 1, draggedItem.orderNumber, draggedItem.orderNumber + descendantItems.length + 1].sort((a, b) => a - b)
+			console.log('rangeOrderNumbers', rangeOrderNumbers)
+			const leftItems = itemsByON.slice(0, rangeOrderNumbers[0])
+			const middleItems = itemsByON.slice(rangeOrderNumbers[1], rangeOrderNumbers[2])
+			const rightItems = itemsByON.slice(rangeOrderNumbers[3])
+			console.log('leftItems', leftItems)
+			console.log('middleItems', middleItems)
+			console.log('rightItems', rightItems)
+
+			const itemsAfterReorderUnsorted = [
+				...leftItems,
+				...middleItems,
+				...rightItems,
+				...itemsToShift.map(item => {
+					return {
+						...item,
+						orderNumber: item.orderNumber + inc
+					}
+				}),
+				...descendantsToReorder.map(item => {
+					return {
+						...item,
+						orderNumber: item.orderNumber + descendantInc,
+						indentLevel: item.indentLevel + indLevInc
+					}
+				}),
+				{
+					...draggedItem,
+					orderNumber: draggedItem.orderNumber + descendantInc,
+					indentLevel: draggedItem.indentLevel + indLevInc,
+					parent: newParent
+				}
+			]
+			console.log('itemsAfterReorderUnsorted', itemsAfterReorderUnsorted)
+			const itemsAfterReorder = inOrder(itemsAfterReorderUnsorted)
+			console.log('itemsAfterReorder', itemsAfterReorder)
+			setItems(itemsAfterReorder)
 		})
 	} 
 
