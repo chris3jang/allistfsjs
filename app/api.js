@@ -45,6 +45,9 @@ const getUrl = (action) => {
 		case 'decollapseItem': {
 			return `${API}decollapse`
 		}
+		case 'reorder': {
+			return `${API}reorder`
+		}
 	}
 }
 
@@ -72,6 +75,9 @@ const getMethod = (action) => {
 			return 'PUT'
 		}
 		case 'decollapseItem': {
+			return 'PUT'
+		}
+		case 'reorder': {
 			return 'PUT'
 		}
 	}

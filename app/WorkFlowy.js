@@ -138,6 +138,13 @@ const WorkFlowy = () => {
 		}	
 	}
 
+	const reorder = (draggedPK, draggedON, droppedPK, droppedON) => {
+		console.log('reorder in workflowy pre fetch', draggedPK, draggedON, droppedPK, droppedON)
+		callFetch('reorder', { orderNumber: draggedON, newOrderNumber: droppedON }).then(data => {
+			console.log('reorder in workflowy post fetch')
+		})
+	} 
+
 	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
 		callFetch('createItem', {id}).then(data => {
@@ -649,7 +656,7 @@ const WorkFlowy = () => {
 	return (
 		<Fragment>
 			<BreadCrumbs links={calcBreadCrumbsProps(list)} breadcrumbsClick={breadcrumbsClick}></BreadCrumbs>
-			<ItemContainer className={classes.arimo} items={getItemsToRender()} list={list} handleAction={handleAction}/>
+			<ItemContainer className={classes.arimo} items={getItemsToRender()} list={list} handleAction={handleAction} reorder={reorder}/>
 		</Fragment>
 	)
 }

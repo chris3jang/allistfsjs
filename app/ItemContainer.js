@@ -1,7 +1,7 @@
 import React, {useState, useEffect} from 'react';
 import Item from './Item'
 
-const ItemContainer = ({items, list, handleAction}) => {
+const ItemContainer = ({items, list, handleAction, reorder}) => {
 
 	useEffect(() => {
 		console.log('items', items)
@@ -22,6 +22,7 @@ const ItemContainer = ({items, list, handleAction}) => {
 					indentLevel={item.indentLevel - listIndentRootLevel}
 					list={list}
 					handleAction={handleAction}
+					reorder={reorder}
 				/>
 			)}
 		</div>
