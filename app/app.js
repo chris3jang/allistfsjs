@@ -74,7 +74,7 @@ const App = () => {
 	};
 
 	const getAuth = () => {
-		const headers = new Headers({'authorization': `Bearer${localStorage.getItem('access')}`});
+		const headers = new Headers({'authorization': `Bearer ${localStorage.getItem('access')}`});
 		if(localStorage.getItem('access')) {
 			fetch('/users/', { headers })
 			.then(resp => {
