@@ -84,7 +84,10 @@ const getMethod = (action) => {
 }
 
 export const callFetch = (action, paramData) => {
+  console.log('api.js')
   const url = getUrl(action)
+  console.log('url ', url)
+  console.log('fetchData ', assignFetchData(action, paramData))
   const fetchData = assignFetchData(action, paramData)
   return fetch(url, fetchData).then((res) => res.json());
 }

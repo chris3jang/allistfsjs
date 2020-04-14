@@ -7,7 +7,7 @@ const router = express.Router()
 
 const jwt = require('jsonwebtoken')
 const expressJwt = require('express-jwt')
-const authenticate = expressJwt({secret: 'theycutthefleeb'})
+const authenticate = expressJwt({secret: 'theycutthefleeb'}).unless({path: ['/', '/login']})
 
 const bcrypt = require('bcryptjs')
 const crypto = require('crypto');
@@ -128,7 +128,7 @@ module.exports = function(app, db) {
   // ***********************************************************************************************$
 
   const isLoggedIn = (req, res, next) => {
-    console.log('isLoggedIn')
+    console.log('isLoggedIn', req.isAuthenticated())
     if(req.isAuthenticated()) {
       return next()
     }
@@ -284,7 +284,7 @@ module.exports = function(app, db) {
   }
 
   const respond = (req, res, next) => {
-    console.log('respond')
+    console.log('respond', req.user, req.token)
     res.status(200).json({
       user: req.user,
       token: req.token
@@ -325,6 +325,13 @@ module.exports = function(app, db) {
       session: false
     }
   ), serialize, serializeClient, generateAccessToken, generateRefreshToken, nukeTestUser, populateTestUser, respond)
+
+  /*
+  app.get('/login', (req, res) => {
+    res.status(200).send('Everybody can see this')
+  })
+  */
+  
 
   app.use(authenticate)
 

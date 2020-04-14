@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import logo from './static/AllistLogo.jpeg'
 import { createUseStyles } from 'react-jss'
 
+import { Link } from 'react-router-dom'
+
 const useStyles = createUseStyles({
     back: {
         background: '#e2e2e2',
@@ -111,7 +113,6 @@ const Entry = ({login, register, test}) => {
     }
     
     const handleNewLogin = (e) => {
-		e.preventDefault()
 		const email = e.target.parentElement.parentNode[0].value
         const password = e.target.parentElement.parentNode[1].value
 		login(email, password, true )
@@ -152,7 +153,7 @@ const Entry = ({login, register, test}) => {
                                 <button type="submit" onClick={type === 'LOGIN' ? handleLogin : handleRegister} className={classes.sbmtBtn}>{type}</button>
                             </div>
                             <div className={classes.sbmtBtnDiv}>
-                                <button type="submit" onClick={handleNewLogin} className={classes.sbmtBtn}>NEW FRONTEND</button>
+                                <button type="button" onClick={handleNewLogin} className={classes.sbmtBtn}>NEW FRONTEND</button>
                             </div>
                         </form>
                     </div>
