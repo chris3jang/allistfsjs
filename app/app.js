@@ -15,7 +15,7 @@ import { SheetsRegistry, JssProvider } from 'react-jss';
 import { usePrevious } from './hooks'
 
 import {
-	BrowserRouter as Router,
+	HashRouter as Router,
 	Route,
 	Link,
 	Redirect,
@@ -245,6 +245,7 @@ const App = () => {
 		</Entry>
 
 	const home = () =>
+		auth ? 
 		<Fragment>
 			<NavBar
 				trashCheckedItemsFromNav={handleTrashCheckedItemsFromNav}
@@ -252,6 +253,8 @@ const App = () => {
 			/>
 			<WorkFlowy />
 		</Fragment>
+		:
+		<Redirect to={{ pathname: '/login'}}></Redirect>
 
 
 	const test1 = () => <div>LANDING</div>

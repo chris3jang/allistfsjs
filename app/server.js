@@ -8,7 +8,15 @@ module.exports = {
     const publicPath = express.static(path.join(__dirname, '../dist'));
 
     app.use('/dist', publicPath);
-    app.get('/', function (_, res) { res.sendFile(indexPath) });
+    //app.get('/', function (_, res) { res.sendFile(indexPath) });
+
+    app.get('/*', function(req, res) {
+      res.sendFile(indexPath, function(err) {
+        if (err) {
+          res.status(500).send(err)
+        }
+      })
+    })
 
     return app;
   }
