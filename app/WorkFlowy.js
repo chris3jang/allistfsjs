@@ -272,27 +272,18 @@ const WorkFlowy = () => {
 
 	const deleteItem = id => {
 		callFetch('deleteItem', { id }).then(data => {
-			const deletedItem = items.find(item => item._id === id)
+			const itemToDelete = items.find(item => item._id === id)
 			const itemsBeforeDeleteByON = items.slice().sort((a, b) => a.orderNumber - b.orderNumber)
-			const itemToDelete = items.find(item => item.orderNumber === deletedItem.orderNumber)
-
-			const firstPotentialChildInd = itemToDelete.orderNumber + 1
-			//test for deleting last item
-			const potentialChildItems = itemsBeforeDeleteByON.slice(firstPotentialChildInd)
-			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToDelete.indentLevel)
-
-
-			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? 0 : areItemsChildItems.findIndex(bool => !bool)
-			const numNonChildRemainingItems = potentialChildItems.length - numChildItems
-			const childItemsToDecrement = itemsBeforeDeleteByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
-			const childItemsAfterDelete = childItemsToDecrement.map(item => { 
+			const descendantItems = getDescendantItems(itemToDelete._id)
+			const numRightItems = itemsBeforeDeleteByON.length - (itemToDelete.orderNumber + descendantItems.length + 1)
+			const descendantItemsAfterDelete = descendantItems.map(item => { 
 				return {
 					...item, 
 					orderNumber: item.orderNumber - 1, 
 					indentLevel: item.indentLevel - 1
 				} 
 			})
-			const nonChildRemainingItems = itemsBeforeDeleteByON.slice(itemsBeforeDeleteByON.length - numNonChildRemainingItems, itemsBeforeDeleteByON.length)
+			const nonChildRemainingItems = itemsBeforeDeleteByON.slice(itemsBeforeDeleteByON.length - numRightItems, itemsBeforeDeleteByON.length)
 			const remainingItemsAfterDelete = nonChildRemainingItems.map(item => {
 				return {
 					...item,
@@ -300,7 +291,7 @@ const WorkFlowy = () => {
 				}
 			})
 			const unchangedItems = itemsBeforeDeleteByON.filter(item => item.orderNumber < itemToDelete.orderNumber)
-			const itemsAfterDelete = [...unchangedItems, ...childItemsAfterDelete, ...remainingItemsAfterDelete]
+			const itemsAfterDelete = [...unchangedItems, ...descendantItemsAfterDelete, ...remainingItemsAfterDelete]
 
 			setItems(itemsAfterDelete)
 		})
@@ -327,7 +318,6 @@ const WorkFlowy = () => {
 			let editedItems = items.slice()
 			toggledItem.checked = checked
 			editedItems[toggledItemInd] = toggledItem
-
 			setItems(editedItems)
 		})
 		return
@@ -480,13 +470,18 @@ const WorkFlowy = () => {
 		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 		const itemToCollapse = items.find(item => item._id === id)
 		const itemOrderNumber = itemToCollapse.orderNumber
+		const descendantItems = getDescendantItems(itemToCollapse._id)
 		const firstPotentialChildInd = itemOrderNumber + 1
+		/*
 		const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 		const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToCollapse.indentLevel)
 		const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
-		const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
-		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + numChildItems)
-		const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
+		*/
+		const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
+		console.log('itemsToPotentiallyUnhide', itemsToPotentiallyUnhide)
+		console.log('descendantItems', getDescendantItems(itemToCollapse._id))
+		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + descendantItems.length)
+		const unhiddenItems = descendantItems.map(item => {
 			if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
 				return item
 			}
@@ -505,11 +500,16 @@ const WorkFlowy = () => {
 			const itemToCollapse = items.find(item => item._id === id)
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const firstPotentialChildInd = itemToCollapse.orderNumber + 1
+			const descendantItems = getDescendantItems(itemToCollapse._id)
+
+			/*
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToCollapse.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
-			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
-			const potentialParents = itemsByON.slice(itemToCollapse.orderNumber, firstPotentialChildInd + numChildItems)
+			*/
+
+			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
+			const potentialParents = itemsByON.slice(itemToCollapse.orderNumber, firstPotentialChildInd + descendantItems.length)
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
 				if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
 					return item
@@ -524,7 +524,7 @@ const WorkFlowy = () => {
 			const itemAfterCollapse = {
 				...itemToCollapse, decollapsed: false
 			}
-			const itemsAfterCollapse = [...itemsByON.slice(0, itemToCollapse.orderNumber), itemAfterCollapse, ...unhiddenItems, ...itemsByON.slice(firstPotentialChildInd + numChildItems)]
+			const itemsAfterCollapse = [...itemsByON.slice(0, itemToCollapse.orderNumber), itemAfterCollapse, ...unhiddenItems, ...itemsByON.slice(firstPotentialChildInd + descendantItems.length)]
 			setItems(itemsAfterCollapse)
 		})
 	}
@@ -533,11 +533,17 @@ const WorkFlowy = () => {
 		callFetch('decollapseItem', { id, decollapsed: false}).then(() => {
 			const itemToDecollapse = items.find(item => item._id === id)
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+			const descendantItems = getDescendantItems(itemToDecollapse._id)
+
 			const firstPotentialChildInd = itemToDecollapse.orderNumber + 1
+
+			/*
 			const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 			const areItemsChildItems = potentialChildItems.map(item => item.indentLevel > itemToDecollapse.indentLevel)
 			const numChildItems = areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
-			const itemsToHide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
+			*/
+
+			const itemsToHide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
 			const itemsHid = itemsToHide.map(item => {
 				return {
 					...item,
@@ -545,7 +551,7 @@ const WorkFlowy = () => {
 				}
 			})
 			const unchangedItems = itemsByON.filter(item => item.orderNumber < itemToDecollapse.orderNumber)
-			const remainingItems = itemsByON.filter(item => item.orderNumber > itemToDecollapse.orderNumber + numChildItems)
+			const remainingItems = itemsByON.filter(item => item.orderNumber > itemToDecollapse.orderNumber + descendantItems.length)
 			const itemAfterDecollapse = {
 				...itemToDecollapse, decollapsed: true
 			}
@@ -637,6 +643,7 @@ const WorkFlowy = () => {
 		const currItem = items.find(item => item._id === id)
 		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
 		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
+		console.log('@', currItem, nextItem, isNextItemChild)
 		if(isNextItemChild) {
 			setList(id)
 			if(currItem.decollapsed) {
@@ -662,12 +669,18 @@ const WorkFlowy = () => {
 
 	const getItemsToRender = () => {
 		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+		if(list === null) {
+			return itemsByON
+		}
 		const itemAsList = items.find(item => list === item._id)
+		const descendantItems = getDescendantItems(list)
 		const firstPotentialChildInd = list === null ? 0 : itemAsList.orderNumber + 1
+		/*
 		const potentialChildItems = itemsByON.slice(firstPotentialChildInd)
 		const areItemsChildItems = list === null ? [items.length].map(bool => true) : potentialChildItems.map(item => item.indentLevel > itemAsList.indentLevel)
 		const numChildItems = list === null ? items.length : areItemsChildItems.findIndex(bool => !bool) === -1 ? areItemsChildItems.length : areItemsChildItems.findIndex(bool => !bool)
-		const childItems = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + numChildItems)
+		*/
+		const childItems = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
 		return childItems
 	}
 
