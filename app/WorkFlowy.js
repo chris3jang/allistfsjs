@@ -1,6 +1,7 @@
 import React, {useState, useEffect, useRef, Fragment} from 'react';
 import ItemContainer from './ItemContainer'
 import BreadCrumbs from './BreadCrumbs'
+import Displayer from './Displayer'
 import { callFetch } from './api';
 import { usePrevious } from './hooks'
 
@@ -80,7 +81,10 @@ const WorkFlowy = () => {
 
 	useEffect(() => {
 		if(itemToFocus) {
+			console.log('itemToFocus', itemToFocus)
+			console.log('itemsRef', itemsRef)
 			const itemRef = itemsRef.current.find(ref => ref.id === itemToFocus)
+
 			itemRef.node.focus()
 		}
 	}, [itemToFocus])
@@ -653,6 +657,7 @@ const WorkFlowy = () => {
 					...getUnhiddenChildItems(id),
 					...sortedItems.slice(currItem.orderNumber + 1 + getUnhiddenChildItems(id).length, items.length)
 				]
+				console.log('itemsAfterUnhide', itemsAfterUnhide)
 				setItems(itemsAfterUnhide)
 			}
 			setFocus(nextItem._id)
@@ -693,6 +698,7 @@ const WorkFlowy = () => {
 	}
 
 	const breadcrumbsClick = id => {
+		console.log('breadcrumsbClick id', id)
 		const sortedItems = inOrder(items)
 		const itemsInList = inOrder(getDescendantItems(list))
 		if(list !== null) {
@@ -716,6 +722,7 @@ const WorkFlowy = () => {
 				...prevItemsInList,
 				...rightItems
 			]
+			console.log('reversedItems', reversedItems)
 			setItems(reversedItems)
 		}
 		setList(id)
@@ -726,8 +733,11 @@ const WorkFlowy = () => {
 
 	return (
 		<Fragment>
-			<BreadCrumbs links={calcBreadCrumbsProps(list)} breadcrumbsClick={breadcrumbsClick}></BreadCrumbs>
-			<ItemContainer className={classes.arimo} items={getItemsToRender()} list={list} handleAction={handleAction} reorder={reorder}/>
+			<Displayer items={items} list={list} handleAction={handleAction} reorder={reorder}/>
+			{/* 
+				<BreadCrumbs links={calcBreadCrumbsProps(list)} breadcrumbsClick={breadcrumbsClick}></BreadCrumbs>
+				<ItemContainer className={classes.arimo} items={getItemsToRender()} list={list} handleAction={handleAction} reorder={reorder}/>
+			*/}
 		</Fragment>
 	)
 }
