@@ -150,11 +150,14 @@ const Displayer = ({items, handleAction, reorder}) => {
 	}
 
 	const enterChild = id => {
-		resetStateToHomeView()
 		const currItem = items.find(item => item._id === id)
 		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
+		console.log('currItem', currItem)
+		console.log('nextItem', nextItem)
 		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
+		console.log('isNextItemChild', isNextItemChild)
 		if(isNextItemChild) {
+			resetStateToHomeView()
 			console.log('4', shouldItemRemainHidden(nextItem, currItem, items))
 			setList(id)
 			//figure out which condition below makes more sense
