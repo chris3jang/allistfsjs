@@ -53,7 +53,9 @@ const Displayer = ({items, handleAction, reorder}) => {
 	}, [items])
 
 	useEffect(() => {
-		if(itemToFocus) {
+		if(itemsRef.current[itemToFocus]) {
+			console.log('itemToFocus', itemToFocus)
+			console.log('itemsRef.current', itemsRef.current)
 			const itemRef = itemsRef.current[itemToFocus]
 			itemRef.focus()
 			setFocus(null)
@@ -153,8 +155,10 @@ const Displayer = ({items, handleAction, reorder}) => {
 		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
 		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
 		if(isNextItemChild) {
+			console.log('4', shouldItemRemainHidden(nextItem, currItem, items))
 			setList(id)
-			if(currItem.decollapsed) {
+			//figure out which condition below makes more sense
+			if(currItem.decollapsed || nextItem.hidden) {
                setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
             }
             setFocus(nextItem._id)
@@ -162,9 +166,12 @@ const Displayer = ({items, handleAction, reorder}) => {
 	}
 
 	const returnToParent = list => {
-        resetStateToHomeView()
-		const currentItem = items.find(item => item._id === list)
-        const parent = currentItem ? currentItem.parent : null
+		resetStateToHomeView()
+		const currItem = items.find(item => item._id === list)
+		const parent = currItem ? currItem.parent : null
+		if(currItem.hidden) {
+			setCurrVisibleHiddenItems(getUnhiddenChildItems(parent))
+		}
         setList(parent)
         setFocus(list)
 	}
@@ -209,15 +216,18 @@ const Displayer = ({items, handleAction, reorder}) => {
     const getItemsToDisplay = () => {
 		const itemsByON = inOrder(items)
 		if(list === null) {
+			console.log('1', itemsByON)
 			return itemsByON
         }
         if(currVisibleHiddenItems) {
+			console.log('2', currVisibleHiddenItems)
             return currVisibleHiddenItems
         }
 		const itemAsList = items.find(item => list === item._id)
         const descendantItems = getDescendantItems(list)
 		const firstPotentialChildInd = list === null ? 0 : itemAsList.orderNumber + 1
 		const itemsToDisplay = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
+		console.log('3', itemsToDisplay)
 		return itemsToDisplay
 	}
 
@@ -249,40 +259,76 @@ const Displayer = ({items, handleAction, reorder}) => {
 	}
 
 	const moveUp = id => {
-		const itemToMoveFrom = items.find(item => item._id === id)
-
-		const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, itemToMoveFrom.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
-		const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
-		const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
-		if(itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1 < 0) {
-			return
+		if(currVisibleHiddenItems) {
+			console.log('currVisibleHiddenItems', currVisibleHiddenItems)
+			const itemToMoveFrom = currVisibleHiddenItems.find(item => item._id === id)
+			const itemToMoveFromInd = currVisibleHiddenItems.findIndex(item => item._id === id)
+			const itemsAbove = currVisibleHiddenItems.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, itemToMoveFromInd).sort((a, b) => b.orderNumber - a.orderNumber)
+			const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
+			const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
+			if(itemToMoveFromInd - numHiddenItemsAbove - 1 < 0) {
+				return
+			}
+			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1)
+			console.log('itemToFocusOn', itemToFocusOn)
+			const itemRef = itemsRef.current[itemToFocusOn._id]
+			itemRef.focus()
 		}
-		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1)
-		const itemRef = itemsRef.current[itemToFocusOn._id]
-		console.log('moveUp')
-		console.log('itemsRef', itemsRef)
-		console.log('itemRef', itemRef)
-		console.log('id', id)
-		console.log('itemToFocusOn._id', itemToFocusOn._id)
-		itemRef.focus()
+		else {
+			const itemToMoveFrom = items.find(item => item._id === id)
+
+			const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, itemToMoveFrom.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
+			const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
+			const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
+			if(itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1 < 0) {
+				return
+			}
+			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1)
+			const itemRef = itemsRef.current[itemToFocusOn._id]
+			console.log('moveUp')
+			console.log('itemsRef', itemsRef)
+			console.log('itemRef', itemRef)
+			console.log('id', id)
+			console.log('itemToFocusOn._id', itemToFocusOn._id)
+			itemRef.focus()
+		}
 	}
 
 	const moveDown = id => {
-		const itemToMoveFrom = items.find(item => item._id === id)
-		const itemsBelow = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(itemToMoveFrom.orderNumber + 1, items.length)
-		const areItemsBelowHidden = itemsBelow.map(item => item.hidden)
-		const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool)
-		if(itemToMoveFrom.orderNumber + numHiddenItemsBelow + 1 > items.length - 1) {
-			return
+		if(currVisibleHiddenItems) {
+			const itemToMoveFrom = currVisibleHiddenItems.find(item => item._id === id)
+			const itemToMoveFromInd = currVisibleHiddenItems.findIndex(item => item._id === id)
+			const itemsBelow = currVisibleHiddenItems.sort((a, b) => a.orderNumber - b.orderNumber).slice(itemToMoveFromInd + 1, items.length)
+			const areItemsBelowHidden = itemsBelow.map(item => item.hidden)
+			const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool)
+			if(itemToMoveFromInd + numHiddenItemsBelow + 1 > items.length - 1) {
+				return
+			}
+			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow)
+			console.log('itemsBelow', itemsBelow)
+			console.log('areItemsBelowHidden', areItemsBelowHidden)
+			console.log('numHiddenItemsBelow', numHiddenItemsBelow)
+			console.log('itemToFocusOn', itemToFocusOn)
+			const itemRef = itemsRef.current[itemToFocusOn._id]
+			itemRef.focus()
 		}
-		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow)
-		const itemRef = itemsRef.current[itemToFocusOn._id]
-		console.log('moveDown')
-		console.log('itemsRef', itemsRef)
-		console.log('itemRef', itemRef)
-		console.log('id', id)
-		console.log('itemToFocusOn._id', itemToFocusOn._id)
-		itemRef.focus()
+		else {
+			const itemToMoveFrom = items.find(item => item._id === id)
+			const itemsBelow = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(itemToMoveFrom.orderNumber + 1, items.length)
+			const areItemsBelowHidden = itemsBelow.map(item => item.hidden)
+			const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool)
+			if(itemToMoveFrom.orderNumber + numHiddenItemsBelow + 1 > items.length - 1) {
+				return
+			}
+			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow)
+			const itemRef = itemsRef.current[itemToFocusOn._id]
+			console.log('moveDown')
+			console.log('itemsRef', itemsRef)
+			console.log('itemRef', itemRef)
+			console.log('id', id)
+			console.log('itemToFocusOn._id', itemToFocusOn._id)
+			itemRef.focus()
+		}
 	}
 
 	return (
