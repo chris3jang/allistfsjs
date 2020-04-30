@@ -99,6 +99,7 @@ const WorkFlowy = () => {
 	const createItem = id => {
 		callFetch('createItem', {id}).then(data => {
 			const itemCreatedOn = items.find(item => item._id === id)
+			console.log('itemCreatedOn', itemCreatedOn)
 			const descendantItems = getDescendantItems(itemCreatedOn._id)
 			const getNewItemParent = () => {
 				const nextItem = items.find(item => item.orderNumber === itemCreatedOn.orderNumber + 1)
@@ -112,7 +113,9 @@ const WorkFlowy = () => {
 					return itemCreatedOn.parent
 				}
 			}
-			const newOrderNumber = itemCreatedOn.orderNumber + descendantItems.length + 1
+			const numHiddenChildrenToSkip = itemCreatedOn.decollapsed ? descendantItems.length : 0
+			const newOrderNumber = itemCreatedOn.orderNumber + numHiddenChildrenToSkip + 1
+			console.log('newOrderNumber', newOrderNumber)
 			const incrementedItems = items.map(item => {
 				if(item.orderNumber >= newOrderNumber) {
 					return {
