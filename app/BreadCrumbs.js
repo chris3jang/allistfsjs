@@ -29,6 +29,7 @@ const BreadCrumbs = ({links, breadcrumbsClick}) => {
     const classes = useStyles();
 
     const handleClick = id => {
+        console.log('handleClick', id)
         breadcrumbsClick(id)
     }
 

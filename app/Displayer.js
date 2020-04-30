@@ -188,11 +188,34 @@ const Displayer = ({items, handleAction, reorder}) => {
 	}
 
 	const breadcrumbsClick = id => {
+		resetStateToHomeView()
+		console.log('breadcrumbsClick')
+		console.log('id', id)
+
+		const listToMoveTo = items.find(item => item._id === id)
+		if(listToMoveTo && listToMoveTo.decollapsed) {
+			setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
+		}
+
+		console.log('listToMoveTo', listToMoveTo)
+		/*
+		if(currItem.hidden) {
+			setCurrVisibleHiddenItems(getUnhiddenChildItems(parent))
+		}
+        setList(parent)
+		setFocus(list)
+		*/
+
 		const sortedItems = inOrder(items)
 		const itemsInList = inOrder(getDescendantItems(list))
+		console.log('sortedItems', sortedItems)
+		console.log('itemsInList', itemsInList)
 		if(list !== null) {
+			console.log('list !== null')
 			const prevItemsInList = itemsInList.map(item => {
 				const parent = items.find(it => it._id === item.parent)
+				console.log('parent', parent)
+				console.log('parent.decollapsed', parent.decollapsed)
 				if(parent.decollapsed) {
 					return {
 						...item,
@@ -211,7 +234,11 @@ const Displayer = ({items, handleAction, reorder}) => {
 				...prevItemsInList,
 				...rightItems
 			]
-			setItems(reversedItems)
+			console.log('currList', currList)
+			console.log('leftItems', leftItems)
+			console.log('rightItems', rightItems)
+			console.log('reversedItems', reversedItems)
+			//setItems(reversedItems)
 		}
 		setList(id)
     }
