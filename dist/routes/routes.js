@@ -521,7 +521,8 @@ module.exports = function(app, db) {
       parentRef = item.parent
       indentLevel = item.indentLevel
     }
-    if(nextItem != null && nextItem.hidden) {
+    //if(nextItem != null && nextItem.hidden) {
+    if(item.decollapsed) {
       res.locals.orderNumber = descendants[descendants.length-1].orderNumber
     }
     console.log('123', res.locals.orderNumber)
@@ -531,7 +532,7 @@ module.exports = function(app, db) {
       indentLevel: indentLevel, 
       userName, 
       checked: false,
-      hidden: false,
+      hidden: res.locals.item.hidden,
       decollapsed: false
     }
     next()

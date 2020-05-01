@@ -101,7 +101,7 @@ const WorkFlowy = () => {
 			const itemCreatedOn = items.find(item => item._id === id)
 			console.log('itemCreatedOn', itemCreatedOn)
 			const descendantItems = getDescendantItems(itemCreatedOn._id)
-			const getNewItemParent = () => {
+			const getNewItemParentId = () => {
 				const nextItem = items.find(item => item.orderNumber === itemCreatedOn.orderNumber + 1)
 				if(!nextItem) {
 					return itemCreatedOn.parent
@@ -113,7 +113,11 @@ const WorkFlowy = () => {
 					return itemCreatedOn.parent
 				}
 			}
+			const newItemParentId = getNewItemParentId()
+			const newItemParent = items.find(item => item._id === newItemParentId)
+			console.log('itemCreatedOn.orderNumber', itemCreatedOn.orderNumber)
 			const numHiddenChildrenToSkip = itemCreatedOn.decollapsed ? descendantItems.length : 0
+			console.log('numHiddenChildrenToSkip', numHiddenChildrenToSkip)
 			const newOrderNumber = itemCreatedOn.orderNumber + numHiddenChildrenToSkip + 1
 			console.log('newOrderNumber', newOrderNumber)
 			const incrementedItems = items.map(item => {
@@ -132,9 +136,9 @@ const WorkFlowy = () => {
 					itemTitle: '', 
 					indentLevel: data.indentLevel, 
 					decollapsed: false, 
-					hidden: false, 
+					hidden: newItemParent.decollapsed ? true : false, 
 					orderNumber: newOrderNumber,
-					parent: getNewItemParent()
+					parent: newItemParentId
 				}
 			]
 			setItems(itemsAfterCreate)

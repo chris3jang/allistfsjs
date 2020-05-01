@@ -34,11 +34,39 @@ const Displayer = ({items, handleAction, reorder}) => {
 	const prevItems = usePrevious(items)
 	useEffect(() => {
 		if(mounted) {
-			if(prevItems.length === items.length - 1) {
+			if(prevItems.length + 1 === items.length) {
 				const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
-				itemsRef.current[addedItem._id].focus()
+				console.log('addedItem', addedItem)
+				console.log('itemsRef.current', itemsRef.current)
+
+				/*
+				this block underneath works under the assumption that item creation 
+				while the user has entered a decollapsed will certainly be added to
+				the currVisibleHiddenItems array state.  if this app ever changes
+				where item creation can exist to an area that the user currently isn't
+				viewing, this must get debugged.
+				*/
+				if(currVisibleHiddenItems) {
+					console.log(inOrder([...currVisibleHiddenItems, {...addedItem, hidden: false}]))
+					console.log('currVisibleHiddenItems', currVisibleHiddenItems)
+					const leftItems = currVisibleHiddenItems.filter(item => item.orderNumber < addedItem.orderNumber)
+					const rightItems = currVisibleHiddenItems.filter(item => item.orderNumber >= addedItem.orderNumber)
+					console.log('rightItems', rightItems)
+					const rightItemsAfterCreate = rightItems.map(item => {
+						return {
+							...item,
+							orderNumber: item.orderNumber + 1
+						}
+					})
+					console.log('leftItems', leftItems)
+					console.log('rightItemsAfterCreate', rightItemsAfterCreate)
+					setCurrVisibleHiddenItems(inOrder([...leftItems, {...addedItem, hidden: false}, ...rightItemsAfterCreate]))
+				}
+				if(itemsRef.current[addedItem._id]) {
+					itemsRef.current[addedItem._id].focus()
+				}
 			}
-			if(prevItems.length === items.length + 1) {
+			if(prevItems.length - 1 === items.length) {
 				const deletedItem = prevItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
 				const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, deletedItem.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
 				const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
@@ -61,6 +89,16 @@ const Displayer = ({items, handleAction, reorder}) => {
 			setFocus(null)
 		}
 	}, [itemToFocus])
+
+	const prevItemsInCurrVisibleHiddenItems = usePrevious(currVisibleHiddenItems)
+	useEffect(() => {
+		if(currVisibleHiddenItems && prevItemsInCurrVisibleHiddenItems) {
+			if(prevItemsInCurrVisibleHiddenItems.length + 1 === currVisibleHiddenItems.length) {
+				const addedItem = currVisibleHiddenItems.find(item => prevItemsInCurrVisibleHiddenItems.findIndex(prevItem => item._id === prevItem._id) === -1)
+				setFocus(addedItem._id)
+			}
+		}
+	}, [currVisibleHiddenItems])
     
     const getDescendantItems = id => {
 		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
@@ -320,7 +358,9 @@ const Displayer = ({items, handleAction, reorder}) => {
 			console.log('itemRef', itemRef)
 			console.log('id', id)
 			console.log('itemToFocusOn._id', itemToFocusOn._id)
-			itemRef.focus()
+			if(itemRef) {
+				itemRef.focus()
+			}
 		}
 	}
 
@@ -340,7 +380,9 @@ const Displayer = ({items, handleAction, reorder}) => {
 			console.log('numHiddenItemsBelow', numHiddenItemsBelow)
 			console.log('itemToFocusOn', itemToFocusOn)
 			const itemRef = itemsRef.current[itemToFocusOn._id]
-			itemRef.focus()
+			if(itemRef) {
+				itemRef.focus()
+			}
 		}
 		else {
 			const itemToMoveFrom = items.find(item => item._id === id)
