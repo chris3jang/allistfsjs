@@ -241,24 +241,14 @@ const Displayer = ({items, handleAction, reorder}) => {
                setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
             }
 		}
+		if(isNextItemChild) return nextItem
+		else return null
 	}
 
 	const enterChild = id => {
-		const currItem = items.find(item => item._id === id)
-		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
-		console.log('currItem', currItem)
-		console.log('nextItem', nextItem)
-		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
-		console.log('isNextItemChild', isNextItemChild)
-		if(isNextItemChild) {
-			resetStateToHomeView()
-			console.log('4', shouldItemRemainHidden(nextItem, currItem, items))
-			setList(id)
-			//figure out which condition below makes more sense
-			if(currItem.decollapsed || nextItem.hidden) {
-               setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
-            }
-            setFocus(nextItem._id)
+		const nextItem = selectList(id)
+		if(nextItem) {
+			setFocus(nextItem._id)
 		}
 	}
 
