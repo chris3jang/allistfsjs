@@ -374,10 +374,44 @@ const Displayer = ({items, handleAction, reorder}) => {
 				moveDown(id, value);
 				break;
 			}
+			case 'tabItem': {
+				if(getNearestSiblingAbove(id)) {
+					handleAction(action, id, value)
+				}
+				break;
+			}
 			default: {
 				handleAction(action, id, value)
 			}
 		}	
+	}
+
+	const getNearestSiblingAbove = id => {
+		const currentItems = getItemsToDisplay()
+		const itemToFindNewParentFor = currentItems.find(item => item._id === id)
+		const leftItems = currentItems.filter(item => item.orderNumber < itemToFindNewParentFor.orderNumber)
+		const leftItemsReversed = leftItems.sort((a, b) => b.orderNumber - a.orderNumber)
+		const areLeftItemsReversedSiblings = leftItemsReversed.map(item => {
+			if(item.indentLevel === itemToFindNewParentFor.indentLevel) {
+				return true
+			}
+			if(item._id === itemToFindNewParentFor.parent) {
+				return false
+			}
+			return null
+		})
+		const potentialNewParentIndex = areLeftItemsReversedSiblings.findIndex(status => status === true)
+		const parentIndex = areLeftItemsReversedSiblings.findIndex(status => status === false)
+		if(potentialNewParentIndex === -1) {
+			return null
+		}
+		if(potentialNewParentIndex < parentIndex || parentIndex === -1) {
+			const nearestSiblingAbove = leftItemsReversed[potentialNewParentIndex]
+			return nearestSiblingAbove
+		}
+		else {
+			return null
+		}
 	}
 
 	const moveUp = id => {
