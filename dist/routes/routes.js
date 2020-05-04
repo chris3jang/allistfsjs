@@ -625,52 +625,36 @@ module.exports = function(app, db) {
     itemsCol.updateMany(siblingsToChildrenProps, {$set: {parent: item._id}})
     next()
   }, */[getParentItem, getDescendantsOfItem, getItemTotal], (req, res, next) => {
-
     const { userName, item, orderNumber } = res.locals
-    itemsCol.find({$and: [ {userName}, { parent: item.parent }, {orderNumber: {$gt: orderNumber}}]}).sort({orderNumber: -1}).limit(1).next()
-    .then(highestPrevSibling => {
-      console.log('highestPrevSibling', highestPrevSibling)
-      res.locals.highestPrevSibling = highestPrevSibling
-      return itemsCol.find({$and: [ { userName }, {orderNumber: {$gt: orderNumber}}, {indentLevel: item.indentLevel - 1}]}).sort({orderNumber: 1}).limit(1).next()
-    })
-    .then(lowestNextSibling => {
-      console.log('lowestNextSibling', lowestNextSibling)
-      res.locals.lowestNextSibling = lowestNextSibling
-      console.log('why?', typeof res.locals.highestPrevSibling)
-      /*
-      if(typeof res.locals.highestPrevSibling === 'undefined' || res.locals.highestPrevSibling === null) {
-        console.log('1')
-        res.locals.add = 0
-      }
-      else if(typeof lowestNextSibling === 'undefined' || lowestNextSibling === null) {
-        console.log('2')
-        res.locals.add = res.locals.itemTotal - res.locals.highestPrevSibling.orderNumber
-      }
-      else {
-        console.log('3')
-        res.locals.add = lowestNextSibling.orderNumber - res.locals.highestPrevSibling.orderNumber
-      }
-      */
-      console.log()
+    //get the item's pre-untab sibling with the lowest orderNumber, whose orderNumber is greater than that of the item's
+    //in other words, the first item after the item's last descendant
+    itemsCol.find({$and: [ {userName}, { parent: item.parent }, {orderNumber: {$gt: orderNumber}}]}).sort({orderNumber: 1}).limit(1).next()
+    .then(lowestPrevSibling => {
+      console.log('lowestPrevSibling', lowestPrevSibling)
+      res.locals.lowestPrevSibling = lowestPrevSibling
+      // get the items after the item and its descendants that has a greater or equal indentLevel than the item
       return itemsCol.find({$and: [{userName}, {orderNumber: {$gt: res.locals.item.orderNumber + res.locals.descendants.length}}, {indentLevel: {$gte: res.locals.item.indentLevel}}]}).sort({orderNumber: 1}).toArray()
     })
-    .then((toAdd) => {
-      console.log('toAdd', toAdd)
-      let siblingsAndDescendantsToSkip = []
-      for(let i = 0; i < toAdd.length; i++) {
-        if(toAdd[i].indentLevel >= res.locals.item.indentLevel) {
-          siblingsAndDescendantsToSkip.push(toAdd[i])
+    .then((toIncrementDown) => {
+      console.log('toIncrementDown', toIncrementDown)
+      if(toIncrementDown.length > 0 && res.locals.lowestPrevSibling) {
+        let siblingsAndDescendantsToSkip = []
+        const pivot = res.locals.lowestPrevSibling.orderNumber
+        for(let i = 0; i < toIncrementDown.length; i++) {
+          if(i + pivot === toIncrementDown[i].orderNumber) {
+            siblingsAndDescendantsToSkip.push(toIncrementDown[i])
+          }
+          else break
         }
-        else break
-      }
-      res.locals.siblingsAndDescendantsToSkip = siblingsAndDescendantsToSkip
-      console.log('siblingsAndDescendantsToSkip', siblingsAndDescendantsToSkip)
-      console.log('descendants', res.locals.descendants)
-      //
-      if(siblingsAndDescendantsToSkip.length > 0) {
+        res.locals.siblingsAndDescendantsToSkip = siblingsAndDescendantsToSkip
         const firsONToSkip = Math.min(...siblingsAndDescendantsToSkip.map(i => i.orderNumber))
+        console.log('res.locals.orderNumber', res.locals.descendants.length)
+        console.log('siblingsAndDescendantsToSkip.length', siblingsAndDescendantsToSkip.length)
+        console.log('firsONToSkip', firsONToSkip)
+        //decrement the pre-untab siblings whose oN is higher than the itemToUntab's, by 1 + the number of itemToUntab's descendants
         return itemsCol.updateMany({$and: [{ userName }, {orderNumber: {$gt: res.locals.orderNumber + res.locals.descendants.length}}, {orderNumber: {$lt: siblingsAndDescendantsToSkip.length + firsONToSkip}}]}, {$inc: {orderNumber: ((res.locals.descendants.length + 1) * -1)}})
       }
+      res.locals.siblingsAndDescendantsToSkip = []
       return
       //
     })
@@ -683,6 +667,7 @@ module.exports = function(app, db) {
       const { descendants } = res.locals
       console.log('descendants', descendants)
       for(let i = 0; i < descendants.length; i++) {
+        console.log('inside loop', i, res.locals.siblingsAndDescendantsToSkip.length)
         itemsCol.findOneAndUpdate({_id: descendants[i]._id}, {$inc: {orderNumber: res.locals.siblingsAndDescendantsToSkip.length, indentLevel: -1}})
       }
       return itemsCol.find({userName}).toArray()
@@ -695,6 +680,8 @@ module.exports = function(app, db) {
         parentToSet = parentItem.parent
       }
       console.log('item', item)
+      console.log('parentToSet', parentToSet)
+      console.log('res.locals.siblingsAndDescendantsToSkip.length', res.locals.siblingsAndDescendantsToSkip.length)
       return itemsCol.update({_id: item._id}, { $set: {parent: parentToSet, orderNumber: item.orderNumber + res.locals.siblingsAndDescendantsToSkip.length, indentLevel: item.indentLevel - 1} } )
     })
     .then(() => {
