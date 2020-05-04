@@ -336,26 +336,29 @@ const WorkFlowy = () => {
 	}
 
 	const decollapseItem = id => {
-		callFetch('decollapseItem', { id, decollapsed: false}).then(() => {
-			const itemToDecollapse = items.find(item => item._id === id)
-			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-			const descendantItems = getDescendantItems(itemToDecollapse._id)
-			const firstPotentialChildInd = itemToDecollapse.orderNumber + 1
-			const itemsToHide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
-			const itemsHid = itemsToHide.map(item => {
-				return {
-					...item,
-					hidden: true
+		const childItem = items.find(item => item.parent === id)
+		if(childItem) {
+			callFetch('decollapseItem', { id, decollapsed: false}).then(() => {
+				const itemToDecollapse = items.find(item => item._id === id)
+				const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
+				const descendantItems = getDescendantItems(itemToDecollapse._id)
+				const firstPotentialChildInd = itemToDecollapse.orderNumber + 1
+				const itemsToHide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
+				const itemsHid = itemsToHide.map(item => {
+					return {
+						...item,
+						hidden: true
+					}
+				})
+				const unchangedItems = itemsByON.filter(item => item.orderNumber < itemToDecollapse.orderNumber)
+				const remainingItems = itemsByON.filter(item => item.orderNumber > itemToDecollapse.orderNumber + descendantItems.length)
+				const itemAfterDecollapse = {
+					...itemToDecollapse, decollapsed: true
 				}
+				const itemsAfterDecollapse = [...unchangedItems, itemAfterDecollapse, ...itemsHid, ...remainingItems]
+				setItems(itemsAfterDecollapse)
 			})
-			const unchangedItems = itemsByON.filter(item => item.orderNumber < itemToDecollapse.orderNumber)
-			const remainingItems = itemsByON.filter(item => item.orderNumber > itemToDecollapse.orderNumber + descendantItems.length)
-			const itemAfterDecollapse = {
-				...itemToDecollapse, decollapsed: true
-			}
-			const itemsAfterDecollapse = [...unchangedItems, itemAfterDecollapse, ...itemsHid, ...remainingItems]
-			setItems(itemsAfterDecollapse)
-		})
+		}
 	}
 
 	//TO UTILS
