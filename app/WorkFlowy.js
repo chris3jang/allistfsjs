@@ -136,7 +136,7 @@ const WorkFlowy = () => {
 					itemTitle: '', 
 					indentLevel: data.indentLevel, 
 					decollapsed: false, 
-					hidden: newItemParent.decollapsed ? true : false, 
+					hidden: newItemParent && newItemParent.decollapsed ? true : false, 
 					orderNumber: newOrderNumber,
 					parent: newItemParentId
 				}
@@ -224,6 +224,7 @@ const WorkFlowy = () => {
 
 	const untabItem = id => {
 		callFetch('untabItem', { id }).then(() => {
+			console.log('untabItem')
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const itemToUntab = items.find(item => item._id === id)
 			const descendantItems = getDescendantItems(itemToUntab._id)

@@ -380,10 +380,24 @@ const Displayer = ({items, handleAction, reorder}) => {
 				}
 				break;
 			}
+			case 'untabItem': {
+				if(canItemUntab(id)) {
+					handleAction(action, id, value)
+				}
+				break;
+			}
 			default: {
 				handleAction(action, id, value)
 			}
 		}	
+	}
+
+	const canItemUntab = id => {
+		const currentItems = getItemsToDisplay()
+		const itemToUntab = currentItems.find(item => item._id === id)
+		console.log('@#@', itemToUntab.parent, list, itemToUntab.parent !== list)
+
+		return itemToUntab.parent !== list
 	}
 
 	const getNearestSiblingAbove = id => {
