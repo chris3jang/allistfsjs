@@ -5,9 +5,13 @@ module.exports = {
 	entry: "./app/index.js",
 	output: {
 		path: path.join(__dirname, "./dist/"),
-		filename: "bundle.js"
+		filename: "bundle.js",
+		publicPath: '/'
 	},
 	mode: "development",
+	devServer: {
+		historyApiFallback: true,
+	},
 	module: {
 		rules: [
 			{

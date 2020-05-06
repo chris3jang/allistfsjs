@@ -12,6 +12,7 @@
   "author": "",
   "license": "ISC",
   "dependencies": {
+    "@seznam/compose-react-refs": "^1.0.4",
     "babel": "^6.23.0",
     "bcryptjs": "^2.4.3",
     "body-parser": "^1.18.3",
@@ -19,6 +20,7 @@
     "express": "^4.16.3",
     "express-jwt": "^5.3.1",
     "express-session": "^1.15.6",
+    "express-unless": "^0.5.0",
     "jsonwebtoken": "^8.3.0",
     "jss": "^10.0.4",
     "jss-preset-default": "^10.0.4",

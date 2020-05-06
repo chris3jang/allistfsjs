@@ -99,7 +99,6 @@ const WorkFlowy = () => {
 	const createItem = id => {
 		callFetch('createItem', {id}).then(data => {
 			const itemCreatedOn = items.find(item => item._id === id)
-			console.log('itemCreatedOn', itemCreatedOn)
 			const descendantItems = getDescendantItems(itemCreatedOn._id)
 			const getNewItemParentId = () => {
 				const nextItem = items.find(item => item.orderNumber === itemCreatedOn.orderNumber + 1)
@@ -115,11 +114,8 @@ const WorkFlowy = () => {
 			}
 			const newItemParentId = getNewItemParentId()
 			const newItemParent = items.find(item => item._id === newItemParentId)
-			console.log('itemCreatedOn.orderNumber', itemCreatedOn.orderNumber)
 			const numHiddenChildrenToSkip = itemCreatedOn.decollapsed ? descendantItems.length : 0
-			console.log('numHiddenChildrenToSkip', numHiddenChildrenToSkip)
 			const newOrderNumber = itemCreatedOn.orderNumber + numHiddenChildrenToSkip + 1
-			console.log('newOrderNumber', newOrderNumber)
 			const incrementedItems = items.map(item => {
 				if(item.orderNumber >= newOrderNumber) {
 					return {
@@ -224,7 +220,6 @@ const WorkFlowy = () => {
 
 	const untabItem = id => {
 		callFetch('untabItem', { id }).then(() => {
-			console.log('untabItem')
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const itemToUntab = items.find(item => item._id === id)
 			const descendantItems = getDescendantItems(itemToUntab._id)

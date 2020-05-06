@@ -43,9 +43,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 			else {
 				if(prevItems.length + 1 === items.length) {
 					const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
-					console.log('addedItem', addedItem)
-					console.log('itemsRef.current', itemsRef.current)
-
 					/*
 					this block underneath works under the assumption that item creation 
 					while the user has entered a decollapsed will certainly be added to
@@ -115,8 +112,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 
 	useEffect(() => {
 		if(itemsRef.current[itemToFocus]) {
-			console.log('itemToFocus', itemToFocus)
-			console.log('itemsRef.current', itemsRef.current)
 			const itemRef = itemsRef.current[itemToFocus]
 			itemRef.focus()
 			setFocus(null)
@@ -131,16 +126,10 @@ const Displayer = ({items, handleAction, reorder}) => {
 				setFocus(addedItem._id)
 			}
 			if(prevItemsInCurrVisibleHiddenItems.length - 1 === currVisibleHiddenItems.length) {
-				console.log('currVisibleHiddenItems', currVisibleHiddenItems)
 				const deletedItem = prevItemsInCurrVisibleHiddenItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
-				console.log('deletedItem', deletedItem)
 				const leftItemsNotHidden = currVisibleHiddenItems.filter(item => item.orderNumber < deletedItem.orderNumber && !item.hidden)
-				console.log('leftItemsNotHidden', leftItemsNotHidden)
 				const leftItemsOrderNumbers = leftItemsNotHidden.map(item => item.orderNumber)
-				console.log('leftItemsOrderNumbers', leftItemsOrderNumbers)
-				console.log('Math.max(leftItemsOrderNumbers)', Math.max(leftItemsOrderNumbers))
 				const itemToFocusOn = currVisibleHiddenItems.find(item => item.orderNumber === Math.max(...leftItemsOrderNumbers))
-				console.log('itemToFocusOn', itemToFocusOn)
 				setFocus(itemToFocusOn._id)
 			}
 		}
@@ -236,13 +225,9 @@ const Displayer = ({items, handleAction, reorder}) => {
 	const selectList = id => {
 		const currItem = items.find(item => item._id === id)
 		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
-		console.log('currItem', currItem)
-		console.log('nextItem', nextItem)
 		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
-		console.log('isNextItemChild', isNextItemChild)
 		if(isNextItemChild) {
 			resetStateToHomeView()
-			console.log('4', shouldItemRemainHidden(nextItem, currItem, items))
 			setList(id)
 			//figure out which condition below makes more sense
 			if(currItem.decollapsed || nextItem.hidden) {
@@ -281,56 +266,9 @@ const Displayer = ({items, handleAction, reorder}) => {
 
 	const breadcrumbsClick = id => {
 		resetStateToHomeView()
-		console.log('breadcrumbsClick')
-		console.log('id', id)
-
 		const listToMoveTo = items.find(item => item._id === id)
 		if(listToMoveTo && listToMoveTo.decollapsed) {
 			setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
-		}
-
-		console.log('listToMoveTo', listToMoveTo)
-		/*
-		if(currItem.hidden) {
-			setCurrVisibleHiddenItems(getUnhiddenChildItems(parent))
-		}
-        setList(parent)
-		setFocus(list)
-		*/
-
-		const sortedItems = inOrder(items)
-		const itemsInList = inOrder(getDescendantItems(list))
-		console.log('sortedItems', sortedItems)
-		console.log('itemsInList', itemsInList)
-		if(list !== null) {
-			console.log('list !== null')
-			const prevItemsInList = itemsInList.map(item => {
-				const parent = items.find(it => it._id === item.parent)
-				console.log('parent', parent)
-				console.log('parent.decollapsed', parent.decollapsed)
-				if(parent.decollapsed) {
-					return {
-						...item,
-						hidden: true
-					}
-				}
-				else {
-					return item
-				}
-			})
-			const currList = items.find(item => item._id === list)
-			const leftItems = sortedItems.slice(0, currList.orderNumber + 1)
-			const rightItems = sortedItems.slice(currList.orderNumber + itemsInList.length + 1, items.length)
-			const reversedItems = [
-				...leftItems,
-				...prevItemsInList,
-				...rightItems
-			]
-			console.log('currList', currList)
-			console.log('leftItems', leftItems)
-			console.log('rightItems', rightItems)
-			console.log('reversedItems', reversedItems)
-			//setItems(reversedItems)
 		}
 		setList(id)
     }
@@ -338,18 +276,15 @@ const Displayer = ({items, handleAction, reorder}) => {
     const getItemsToDisplay = () => {
 		const itemsByON = inOrder(items)
 		if(list === null) {
-			console.log('1', itemsByON)
 			return itemsByON
         }
         if(currVisibleHiddenItems) {
-			console.log('2', currVisibleHiddenItems)
             return currVisibleHiddenItems
         }
 		const itemAsList = items.find(item => list === item._id)
         const descendantItems = getDescendantItems(list)
 		const firstPotentialChildInd = list === null ? 0 : itemAsList.orderNumber + 1
 		const itemsToDisplay = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
-		console.log('3', itemsToDisplay)
 		return itemsToDisplay
 	}
 
@@ -395,7 +330,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 	const canItemUntab = id => {
 		const currentItems = getItemsToDisplay()
 		const itemToUntab = currentItems.find(item => item._id === id)
-		console.log('@#@', itemToUntab.parent, list, itemToUntab.parent !== list)
 		return itemToUntab.parent !== list
 	}
 
@@ -429,7 +363,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 
 	const moveUp = id => {
 		if(currVisibleHiddenItems) {
-			console.log('currVisibleHiddenItems', currVisibleHiddenItems)
 			const itemToMoveFrom = currVisibleHiddenItems.find(item => item._id === id)
 			const itemToMoveFromInd = currVisibleHiddenItems.findIndex(item => item._id === id)
 			const itemsAbove = currVisibleHiddenItems.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, itemToMoveFromInd).sort((a, b) => b.orderNumber - a.orderNumber)
@@ -439,7 +372,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 				return
 			}
 			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1)
-			console.log('itemToFocusOn', itemToFocusOn)
 			const itemRef = itemsRef.current[itemToFocusOn._id]
 			itemRef.focus()
 		}
@@ -454,11 +386,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 			}
 			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1)
 			const itemRef = itemsRef.current[itemToFocusOn._id]
-			console.log('moveUp')
-			console.log('itemsRef', itemsRef)
-			console.log('itemRef', itemRef)
-			console.log('id', id)
-			console.log('itemToFocusOn._id', itemToFocusOn._id)
 			if(itemRef) {
 				itemRef.focus()
 			}
@@ -476,10 +403,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 				return
 			}
 			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow)
-			console.log('itemsBelow', itemsBelow)
-			console.log('areItemsBelowHidden', areItemsBelowHidden)
-			console.log('numHiddenItemsBelow', numHiddenItemsBelow)
-			console.log('itemToFocusOn', itemToFocusOn)
 			const itemRef = itemsRef.current[itemToFocusOn._id]
 			if(itemRef) {
 				itemRef.focus()
@@ -495,11 +418,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 			}
 			const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow)
 			const itemRef = itemsRef.current[itemToFocusOn._id]
-			console.log('moveDown')
-			console.log('itemsRef', itemsRef)
-			console.log('itemRef', itemRef)
-			console.log('id', id)
-			console.log('itemToFocusOn._id', itemToFocusOn._id)
 			itemRef.focus()
 		}
 	}
