@@ -1,7 +1,17 @@
-import React, {useState, useEffect} from 'react';
+import React, {useEffect} from 'react';
 import Item from './Item'
+import { createUseStyles } from 'react-jss'
+
+const useStyles = createUseStyles({
+	container: {
+		display: 'inline-block',
+		verticalAlign: 'top'
+	}
+})
 
 const ItemContainer = ({items, list, handleAction, reorder}) => {
+
+	const classes = useStyles()
 
 	useEffect(() => {
 		console.log('items', items)
@@ -10,7 +20,7 @@ const ItemContainer = ({items, list, handleAction, reorder}) => {
 	const listIndentRootLevel = items.reduce((prev, curr) => prev.indentLevel < curr.indentLevel ? prev : curr, 0).indentLevel
 
 	return (
-		<div style={{margin: '0% 20%'}}>
+		<div className={classes.container}>
 			{items.filter(item => !item.hidden).sort((a, b) => a.orderNumber - b.orderNumber).map(item => 
 				<Item
 					key={item._id}

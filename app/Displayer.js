@@ -1,5 +1,5 @@
 import React, {useState, useEffect, useRef, Fragment} from 'react';
-import Item from './Item'
+import DirectoryContainer from './DirectoryContainer'
 import ItemContainer from './ItemContainer'
 import BreadCrumbs from './BreadCrumbs'
 import { usePrevious } from './hooks'
@@ -425,6 +425,7 @@ const Displayer = ({items, handleAction, reorder}) => {
 	return (
 		<Fragment>
 			<BreadCrumbs links={calcBreadCrumbsProps(list)} breadcrumbsClick={breadcrumbsClick}></BreadCrumbs>
+			<DirectoryContainer items={items} handleClickInDisplayer={breadcrumbsClick}></DirectoryContainer>
             <ItemContainer className={classes.arimo} items={getItemsToDisplay()} list={list} handleAction={handleDisplayAction} reorder={reorder}/>
 		</Fragment>
 	)

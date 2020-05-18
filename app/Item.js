@@ -13,14 +13,14 @@ import composeRefs from '@seznam/compose-react-refs'
 import { useDrag, useDrop } from 'react-dnd';
 
 const useStyles = createUseStyles({
-	indentation: {
-		paddingLeft: val => val * 20
-	},
-	unfinished: {
+	item: {
+		display: 'block',
 		marginTop: '10px'
 	},
+	indent: {
+		paddingLeft: val => val * 20
+	},
 	complete: {
-	  marginTop: '10px',
 	  textDecoration: 'line-through',
 	  opacity: '.2'
 	}
@@ -84,7 +84,7 @@ const Item = ({item, checked, indentLevel, list, handleAction, reorder}) => {
 
 
 	return (
-		<div key={item._id} ref={(node) => drag(drop(node))} className={`${classes.indentation} ${checked ? classes.complete : classes.unfinished}`}>
+		<div key={item._id} ref={(node) => drag(drop(node))} className={`${classes.item} ${classes.indent} ${checked && classes.complete}`}>
 			<Bullet orderNumber={item.orderNumber} decollapsed={item.decollapsed} checked={item.checked} handleAction={handleAction}/>
 			<EditableText id={item._id} orderNumber={item.orderNumber} itemTitle={item.itemTitle} checked={item.checked} list={list} handleAction={handleAction}/>
 		</div>

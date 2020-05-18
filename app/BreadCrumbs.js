@@ -4,7 +4,7 @@ import {createUseStyles} from 'react-jss'
 
 const useStyles = createUseStyles({
     header: {
-        margin: '2rem 20%'
+        margin: '2rem 240px'
     },
     '@font-face': {
 		fontFamily: 'Arimo',
