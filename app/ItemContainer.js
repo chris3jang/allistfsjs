@@ -1,6 +1,6 @@
-import React, {useEffect} from 'react';
+import React from 'react';
 import Item from './Item'
-import { createUseStyles } from 'react-jss'
+import {createUseStyles} from 'react-jss'
 
 const useStyles = createUseStyles({
 	container: {
@@ -12,10 +12,6 @@ const useStyles = createUseStyles({
 const ItemContainer = ({items, list, handleAction, reorder}) => {
 
 	const classes = useStyles()
-
-	useEffect(() => {
-		console.log('items', items)
-	}, [items])
 
 	const listIndentRootLevel = items.reduce((prev, curr) => prev.indentLevel < curr.indentLevel ? prev : curr, 0).indentLevel
 

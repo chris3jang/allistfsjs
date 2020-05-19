@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import ContentEditable from 'react-contenteditable'
 import {createUseStyles} from 'react-jss'
 
@@ -16,14 +16,17 @@ const useStyles = createUseStyles({
 		left: '6px',
 		bottom: '4px',
 		paddingRight: '1px',
-		maxWidth: 'calc(100% - 12px)'
+		maxWidth: 'calc(100% - 12px)',
+		'&:focus': {
+			outline: 'none'
+		}
 	},
 	completed: {
 		textDecoration: 'line-through'
 	}
 })
 
-const EditableText = ({id, orderNumber, itemTitle, checked, list, handleAction}) => {
+const EditableText = ({id, itemTitle, checked, list, handleAction}) => {
 
 	const classes = useStyles();
 

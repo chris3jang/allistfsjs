@@ -18,7 +18,7 @@ const useStyles = createUseStyles({
         borderRadius: '0 0 15px 15px',
         width: '300px',
         backgroundColor: '#fff',
-        margin: '120px auto',
+        margin: '96px auto',
         maxWidth: '100%',
         maxHeight: '100%',
         overflow: 'auto',

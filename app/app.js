@@ -1,53 +1,42 @@
 import React, {Fragment, useState, useRef, useEffect} from 'react';
-import Home from './home';
 import Entry from './Entry';
-import styles from './css/app.css';
 import './css/fonts.css';
 import jwt_decode from 'jwt-decode';
 
 import WorkFlowy from './WorkFlowy'
 import NavBar from './NavBar'
 
-import jss from 'jss';
-import preset from 'jss-preset-default';
-import { SheetsRegistry, JssProvider } from 'react-jss';
-
 import { usePrevious } from './hooks'
 
 import {
 	HashRouter as Router,
 	Route,
-	Link,
 	Redirect,
 	Switch
 } from 'react-router-dom'
 
-const setupJss = () => {
-	jss.setup(preset());
-  
-	const sheetsRegistry = new SheetsRegistry();
-  
-	const globalStyleSheet = jss.createStyleSheet(
-	  {'@global': { body: { margin: 0 }}}
-	).attach();
-  
-	sheetsRegistry.add(globalStyleSheet);
-  
-	return sheetsRegistry;
-}
-  
-const sheets = setupJss();
+import {createUseStyles} from 'react-jss'
+
+const useStyles = createUseStyles({
+	'@font-face': {
+		fontFamily: 'Arimo',
+		src: 'url("./fonts/Arimo/Arimo-Regular.ttf") format("truetype")'
+	},
+	app: {
+		fontFamily: 'Arimo'
+	}
+})
 
 const App = () => {
 
+	const classes = useStyles();
+
 	const [auth, setAuth] = useState(false)
-	const [username, setUsername] = useState(null)
 	const [newFrontEnd, setNewFrontEnd] = useState(false)
 	const lastActivityRef = useRef()
 	const timerRef = useRef()
 
 	useEffect(() => {
-		console.log('get Auth cDM')
 		getAuth();
 		maintainEventListener('add', ['mousemove', 'keydown', 'keypress', 'click', 'scroll']);
 		lastActivityRef.current = Date.now();
@@ -56,12 +45,11 @@ const App = () => {
 			maintainEventListener('remove', ['mousemove', 'keydown', 'keypress', 'click', 'scroll']);
 			clearInterval(timerRef.current);
 		}
-		}, [])
+	}, [])
 
 	const prevAuth = usePrevious(auth)
 	useEffect(() => {
 		if(prevAuth !== auth) {
-			console.log('get Auth cDU')
 			getAuth()
 		}
 	}, [auth])
@@ -84,12 +72,10 @@ const App = () => {
 	};
 
 	const getAuth = () => {
-		console.log('getAuth auth as state before fetching', auth, localStorage.getItem('access'))
 		const headers = new Headers({'authorization': `Bearer ${localStorage.getItem('access')}`});
 		if(localStorage.getItem('access')) {
 			fetch('/users/', { headers })
 			.then(resp => {
-				console.log('resp', resp)
 				if(resp.statusText === "OK") {
 					setAuth(true)
 				}
@@ -122,11 +108,9 @@ const App = () => {
 	};
 
 	const handleLogOut = () => {
-		console.log('handleLogOut')
 		localStorage.removeItem('access');
 		localStorage.removeItem('refresh');
 		setAuth(false)
-		console.log('auth after setting false', auth)
 	}
 
 	const checkIdleTime = () => {
@@ -147,7 +131,6 @@ const App = () => {
 	};
 
 	const logIn = (username, password, act) => {
-		setUsername(username)
 		const data = {
 			username,
 			password
@@ -164,7 +147,6 @@ const App = () => {
 			return resp.json();
 		})
 		.then(data => {
-			console.log('logged in', 'access ', data.token.accessToken, 'refresh ', data.token.refreshToken)
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
 			if(act) {
@@ -232,10 +214,16 @@ const App = () => {
 		}
 		fetch('/items/trash/', fetchData)
 			.then((data) => {
-				console.log('trashed')
 				//self.setState({updateChild: true})
 			});
 	}
+
+	const landing = 
+		!auth ? (
+			<Redirect to={{ pathname: '/login'}}></Redirect>
+		) : (
+			<Redirect to={{ pathname: '/home'}}></Redirect>
+		)
 
 	const entry = () =>
 		<Entry
@@ -256,57 +244,17 @@ const App = () => {
 		:
 		<Redirect to={{ pathname: '/login'}}></Redirect>
 
-
-	const test1 = () => <div>LANDING</div>
-	const test2 = () => <div>LOGIN</div>
-	const test3 = () => <div>HOME</div>
-
-	const landing = 
-		!auth ? (
-			<Redirect to={{ pathname: '/login'}}></Redirect>
-		) : (
-			<Redirect to={{ pathname: '/home'}}></Redirect>
-		)
-
 	return (
-		<JssProvider registry={sheets}>
 			<Router>
-				<div className={styles.app}>
-						{landing}
-						<Switch>
-							<Route path='/login' render={entry}></Route>
-							<Route exact path='/' render={test1}></Route>
-							<Route path='/home' render={home}></Route>
-						</Switch>
-					{/*
-						{auth && newFrontEnd ? (
-							<Fragment>
-								<NavBar
-									trashCheckedItemsFromNav={handleTrashCheckedItemsFromNav}
-									logout={handleLogOut} 
-								/>
-								<WorkFlowy />
-							</Fragment>
-						) : auth ? (
-							<Home 
-								username={username}
-								logout={handleLogOut}>
-							</Home>
-						) : (
-							<Entry
-								login={logIn}
-								register={register}
-								test={test}>
-							</Entry>
-						)}
-					*/}
+				<div className={classes.app}>
+					{landing}
+					<Switch>
+						<Route path='/login' render={entry}></Route>
+						<Route path='/home' render={home}></Route>
+					</Switch>
 				</div>
 			</Router>
-		</JssProvider>
 	)
-
-
-
 }
 
 export default App
