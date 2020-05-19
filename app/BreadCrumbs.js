@@ -24,7 +24,7 @@ const useStyles = createUseStyles({
     }
 })
 
-const BreadCrumbs = ({links, breadcrumbsClick}) => {
+const BreadCrumbs = ({items, list, breadcrumbsClick}) => {
 
     const classes = useStyles();
 
@@ -33,12 +33,22 @@ const BreadCrumbs = ({links, breadcrumbsClick}) => {
         breadcrumbsClick(id)
     }
 
+    const calcBreadCrumbsProps = listId => {
+        const listAsItem = items.find(item => listId === item._id)
+        if(listId === null) {
+            return []
+        }
+        return [...calcBreadCrumbsProps(listAsItem.parent), {id: listId, title: listAsItem.itemTitle}]
+    }
+
     const returnLink = (id, title) => <a className={classes.link} onClick={() => handleClick(id)}>{title}</a>
 
     const renderLinks = links => 
         links.reduce((linkedTitles, currentTitle) => 
             [...linkedTitles, <p className={classes.divider}>  >  </p>, returnLink(currentTitle.id, currentTitle.title)], 
         [returnLink(null, 'Home')])
+
+    const links = calcBreadCrumbsProps(list)
 
 	return (
 		<div className={classes.header}>{renderLinks(links)}</div>

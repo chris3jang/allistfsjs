@@ -158,14 +158,6 @@ const Displayer = ({items, handleAction, reorder}) => {
         setFocus(list)
 	}
 
-	const calcBreadCrumbsProps = listId => {
-		const list = items.find(item => listId === item._id)
-		if(listId === null) {
-			return []
-		}
-		return [...calcBreadCrumbsProps(list.parent), {id: listId, title: list.itemTitle}]
-	}
-
 	const breadcrumbsClick = id => {
 		setCurrVisibleHiddenItems(null)
 		const listToMoveTo = items.find(item => item._id === id)
@@ -192,10 +184,11 @@ const Displayer = ({items, handleAction, reorder}) => {
 
 	const handleDisplayAction = (action, id, value) => {
 		switch (action) {
-			case 'createRef':
+			case 'createRef': {
 				createRef(id, value)
 				break;
-			case 'enterChild': {
+			}
+				case 'enterChild': {
 				enterChild(id, value)
 				break;
 			}
@@ -301,7 +294,7 @@ const Displayer = ({items, handleAction, reorder}) => {
 
 	return (
 		<Fragment>
-			<BreadCrumbs links={calcBreadCrumbsProps(list)} breadcrumbsClick={breadcrumbsClick}></BreadCrumbs>
+			<BreadCrumbs items={items} list={list} breadcrumbsClick={breadcrumbsClick}></BreadCrumbs>
 			<DirectoryContainer items={items} handleClickInDisplayer={breadcrumbsClick}></DirectoryContainer>
             <ItemContainer className={classes.arimo} items={getItemsToDisplay()} list={list} handleAction={handleDisplayAction} reorder={reorder}/>
 		</Fragment>
