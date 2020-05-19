@@ -6,6 +6,8 @@ import { usePrevious } from './hooks'
 
 import { createUseStyles } from 'react-jss'
 
+import { getDescendantItems, inOrder } from './utils'
+
 const useStyles = createUseStyles({
 	'@font-face': {
 		fontFamily: 'Arimo',
@@ -34,77 +36,27 @@ const Displayer = ({items, handleAction, reorder}) => {
 	const prevItems = usePrevious(items)
 	useEffect(() => {
 		if(mounted) {
-
 			if(currVisibleHiddenItems) {
 				resetStateToHomeView()
 				selectList(list)
 			}
-
 			else {
 				if(prevItems.length + 1 === items.length) {
 					const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
-					/*
-					this block underneath works under the assumption that item creation 
-					while the user has entered a decollapsed will certainly be added to
-					the currVisibleHiddenItems array state.  if this app ever changes
-					where item creation can exist to an area that the user currently isn't
-					viewing, this must get debugged.
-					*/
-					/*
-					if(currVisibleHiddenItems) {
-						console.log(inOrder([...currVisibleHiddenItems, {...addedItem, hidden: false}]))
-						console.log('currVisibleHiddenItems', currVisibleHiddenItems)
-						const leftItems = currVisibleHiddenItems.filter(item => item.orderNumber < addedItem.orderNumber)
-						const rightItems = currVisibleHiddenItems.filter(item => item.orderNumber >= addedItem.orderNumber)
-						console.log('rightItems', rightItems)
-						const rightItemsAfterCreate = rightItems.map(item => {
-							return {
-								...item,
-								orderNumber: item.orderNumber + 1
-							}
-						})
-						console.log('leftItems', leftItems)
-						console.log('rightItemsAfterCreate', rightItemsAfterCreate)
-						setCurrVisibleHiddenItems(inOrder([...leftItems, {...addedItem, hidden: false}, ...rightItemsAfterCreate]))
-					}
-					*/
 					if(itemsRef.current[addedItem._id]) {
 						itemsRef.current[addedItem._id].focus()
 					}
 				}
 				if(prevItems.length - 1 === items.length) {
 					const deletedItem = prevItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
-					/*
-					if(currVisibleHiddenItems) {
-						const displayItemsAfterDelete = currVisibleHiddenItems.filter(item => item._id !== deletedItem._id)
-						setCurrVisibleHiddenItems(displayItemsAfterDelete)
-						const displayItemsInOrder = inOrder(currVisibleHiddenItems)
-						const leftItems = displayItemsInOrder.slice(0, deletedItem.orderNumber)
-						const leftItemsReversed = leftItems.sort((a, b) => b.orderNumber - a.orderNumber)
-						const numHiddenItemsDirectlyLeft = leftItemsReversed.findIndex(item => !item.hidden) === -1 ? leftItems.length : leftItemsReversed.findIndex(item => !item.hidden)
-						const displayOrderNumber = currVisibleHiddenItems.findIndex(item => deletedItem._id === item._id)
-						if(displayOrderNumber && displayOrderNumber - numHiddenItemsDirectlyLeft - 1 >= 0) {
-							const itemToFocusOn = currVisibleHiddenItems[displayOrderNumber - numHiddenItemsDirectlyLeft - 1]
-							console.log('itemToFocusOn', itemToFocusOn)
-							console.log('itemsRef.current', itemsRef.current)
-							const itemRef = itemsRef.current[itemToFocusOn._id]
-							console.log('itemRef', itemRef)
-							itemRef.focus()
-						}
-
+					const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, deletedItem.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
+					const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
+					const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
+					if(deletedItem.orderNumber - numHiddenItemsAbove - 1 >= 0) {
+						const itemToFocusOn = items.find(item => item.orderNumber === deletedItem.orderNumber - numHiddenItemsAbove - 1)
+						const itemRef = itemsRef.current[itemToFocusOn._id]
+						itemRef.focus()
 					}
-					*/
-					//else {
-						const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, deletedItem.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
-						const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
-						const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
-						if(deletedItem.orderNumber - numHiddenItemsAbove - 1 >= 0) {
-							const itemToFocusOn = items.find(item => item.orderNumber === deletedItem.orderNumber - numHiddenItemsAbove - 1)
-							const itemRef = itemsRef.current[itemToFocusOn._id]
-							itemRef.focus()
-						}
-					//}
-			
 				}
 			}
 		}
@@ -134,22 +86,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 			}
 		}
 	}, [currVisibleHiddenItems])
-    
-    const getDescendantItems = id => {
-		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-		const parentItem = items.find(item => item._id === id)
-		const parentItemOrderNumber = parentItem ? parentItem.orderNumber : null
-		const firstPotentialDesInd = parentItem ? parentItemOrderNumber + 1 : 0
-		const potentialDesItems = itemsByON.slice(firstPotentialDesInd)
-		const areItemsDesItems = potentialDesItems.map(item => item.indentLevel > (parentItem ? parentItem.indentLevel : 0))
-		const numDesItems = areItemsDesItems.findIndex(bool => !bool) === -1 ? areItemsDesItems.length : areItemsDesItems.findIndex(bool => !bool)
-		const descendantItems = itemsByON.slice(parentItemOrderNumber + 1, firstPotentialDesInd + numDesItems)
-		return descendantItems
-	}
-
-	const inOrder = items => {
-		return items.sort((a, b) => a.orderNumber - b.orderNumber)
-	}
 	
 	const createRef = (id, node) => {
 		itemsRef.current[id] = node
@@ -173,7 +109,7 @@ const Displayer = ({items, handleAction, reorder}) => {
 		const itemsByON = inOrder(items)
 		const itemToCollapse = items.find(item => item._id === id)
 		const itemOrderNumber = itemToCollapse.orderNumber
-		const descendantItems = getDescendantItems(itemToCollapse._id)
+		const descendantItems = getDescendantItems(itemToCollapse._id, items)
 		const firstPotentialChildInd = itemOrderNumber + 1
 		const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
 		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + descendantItems.length)
@@ -193,7 +129,7 @@ const Displayer = ({items, handleAction, reorder}) => {
     
     const resetStateToHomeView = () => {
 		const sortedItems = inOrder(items)
-		const itemsInList = inOrder(getDescendantItems(list))
+		const itemsInList = inOrder(getDescendantItems(list, items))
 		if(list !== null) {
 			const prevItemsInList = itemsInList.map(item => {
 				const parent = items.find(it => it._id === item.parent)
@@ -282,7 +218,7 @@ const Displayer = ({items, handleAction, reorder}) => {
             return currVisibleHiddenItems
         }
 		const itemAsList = items.find(item => list === item._id)
-        const descendantItems = getDescendantItems(list)
+        const descendantItems = getDescendantItems(list, items)
 		const firstPotentialChildInd = list === null ? 0 : itemAsList.orderNumber + 1
 		const itemsToDisplay = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
 		return itemsToDisplay

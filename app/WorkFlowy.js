@@ -2,28 +2,33 @@ import React, {useState, useEffect, Fragment} from 'react';
 import Displayer from './Displayer'
 import { callFetch } from './api';
 
+import { getDescendantItems, inOrder } from './utils'
+
 const WorkFlowy = () => {
 
-	const [items, setItems] = useState([])
+	const [items, setItems] = useState([]);
 
 	useEffect(() => {
 		callFetch('fetchInitialData')
 			.then((data) => {
 				setItems(data)
 			})
-	}, [])
+	}, []);
 
 	const handleAction = (action, id, value) => {
 		switch (action) {
-			case 'createItem': 
-				createItem(id)
+			case 'createItem': {
+				createItem(id);
 				break;
-			case 'deleteItem':
-				deleteItem(id)
+			}
+			case 'deleteItem': {
+				deleteItem(id);
 				break;
-			case 'editItemTitle': 
+			}
+			case 'editItemTitle': {
 				editItemTitle(id, value);
 				break;
+			}
 			case 'toggleCheckbox': {
 				toggleCheckbox(id);
 				break;
@@ -51,9 +56,10 @@ const WorkFlowy = () => {
 		callFetch('reorder', { id: draggedPK, newOrderNumber: droppedON }).then(data => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const draggedItem = items.find(item => item._id === draggedPK)
-			const descendantItems = getDescendantItems(draggedItem._id)
+			const descendantItems = getDescendantItems(draggedItem._id, items)
+			console.log('descendantItems', descendantItems)
 			const droppedItem = items.find(item => item.orderNumber === droppedON)
-			const droppedItemDescendants = getDescendantItems(droppedItem._id)
+			const droppedItemDescendants = getDescendantItems(droppedItem._id, items)
 			const lowerRange = (draggedItem.orderNumber < droppedON ? (draggedItem.orderNumber + descendantItems.length + 1) : droppedON)
     		const upperRange = (draggedItem.orderNumber < droppedON ? (droppedON + droppedItemDescendants.length) : (draggedItem.orderNumber - 1))
 			const inc = (descendantItems.length+1) * (draggedItem.orderNumber < droppedON ? -1 : 1)
@@ -95,11 +101,10 @@ const WorkFlowy = () => {
 		})
 	} 
 
-	//when orderNumber changes to id, we will need orderNumber from data, instead of from state
 	const createItem = id => {
 		callFetch('createItem', {id}).then(data => {
-			const itemCreatedOn = items.find(item => item._id === id)
-			const descendantItems = getDescendantItems(itemCreatedOn._id)
+			const itemCreatedOn = items.find(item => item._id === id);
+			const descendantItems = getDescendantItems(itemCreatedOn._id, items);
 			const getNewItemParentId = () => {
 				const nextItem = items.find(item => item.orderNumber === itemCreatedOn.orderNumber + 1)
 				if(!nextItem) {
@@ -111,7 +116,7 @@ const WorkFlowy = () => {
 				else {
 					return itemCreatedOn.parent
 				}
-			}
+			};
 			const newItemParentId = getNewItemParentId()
 			const newItemParent = items.find(item => item._id === newItemParentId)
 			const numHiddenChildrenToSkip = itemCreatedOn.decollapsed ? descendantItems.length : 0
@@ -145,7 +150,7 @@ const WorkFlowy = () => {
 		callFetch('deleteItem', { id }).then(data => {
 			const itemToDelete = items.find(item => item._id === id)
 			const itemsBeforeDeleteByON = items.slice().sort((a, b) => a.orderNumber - b.orderNumber)
-			const descendantItems = getDescendantItems(itemToDelete._id)
+			const descendantItems = getDescendantItems(itemToDelete._id, items)
 			const numRightItems = itemsBeforeDeleteByON.length - (itemToDelete.orderNumber + descendantItems.length + 1)
 			const descendantItemsAfterDelete = descendantItems.map(item => { 
 				return {
@@ -197,7 +202,7 @@ const WorkFlowy = () => {
 		callFetch('tabItem', { id }).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const itemToTab = items.find(item => item._id === id)
-			const descendantItems = getDescendantItems(itemToTab._id)
+			const descendantItems = getDescendantItems(itemToTab._id, items)
 			const possibleParents = itemsByON.filter(item => item.parent === itemToTab.parent && item.orderNumber < itemToTab.orderNumber)
 			const parent = itemsByON.find(item => item.orderNumber === Math.max(...possibleParents.map(par => par.orderNumber)))
 			const itemTabbed = {
@@ -222,10 +227,10 @@ const WorkFlowy = () => {
 		callFetch('untabItem', { id }).then(() => {
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const itemToUntab = items.find(item => item._id === id)
-			const descendantItems = getDescendantItems(itemToUntab._id)
+			const descendantItems = getDescendantItems(itemToUntab._id, items)
 			const highestPrevSibling = items.find(item => item.orderNumber === Math.max(...items.filter(item => item.parent === itemToUntab.parent).map(item => item.orderNumber)))
 			let add = 0
-			const highestPrevSiblingDescendant = inOrder(getDescendantItems(highestPrevSibling._id)).slice(-1).pop()
+			const highestPrevSiblingDescendant = inOrder(getDescendantItems(highestPrevSibling._id, items)).slice(-1).pop()
 			if(highestPrevSiblingDescendant) {
 				add = highestPrevSiblingDescendant.orderNumber - (itemToUntab.orderNumber + descendantItems.length)
 			}
@@ -285,7 +290,7 @@ const WorkFlowy = () => {
 		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 		const itemToCollapse = items.find(item => item._id === id)
 		const itemOrderNumber = itemToCollapse.orderNumber
-		const descendantItems = getDescendantItems(itemToCollapse._id)
+		const descendantItems = getDescendantItems(itemToCollapse._id, items)
 		const firstPotentialChildInd = itemOrderNumber + 1
 		const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
 		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + descendantItems.length)
@@ -308,7 +313,7 @@ const WorkFlowy = () => {
 			const itemToCollapse = items.find(item => item._id === id)
 			const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
 			const firstPotentialChildInd = itemToCollapse.orderNumber + 1
-			const descendantItems = getDescendantItems(itemToCollapse._id)
+			const descendantItems = getDescendantItems(itemToCollapse._id, items)
 			const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
 			const potentialParents = itemsByON.slice(itemToCollapse.orderNumber, firstPotentialChildInd + descendantItems.length)
 			const unhiddenItems = itemsToPotentiallyUnhide.map(item => {
@@ -336,7 +341,7 @@ const WorkFlowy = () => {
 			callFetch('decollapseItem', { id, decollapsed: false}).then(() => {
 				const itemToDecollapse = items.find(item => item._id === id)
 				const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-				const descendantItems = getDescendantItems(itemToDecollapse._id)
+				const descendantItems = getDescendantItems(itemToDecollapse._id, items)
 				const firstPotentialChildInd = itemToDecollapse.orderNumber + 1
 				const itemsToHide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
 				const itemsHid = itemsToHide.map(item => {
@@ -354,24 +359,6 @@ const WorkFlowy = () => {
 				setItems(itemsAfterDecollapse)
 			})
 		}
-	}
-
-	//TO UTILS
-	//id is not order number, do not fix this one
-	const getDescendantItems = id => {
-		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-		const parentItem = items.find(item => item._id === id)
-		const parentItemOrderNumber = parentItem ? parentItem.orderNumber : null
-		const firstPotentialDesInd = parentItem ? parentItemOrderNumber + 1 : 0
-		const potentialDesItems = itemsByON.slice(firstPotentialDesInd)
-		const areItemsDesItems = potentialDesItems.map(item => item.indentLevel > (parentItem ? parentItem.indentLevel : 0))
-		const numDesItems = areItemsDesItems.findIndex(bool => !bool) === -1 ? areItemsDesItems.length : areItemsDesItems.findIndex(bool => !bool)
-		const descendantItems = itemsByON.slice(parentItemOrderNumber + 1, firstPotentialDesInd + numDesItems)
-		return descendantItems
-	}
-
-	const inOrder = items => {
-		return items.sort((a, b) => a.orderNumber - b.orderNumber)
 	}
 
 	console.log('WORKFLOWY ALL ITEMS STATE (SORTED): ', inOrder(items))
