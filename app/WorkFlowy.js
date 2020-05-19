@@ -283,31 +283,6 @@ const WorkFlowy = () => {
 		return shouldItemRemainHidden(parent, itemToggled, potentialParents)
 	}
 
-	//actual id, not ordernumber, this one does not need to be fixed
-	//should this reusable function set children of an item to hidden, or return the children as hidden???
-	//right now it returns the children as hidden
-	const getUnhiddenChildItems = id => {
-		const itemsByON = items.slice(0).sort((a, b) => a.orderNumber - b.orderNumber)
-		const itemToCollapse = items.find(item => item._id === id)
-		const itemOrderNumber = itemToCollapse.orderNumber
-		const descendantItems = getDescendantItems(itemToCollapse._id, items)
-		const firstPotentialChildInd = itemOrderNumber + 1
-		const itemsToPotentiallyUnhide = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
-		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + descendantItems.length)
-		const unhiddenItems = descendantItems.map(item => {
-			if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
-				return item
-			}
-			else {
-				return {
-					...item,
-					hidden: false
-				}
-			}
-		})
-		return unhiddenItems
-	}
-
 	const collapseItem = id => {
 		callFetch('collapseItem', { id, decollapsed: true}).then(() => {
 			const itemToCollapse = items.find(item => item._id === id)
