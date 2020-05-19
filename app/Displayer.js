@@ -27,7 +27,6 @@ const Displayer = ({items, handleAction, reorder}) => {
 	const [itemToFocus, setFocus] = useState()
 	const [mounted, setMounted] = useState(false)
 	const itemsRef = useRef({})
-	const hiddenRef = useRef([])
 
 	useEffect(() => {
 		setMounted(true)
@@ -37,7 +36,7 @@ const Displayer = ({items, handleAction, reorder}) => {
 	useEffect(() => {
 		if(mounted) {
 			if(currVisibleHiddenItems) {
-				resetStateToHomeView()
+				setCurrVisibleHiddenItems(null)
 				selectList(list)
 			}
 			else {
@@ -124,44 +123,13 @@ const Displayer = ({items, handleAction, reorder}) => {
 		})
 		return unhiddenItems
 	}
-    
-    const resetStateToHomeView = () => {
-		const sortedItems = inOrder(items)
-		const itemsInList = inOrder(getDescendantItems(list, items))
-		if(list !== null) {
-			const prevItemsInList = itemsInList.map(item => {
-				const parent = items.find(it => it._id === item.parent)
-				const start = items.find(it => it._id === list).orderNumber
-				const end = item.orderNumber
-				const potentialParents = inOrder(items.slice(start, end))
-				if(shouldItemRemainHidden(item, list, potentialParents)) {
-					return {
-						...item,
-						hidden: true
-					}
-				}
-				else {
-					return item
-				}
-			})
-			const currList = items.find(item => item._id === list)
-			const leftItems = sortedItems.slice(0, currList.orderNumber + 1)
-			const rightItems = sortedItems.slice(currList.orderNumber + itemsInList.length + 1, items.length)
-			const reversedItems = [
-				...leftItems,
-				...prevItemsInList,
-				...rightItems
-			]
-            setCurrVisibleHiddenItems(null)
-		}
-	}
 
 	const selectList = id => {
 		const currItem = items.find(item => item._id === id)
 		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
 		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
 		if(isNextItemChild) {
-			resetStateToHomeView()
+			setCurrVisibleHiddenItems(null)
 			setList(id)
 			//figure out which condition below makes more sense
 			if(currItem.decollapsed || nextItem.hidden) {
@@ -180,7 +148,7 @@ const Displayer = ({items, handleAction, reorder}) => {
 	}
 
 	const returnToParent = list => {
-		resetStateToHomeView()
+		setCurrVisibleHiddenItems(null)
 		const currItem = items.find(item => item._id === list)
 		const parent = currItem ? currItem.parent : null
 		if(currItem && currItem.hidden) {
@@ -199,7 +167,7 @@ const Displayer = ({items, handleAction, reorder}) => {
 	}
 
 	const breadcrumbsClick = id => {
-		resetStateToHomeView()
+		setCurrVisibleHiddenItems(null)
 		const listToMoveTo = items.find(item => item._id === id)
 		if(listToMoveTo && listToMoveTo.decollapsed) {
 			setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
