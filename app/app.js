@@ -3,7 +3,7 @@ import Entry from './Entry';
 import './css/fonts.css';
 import jwt_decode from 'jwt-decode';
 
-import WorkFlowy from './WorkFlowy'
+import Data from './Data'
 import NavBar from './NavBar'
 
 import { usePrevious } from './hooks'
@@ -239,7 +239,7 @@ const App = () => {
 				trashCheckedItemsFromNav={handleTrashCheckedItemsFromNav}
 				logout={handleLogOut} 
 			/>
-			<WorkFlowy />
+			<Data />
 		</Fragment>
 		:
 		<Redirect to={{ pathname: '/login'}}></Redirect>
