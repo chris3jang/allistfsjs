@@ -44,8 +44,8 @@ const BreadCrumbs = ({items, list, breadcrumbsClick}) => {
     const returnLink = (id, title) => <a key={id} className={classes.link} onClick={() => handleClick(id)}>{title}</a>
 
     const renderLinks = links => 
-        links.reduce((linkedTitles, currentTitle) => 
-            [...linkedTitles, <p className={classes.divider}>  >  </p>, returnLink(currentTitle.id, currentTitle.title)], 
+        links.reduce((linkedTitles, currentTitle, i) => 
+            [...linkedTitles, <p key={i} className={classes.divider}>  >  </p>, returnLink(currentTitle.id, currentTitle.title)], 
         [returnLink(null, 'Home')])
 
     const links = calcBreadCrumbsProps(list)

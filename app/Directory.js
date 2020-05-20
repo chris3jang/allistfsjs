@@ -44,7 +44,7 @@ const Directory = ({list, title, indentLevel, handleClickInContainer}) => {
     }
 
 	return (
-		<div key={list} className={classes.directory} onClick={handleClick}>
+		<div className={classes.directory} onClick={handleClick}>
 			<span className={`material-icons ${classes.icon}`}>folder</span>
             <p className={classes.title}>{title}</p>
 		</div>
