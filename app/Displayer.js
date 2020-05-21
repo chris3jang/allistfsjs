@@ -1,12 +1,12 @@
 import React, {useState, useEffect, useRef, Fragment} from 'react';
-import DirectoryContainer from './DirectoryContainer'
-import ItemContainer from './ItemContainer'
-import BreadCrumbs from './BreadCrumbs'
-import { usePrevious } from './hooks'
+import DirectoryContainer from './DirectoryContainer';
+import ItemContainer from './ItemContainer';
+import BreadCrumbs from './BreadCrumbs';
+import { usePrevious } from './hooks';
 
-import { createUseStyles } from 'react-jss'
+import { createUseStyles } from 'react-jss';
 
-import { getDescendantItems, inOrder } from './utils'
+import { getDescendantItems, inOrder } from './utils';
 
 const useStyles = createUseStyles({
 	'@font-face': {
@@ -16,184 +16,192 @@ const useStyles = createUseStyles({
 	arimo: {
 		fontFamily: 'Arimo'
 	}
-})
+});
 
 const Displayer = ({items, handleAction, reorder}) => {
 
-	const classes = useStyles()
+	const classes = useStyles();
 
-    const [list, setList] = useState(null)
-	const [currVisibleHiddenItems, setCurrVisibleHiddenItems] = useState(null)
-	const [itemToFocus, setFocus] = useState()
-	const [mounted, setMounted] = useState(false)
-	const itemsRef = useRef({})
+    const [list, setList] = useState(null);
+	const [currVisibleHiddenItems, setCurrVisibleHiddenItems] = useState(null);
+	const [itemToFocus, setFocus] = useState();
+	const [mounted, setMounted] = useState(false);
+	const itemsRef = useRef({});
 
 	useEffect(() => {
-		setMounted(true)
-	}, [])
+		setMounted(true);
+	}, []);
 
-	const prevItems = usePrevious(items)
+	const prevItems = usePrevious(items);
 	useEffect(() => {
 		if(mounted) {
 			if(currVisibleHiddenItems) {
-				setCurrVisibleHiddenItems(null)
-				selectList(list)
+				setCurrVisibleHiddenItems(null);
+				selectList(list);
 			}
 			else {
+				//focusing on an item that was just added
 				if(prevItems.length + 1 === items.length) {
-					const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1)
+					const addedItem = items.find(item => prevItems.findIndex(prevItem => item._id === prevItem._id) === -1);
 					if(itemsRef.current[addedItem._id]) {
-						itemsRef.current[addedItem._id].focus()
+						itemsRef.current[addedItem._id].focus();
 					}
 				}
+				//focusing on the correct item after another was deleted
 				if(prevItems.length - 1 === items.length) {
-					const deletedItem = prevItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
-					const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, deletedItem.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber)
-					const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
-					const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
+					const deletedItem = prevItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1);
+					const itemsAbove = items.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, deletedItem.orderNumber).sort((a, b) => b.orderNumber - a.orderNumber);
+					const areItemsAboveHidden = itemsAbove.map(item => item.hidden);
+					const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool);
 					if(deletedItem.orderNumber - numHiddenItemsAbove - 1 >= 0) {
-						const itemToFocusOn = items.find(item => item.orderNumber === deletedItem.orderNumber - numHiddenItemsAbove - 1)
-						const itemRef = itemsRef.current[itemToFocusOn._id]
-						itemRef.focus()
+						const itemToFocusOn = items.find(item => item.orderNumber === deletedItem.orderNumber - numHiddenItemsAbove - 1);
+						const itemRef = itemsRef.current[itemToFocusOn._id];
+						itemRef.focus();
 					}
 				}
 			}
 		}
-	}, [items])
+	}, [items]);
 
 	useEffect(() => {
 		if(itemsRef.current[itemToFocus]) {
-			const itemRef = itemsRef.current[itemToFocus]
-			itemRef.focus()
-			setFocus(null)
+			const itemRef = itemsRef.current[itemToFocus];
+			itemRef.focus();
+			setFocus(null);
 		}
-	}, [itemToFocus])
+	}, [itemToFocus]);
 
-	const prevItemsInCurrVisibleHiddenItems = usePrevious(currVisibleHiddenItems)
+	//handle focus with hidden lists user has entered
+	const prevItemsInCurrVisibleHiddenItems = usePrevious(currVisibleHiddenItems);
 	useEffect(() => {
 		if(currVisibleHiddenItems && prevItemsInCurrVisibleHiddenItems) {
+			//item added
 			if(prevItemsInCurrVisibleHiddenItems.length + 1 === currVisibleHiddenItems.length) {
-				const addedItem = currVisibleHiddenItems.find(item => prevItemsInCurrVisibleHiddenItems.findIndex(prevItem => item._id === prevItem._id) === -1)
-				setFocus(addedItem._id)
+				const addedItem = currVisibleHiddenItems.find(item => prevItemsInCurrVisibleHiddenItems.findIndex(prevItem => item._id === prevItem._id) === -1);
+				setFocus(addedItem._id);
 			}
+			//item deleted
 			if(prevItemsInCurrVisibleHiddenItems.length - 1 === currVisibleHiddenItems.length) {
-				const deletedItem = prevItemsInCurrVisibleHiddenItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1)
-				const leftItemsNotHidden = currVisibleHiddenItems.filter(item => item.orderNumber < deletedItem.orderNumber && !item.hidden)
-				const leftItemsOrderNumbers = leftItemsNotHidden.map(item => item.orderNumber)
-				const itemToFocusOn = currVisibleHiddenItems.find(item => item.orderNumber === Math.max(...leftItemsOrderNumbers))
+				const deletedItem = prevItemsInCurrVisibleHiddenItems.find(prevItem => items.findIndex(item => prevItem._id === item._id) === -1);
+				const leftItemsNotHidden = currVisibleHiddenItems.filter(item => item.orderNumber < deletedItem.orderNumber && !item.hidden);
+				const leftItemsOrderNumbers = leftItemsNotHidden.map(item => item.orderNumber);
+				const itemToFocusOn = currVisibleHiddenItems.find(item => item.orderNumber === Math.max(...leftItemsOrderNumbers));
 				setFocus(itemToFocusOn._id)
 			}
 		}
 	}, [currVisibleHiddenItems])
 	
 	const createRef = (id, node) => {
-		itemsRef.current[id] = node
+		itemsRef.current[id] = node;
 	}
 
+	//determines if item within just collapsed list should stay hidden because direct parent is still decolllapsed
     const shouldItemRemainHidden = (item, itemToggled, potentialParents) => {
-		const parent = potentialParents.find(i => i._id === item.parent)
+		const parent = potentialParents.find(i => i._id === item.parent);
 		if(!parent) {
-			return false
+			return false;
 		}
 		if(parent._id === itemToggled._id) {
-			return false
+			return false;
 		}
 		if(parent.decollapsed) {
-			return true
+			return true;
 		}
-		return shouldItemRemainHidden(parent, itemToggled, potentialParents)
+		return shouldItemRemainHidden(parent, itemToggled, potentialParents);
 	}
 
+	//gets items to redisplay after entering or returning from list
 	const getUnhiddenChildItems = id => {
-		const itemsByON = inOrder(items)
-		const itemToCollapse = items.find(item => item._id === id)
-		const itemOrderNumber = itemToCollapse.orderNumber
-		const descendantItems = getDescendantItems(itemToCollapse._id, items)
-		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + descendantItems.length)
+		const itemsByON = inOrder(items);
+		const itemToCollapse = items.find(item => item._id === id);
+		const itemOrderNumber = itemToCollapse.orderNumber;
+		const descendantItems = getDescendantItems(itemToCollapse._id, items);
+		const potentialParents = itemsByON.slice(itemOrderNumber, itemOrderNumber + 1 + descendantItems.length);
 		const unhiddenItems = descendantItems.map(item => {
 			if(shouldItemRemainHidden(item, itemToCollapse, potentialParents)) {
-				return item
+				return item;
 			}
 			else {
 				return {
 					...item,
 					hidden: false
-				}
+				};
 			}
 		})
-		return unhiddenItems
+		return unhiddenItems;
 	}
 
 	const selectList = id => {
-		const currItem = items.find(item => item._id === id)
-		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber)
-		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false
+		const currItem = items.find(item => item._id === id);
+		const nextItem = items.find(item => currItem.orderNumber + 1 === item.orderNumber);
+		const isNextItemChild = nextItem ? nextItem.indentLevel === currItem.indentLevel + 1 : false;
 		if(isNextItemChild) {
-			setCurrVisibleHiddenItems(null)
-			setList(id)
-			//figure out which condition below makes more sense
+			setCurrVisibleHiddenItems(null);
+			setList(id);
 			if(currItem.decollapsed || nextItem.hidden) {
-               setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
+               setCurrVisibleHiddenItems(getUnhiddenChildItems(id));
             }
 		}
-		if(isNextItemChild) return nextItem
-		else return null
+		if(isNextItemChild) {
+			return nextItem;
+		}
+		return null;
 	}
 
 	const enterChild = id => {
-		const nextItem = selectList(id)
+		const nextItem = selectList(id);
 		if(nextItem) {
-			setFocus(nextItem._id)
+			setFocus(nextItem._id);
 		}
 	}
 
 	const returnToParent = list => {
-		setCurrVisibleHiddenItems(null)
-		const currItem = items.find(item => item._id === list)
-		const parent = currItem ? currItem.parent : null
+		setCurrVisibleHiddenItems(null);
+		const currItem = items.find(item => item._id === list);
+		const parent = currItem ? currItem.parent : null;
 		if(currItem && currItem.hidden) {
-			setCurrVisibleHiddenItems(getUnhiddenChildItems(parent))
+			setCurrVisibleHiddenItems(getUnhiddenChildItems(parent));
 		}
-        setList(parent)
-        setFocus(list)
+        setList(parent);
+        setFocus(list);
 	}
 
 	const breadcrumbsClick = id => {
-		setCurrVisibleHiddenItems(null)
-		const listToMoveTo = items.find(item => item._id === id)
+		setCurrVisibleHiddenItems(null);
+		const listToMoveTo = items.find(item => item._id === id);
 		if(listToMoveTo && listToMoveTo.decollapsed) {
-			setCurrVisibleHiddenItems(getUnhiddenChildItems(id))
+			setCurrVisibleHiddenItems(getUnhiddenChildItems(id));
 		}
-		setList(id)
+		setList(id);
     }
     
     const getItemsToDisplay = () => {
-		const itemsByON = inOrder(items)
+		const itemsByON = inOrder(items);
 		if(list === null) {
-			return itemsByON
-        }
+			return itemsByON;
+        };
         if(currVisibleHiddenItems) {
-            return currVisibleHiddenItems
+            return currVisibleHiddenItems;
         }
-		const itemAsList = items.find(item => list === item._id)
-        const descendantItems = getDescendantItems(list, items)
-		const firstPotentialChildInd = list === null ? 0 : itemAsList.orderNumber + 1
-		const itemsToDisplay = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length)
-		return itemsToDisplay
+		const itemAsList = items.find(item => list === item._id);
+        const descendantItems = getDescendantItems(list, items);
+		const firstPotentialChildInd = list === null ? 0 : itemAsList.orderNumber + 1;
+		const itemsToDisplay = itemsByON.slice(firstPotentialChildInd, firstPotentialChildInd + descendantItems.length);
+		return itemsToDisplay;
 	}
 
 	const handleDisplayAction = (action, id, value) => {
 		switch (action) {
 			case 'createRef': {
-				createRef(id, value)
+				createRef(id, value);
 				break;
 			}
 				case 'enterChild': {
-				enterChild(id, value)
+				enterChild(id, value);
 				break;
 			}
 			case 'returnToParent': {
-				returnToParent(value)
+				returnToParent(value);
 				break;
 			}
 			case 'moveUp': {
@@ -206,88 +214,89 @@ const Displayer = ({items, handleAction, reorder}) => {
 			}
 			case 'tabItem': {
 				if(getNearestSiblingAbove(id)) {
-					handleAction(action, id, value)
+					handleAction(action, id, value);
 				}
 				break;
 			}
 			case 'untabItem': {
 				if(canItemUntab(id)) {
-					handleAction(action, id, value)
+					handleAction(action, id, value);
 				}
 				break;
 			}
 			default: {
-				handleAction(action, id, value)
+				handleAction(action, id, value);
 			}
 		}	
 	}
 
 	const canItemUntab = id => {
-		const currentItems = getItemsToDisplay()
-		const itemToUntab = currentItems.find(item => item._id === id)
-		return itemToUntab.parent !== list
+		const currentItems = getItemsToDisplay();
+		const itemToUntab = currentItems.find(item => item._id === id);
+		return itemToUntab.parent !== list;
 	}
 
+	//finds which item would be the parent of an item that is tabbed
 	const getNearestSiblingAbove = id => {
-		const currentItems = getItemsToDisplay()
-		const itemToFindNewParentFor = currentItems.find(item => item._id === id)
-		const leftItems = currentItems.filter(item => item.orderNumber < itemToFindNewParentFor.orderNumber)
-		const leftItemsReversed = leftItems.sort((a, b) => b.orderNumber - a.orderNumber)
+		const currentItems = getItemsToDisplay();
+		const itemToFindNewParentFor = currentItems.find(item => item._id === id);
+		const leftItems = currentItems.filter(item => item.orderNumber < itemToFindNewParentFor.orderNumber);
+		const leftItemsReversed = leftItems.sort((a, b) => b.orderNumber - a.orderNumber);
 		const areLeftItemsReversedSiblings = leftItemsReversed.map(item => {
 			if(item.indentLevel === itemToFindNewParentFor.indentLevel) {
-				return true
+				return true;
 			}
 			if(item._id === itemToFindNewParentFor.parent) {
-				return false
+				return false;
 			}
-			return null
+			return null;
 		})
-		const potentialNewParentIndex = areLeftItemsReversedSiblings.findIndex(status => status === true)
-		const parentIndex = areLeftItemsReversedSiblings.findIndex(status => status === false)
+		const potentialNewParentIndex = areLeftItemsReversedSiblings.findIndex(status => status === true);
+		const parentIndex = areLeftItemsReversedSiblings.findIndex(status => status === false);
 		if(potentialNewParentIndex === -1) {
-			return null
+			return null;
 		}
 		if(potentialNewParentIndex < parentIndex || parentIndex === -1) {
-			const nearestSiblingAbove = leftItemsReversed[potentialNewParentIndex]
-			return nearestSiblingAbove
+			const nearestSiblingAbove = leftItemsReversed[potentialNewParentIndex];
+			return nearestSiblingAbove;
 		}
 		else {
-			return null
+			return null;
 		}
 	}
 
 	const moveUp = id => {
 		const displayedItems = currVisibleHiddenItems ? currVisibleHiddenItems : items;
-		const itemToMoveFrom = displayedItems.find(item => item._id === id)
-		const itemToMoveFromInd = displayedItems.findIndex(item => item._id === id)
-		const itemsAbove = displayedItems.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, itemToMoveFromInd).sort((a, b) => b.orderNumber - a.orderNumber)
-		const areItemsAboveHidden = itemsAbove.map(item => item.hidden)
-		const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool)
+		const itemToMoveFrom = displayedItems.find(item => item._id === id);
+		const itemToMoveFromInd = displayedItems.findIndex(item => item._id === id);
+		const itemsAbove = displayedItems.sort((a, b) => a.orderNumber - b.orderNumber).slice(0, itemToMoveFromInd).sort((a, b) => b.orderNumber - a.orderNumber);
+		const areItemsAboveHidden = itemsAbove.map(item => item.hidden);
+		const numHiddenItemsAbove = areItemsAboveHidden.findIndex(bool => !bool) === -1 ? areItemsAboveHidden.length : areItemsAboveHidden.findIndex(bool => !bool);
 		if(itemToMoveFromInd - numHiddenItemsAbove - 1 < 0) {
-			return
+			return;
 		}
-		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1)
-		const itemRef = itemsRef.current[itemToFocusOn._id]
+		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber - numHiddenItemsAbove - 1);
+		const itemRef = itemsRef.current[itemToFocusOn._id];
 		if(itemRef) {
-			itemRef.focus()
+			itemRef.focus();
 		}
 	}
 
 	const moveDown = id => {
 		const displayedItems = currVisibleHiddenItems ? currVisibleHiddenItems : items;
-		const itemToMoveFrom = displayedItems.find(item => item._id === id)
-		const itemToMoveFromInd = displayedItems.sort((a, b) => a.orderNumber - b.orderNumber).findIndex(item => item._id === id)
-		const itemsBelow = displayedItems.sort((a, b) => a.orderNumber - b.orderNumber).slice(itemToMoveFromInd + 1, items.length)
-		const areItemsBelowHidden = itemsBelow.map(item => item.hidden)
-		const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool)
+		const itemToMoveFrom = displayedItems.find(item => item._id === id);
+		const itemToMoveFromInd = displayedItems.sort((a, b) => a.orderNumber - b.orderNumber).findIndex(item => item._id === id);
+		const itemsBelow = displayedItems.sort((a, b) => a.orderNumber - b.orderNumber).slice(itemToMoveFromInd + 1, items.length);
+		const areItemsBelowHidden = itemsBelow.map(item => item.hidden);
+		const numHiddenItemsBelow = areItemsBelowHidden.findIndex(bool => !bool) === -1 ? areItemsBelowHidden.length : areItemsBelowHidden.findIndex(bool => !bool);
 		if(itemToMoveFromInd + numHiddenItemsBelow + 1 > items.length - 1) {
-			return
+			return;
 		}
-		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow)
+		const itemToFocusOn = items.find(item => item.orderNumber === itemToMoveFrom.orderNumber + 1 + numHiddenItemsBelow);
 		if(itemToFocusOn) {
-			const itemRef = itemsRef.current[itemToFocusOn._id]
+			const itemRef = itemsRef.current[itemToFocusOn._id];
 			if(itemRef) {
-				itemRef.focus()
+				itemRef.focus();
 			}
 		}
 	}

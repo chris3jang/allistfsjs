@@ -37,7 +37,7 @@ const Item = ({item, checked, indentLevel, list, handleAction, reorder}) => {
 		end: (_dropResult, monitor) => {
 		  const { item } = monitor.getItem();
 		  const dropTarget = monitor.getDropResult().dropTarget;
-		  reorder(item._id, item.orderNumber, dropTarget._id, dropTarget.orderNumber)
+		  reorder(item._id, dropTarget.orderNumber)
 		},
 	})
 
