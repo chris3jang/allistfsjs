@@ -286,51 +286,54 @@ const Data = () => {
 	}
 
 	const reorder = (draggedPK, droppedON) => {
-		callFetch('reorder', { id: draggedPK, newOrderNumber: droppedON }).then(() => {
-			const itemsByON = inOrder(items.slice(0));
-			const draggedItem = items.find(item => item._id === draggedPK);
-			const descendantItems = getDescendantItems(draggedItem._id, items);
-			const droppedItem = items.find(item => item.orderNumber === droppedON);
-			const droppedItemDescendants = getDescendantItems(droppedItem._id, items);
-			const lowerRange = (draggedItem.orderNumber < droppedON ? (draggedItem.orderNumber + descendantItems.length + 1) : droppedON);
-    		const upperRange = (draggedItem.orderNumber < droppedON ? (droppedON + droppedItemDescendants.length) : (draggedItem.orderNumber - 1));
-			const inc = (descendantItems.length+1) * (draggedItem.orderNumber < droppedON ? -1 : 1);
-			const itemsToShift = itemsByON.slice(lowerRange, upperRange + 1);
-			const descendantInc = (draggedItem.orderNumber < droppedON ? droppedON - draggedItem.orderNumber - descendantItems.length + droppedItemDescendants.length : droppedON - draggedItem.orderNumber);
-			const indLevInc = droppedItem.indentLevel - draggedItem.indentLevel;
-			const newParent = droppedItem.parent;
-			const descendantsToReorder = inOrder(items).slice(draggedItem.orderNumber + 1, draggedItem.orderNumber + descendantItems.length + 1);
-			const rangeOrderNumbers = [lowerRange, upperRange + 1, draggedItem.orderNumber, draggedItem.orderNumber + descendantItems.length + 1].sort((a, b) => a - b);
-			const leftItems = itemsByON.slice(0, rangeOrderNumbers[0]);
-			const middleItems = itemsByON.slice(rangeOrderNumbers[1], rangeOrderNumbers[2]);
-			const rightItems = itemsByON.slice(rangeOrderNumbers[3]);
-			const itemsAfterReorderUnsorted = [
-				...leftItems,
-				...middleItems,
-				...rightItems,
-				...itemsToShift.map(item => {
-					return {
-						...item,
-						orderNumber: item.orderNumber + inc
-					};
-				}),
-				...descendantsToReorder.map(item => {
-					return {
-						...item,
-						orderNumber: item.orderNumber + descendantInc,
-						indentLevel: item.indentLevel + indLevInc
-					};
-				}),
-				{
-					...draggedItem,
-					orderNumber: draggedItem.orderNumber + descendantInc,
-					indentLevel: draggedItem.indentLevel + indLevInc,
-					parent: newParent
-				}
-			]
-			const itemsAfterReorder = inOrder(itemsAfterReorderUnsorted);
-			setItems(itemsAfterReorder);
-		})
+		const draggedItem = items.find(item => item._id === draggedPK);
+		const droppedItem = items.find(item => item.orderNumber === droppedON);
+		const descendantItems = getDescendantItems(draggedItem._id, items);
+		const isDroppedItemDescendant = descendantItems.findIndex(item => item._id === droppedItem._id) > -1;
+		if(!isDroppedItemDescendant) {
+			callFetch('reorder', { id: draggedPK, newOrderNumber: droppedON }).then(() => {
+				const itemsByON = inOrder(items.slice(0));
+				const droppedItemDescendants = getDescendantItems(droppedItem._id, items);
+				const lowerRange = (draggedItem.orderNumber < droppedON ? (draggedItem.orderNumber + descendantItems.length + 1) : droppedON);
+				const upperRange = (draggedItem.orderNumber < droppedON ? (droppedON + droppedItemDescendants.length) : (draggedItem.orderNumber - 1));
+				const inc = (descendantItems.length+1) * (draggedItem.orderNumber < droppedON ? -1 : 1);
+				const itemsToShift = itemsByON.slice(lowerRange, upperRange + 1);
+				const descendantInc = (draggedItem.orderNumber < droppedON ? droppedON - draggedItem.orderNumber - descendantItems.length + droppedItemDescendants.length : droppedON - draggedItem.orderNumber);
+				const indLevInc = droppedItem.indentLevel - draggedItem.indentLevel;
+				const newParent = droppedItem.parent;
+				const descendantsToReorder = inOrder(items).slice(draggedItem.orderNumber + 1, draggedItem.orderNumber + descendantItems.length + 1);
+				const rangeOrderNumbers = [lowerRange, upperRange + 1, draggedItem.orderNumber, draggedItem.orderNumber + descendantItems.length + 1].sort((a, b) => a - b);
+				const leftItems = itemsByON.slice(0, rangeOrderNumbers[0]);
+				const middleItems = itemsByON.slice(rangeOrderNumbers[1], rangeOrderNumbers[2]);
+				const rightItems = itemsByON.slice(rangeOrderNumbers[3]);
+				const itemsAfterReorderUnsorted = [
+					...leftItems,
+					...middleItems,
+					...rightItems,
+					...itemsToShift.map(item => {
+						return {
+							...item,
+							orderNumber: item.orderNumber + inc
+						};
+					}),
+					...descendantsToReorder.map(item => {
+						return {
+							...item,
+							orderNumber: item.orderNumber + descendantInc,
+							indentLevel: item.indentLevel + indLevInc
+						};
+					}),
+					{
+						...draggedItem,
+						orderNumber: draggedItem.orderNumber + descendantInc,
+						indentLevel: draggedItem.indentLevel + indLevInc,
+						parent: newParent
+					}
+				]
+				const itemsAfterReorder = inOrder(itemsAfterReorderUnsorted);
+				setItems(itemsAfterReorder);
+			})
+		}
 	} 
 
 	return (
