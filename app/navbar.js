@@ -63,14 +63,13 @@ const useStyles = createUseStyles({
 	}
 })
 
-const NavBar = ({trashCheckedItemsFromNav, logout}) => {
+const NavBar = ({logout}) => {
 	const classes = useStyles()
 	return (
 		<div className={classes.topNav}>
 			<nav>
 				<img className={classes.logo} src={logo} />
 				<div className={classes.buttonDiv}>
-					<button className={classes.button} onClick={() => trashCheckedItemsFromNav()}>Trash</button>
 					<button className={classes.button} onClick={() => logout()}>Logout</button>
 				</div>
 			</nav>

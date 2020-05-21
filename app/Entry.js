@@ -109,13 +109,7 @@ const Entry = ({login, register, test}) => {
 		e.preventDefault()
 		const email = e.target.parentElement.parentNode[0].value
         const password = e.target.parentElement.parentNode[1].value
-		login(email, password, false )
-    }
-    
-    const handleNewLogin = (e) => {
-		const email = e.target.parentElement.parentNode[0].value
-        const password = e.target.parentElement.parentNode[1].value
-		login(email, password, true )
+		login(email, password)
     }
     
     const handleRegister = (e) => {
@@ -151,9 +145,6 @@ const Entry = ({login, register, test}) => {
                             </div>
                             <div className={classes.sbmtBtnDiv}>
                                 <button type="submit" onClick={type === 'LOGIN' ? handleLogin : handleRegister} className={classes.sbmtBtn}>{type}</button>
-                            </div>
-                            <div className={classes.sbmtBtnDiv}>
-                                <button type="button" onClick={handleNewLogin} className={classes.sbmtBtn}>NEW FRONTEND</button>
                             </div>
                         </form>
                     </div>

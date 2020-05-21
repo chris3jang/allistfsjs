@@ -3,19 +3,19 @@ import Entry from './Entry';
 import './css/fonts.css';
 import jwt_decode from 'jwt-decode';
 
-import Data from './Data'
-import NavBar from './NavBar'
+import Data from './Data';
+import NavBar from './NavBar';
 
-import { usePrevious } from './hooks'
+import { usePrevious } from './hooks';
 
 import {
 	HashRouter as Router,
 	Route,
 	Redirect,
 	Switch
-} from 'react-router-dom'
+} from 'react-router-dom';
 
-import {createUseStyles} from 'react-jss'
+import {createUseStyles} from 'react-jss';
 
 const useStyles = createUseStyles({
 	'@font-face': {
@@ -31,10 +31,9 @@ const App = () => {
 
 	const classes = useStyles();
 
-	const [auth, setAuth] = useState(false)
-	const [newFrontEnd, setNewFrontEnd] = useState(false)
-	const lastActivityRef = useRef()
-	const timerRef = useRef()
+	const [auth, setAuth] = useState(false);
+	const lastActivityRef = useRef();
+	const timerRef = useRef();
 
 	useEffect(() => {
 		getAuth();
@@ -47,10 +46,10 @@ const App = () => {
 		}
 	}, [])
 
-	const prevAuth = usePrevious(auth)
+	const prevAuth = usePrevious(auth);
 	useEffect(() => {
 		if(prevAuth !== auth) {
-			getAuth()
+			getAuth();
 		}
 	}, [auth])
 
@@ -77,10 +76,11 @@ const App = () => {
 			fetch('/users/', { headers })
 			.then(resp => {
 				if(resp.statusText === "OK") {
-					setAuth(true)
+					setAuth(true);
 				}
-				else setAuth(false)
-				//if(resp.statusText == "Unauthorized") console.log("Unauthorized");
+				else {
+					setAuth(false);
+				}
 			})
 			.catch(function(error) {console.log(error)});
 		}
@@ -110,7 +110,7 @@ const App = () => {
 	const handleLogOut = () => {
 		localStorage.removeItem('access');
 		localStorage.removeItem('refresh');
-		setAuth(false)
+		setAuth(false);
 	}
 
 	const checkIdleTime = () => {
@@ -120,17 +120,17 @@ const App = () => {
 		if(localStorage.getItem('access')){
 			const accessToken = localStorage.getItem('access')
 			if(jwt_decode(accessToken).exp < Date.now()/1000 + 2 * 60) {
-				refreshAccessToken()
+				refreshAccessToken();
 			}
 		}	
 		if(remTime > 60 * 5) {
 			localStorage.removeItem('access');
 			localStorage.removeItem('refresh');
-			setAuth(false)
+			setAuth(false);
 		}
 	};
 
-	const logIn = (username, password, act) => {
+	const logIn = (username, password) => {
 		const data = {
 			username,
 			password
@@ -149,10 +149,7 @@ const App = () => {
 		.then(data => {
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
-			if(act) {
-				setNewFrontEnd(true)
-			}
-			setAuth(true)
+			setAuth(true);
 		})
 	};
 
@@ -175,7 +172,7 @@ const App = () => {
 		.then(data => {
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
-			setAuth(true)
+			setAuth(true);
 		})
 	};
 
@@ -198,25 +195,9 @@ const App = () => {
 		.then(data => {
 			localStorage.setItem('access', data.token.accessToken);
 			localStorage.setItem('refresh', data.token.refreshToken);
-			setAuth(true)
+			setAuth(true);
 		})
 	};
-
-	const handleTrashCheckedItemsFromNav = () => {
-		const self = this
-		const fetchData = { 
-		    method: 'DELETE', body: JSON.stringify({orderNumber: 0}),
-		    headers: new Headers({
-		    	'authorization': 'Bearer ' + localStorage.getItem('access'),
-		    	'content-type': 'application/json',
-		    	'X-Requested-With': 'XMLHttpRequest'
-		    })
-		}
-		fetch('/items/trash/', fetchData)
-			.then((data) => {
-				//self.setState({updateChild: true})
-			});
-	}
 
 	const landing = 
 		!auth ? (
@@ -236,7 +217,6 @@ const App = () => {
 		auth ? 
 		<Fragment>
 			<NavBar
-				trashCheckedItemsFromNav={handleTrashCheckedItemsFromNav}
 				logout={handleLogOut} 
 			/>
 			<Data />
